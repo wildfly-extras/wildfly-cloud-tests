@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/tests/wildfly-cloud-tests (1).iml" filepath="$PROJECT_DIR$/tests/wildfly-cloud-tests (1).iml" />
+      <module fileurl="file://$PROJECT_DIR$/tests/temp/mini-http/wildfly-cloud-tests-mini-http.iml" filepath="$PROJECT_DIR$/tests/temp/mini-http/wildfly-cloud-tests-mini-http.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tests/temp/mini-http-openshift/wildfly-cloud-tests-mini-http-openshift.iml" filepath="$PROJECT_DIR$/tests/temp/mini-http-openshift/wildfly-cloud-tests-mini-http-openshift.iml" />
+    </modules>
+  </component>
+</project>

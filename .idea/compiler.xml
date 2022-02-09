@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <wildcardResourcePatterns>
+      <entry name="!?*.java" />
+      <entry name="!?*.form" />
+      <entry name="!?*.class" />
+      <entry name="!?*.groovy" />
+      <entry name="!?*.scala" />
+      <entry name="!?*.flex" />
+      <entry name="!?*.kt" />
+      <entry name="!?*.clj" />
+    </wildcardResourcePatterns>
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="wildfly-cloud-tests-framework-openshift" />
+        <module name="wildfly-cloud-tests-core-env-vars-override-model" />
+        <module name="wildfly-cloud-tests-mp-config-sources" />
+        <module name="wildfly-cloud-dekorate-tests-core-env-vars-override-model" />
+        <module name="wildfly-cloud-tests-microprofile-reactive-messaging-strimzi" />
+        <module name="wildfly-cloud-tests-framework-kubernetes" />
+        <module name="wildfly-cloud-tests-ds-postgresql" />
+        <module name="wildfly-cloud-tests-framework-app" />
+        <module name="wildfly-cloud-tests-oidc-auto-registration" />
+        <module name="wildfly-cloud-tests-common (1)" />
+      </profile>
+      <profile name="Annotation profile for wildfly-cloud-tests-mini-http" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <option name="wildfly.cloud.test.base.image.name" value="wildfly-cloud-test-image/image-cloud-server:latest" />
+        <module name="wildfly-cloud-tests-mini-http" />
+      </profile>
+      <profile name="Annotation profile for wildfly-cloud-tests-mini-http-openshift" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <option name="wildfly.cloud.test.base.image.name" value="wildfly-cloud-test-image/image-cloud-server:latest" />
+        <module name="wildfly-cloud-tests-mini-http-openshift" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="image-cloud-server" target="11" />
+      <module name="wildfly-cloud-desired-tests" target="11" />
+      <module name="wildfly-cloud-jcloud-tests" target="11" />
+      <module name="wildfly-cloud-jcloud-tests-core" target="11" />
+      <module name="wildfly-cloud-jcloud-tests-parent" target="11" />
+      <module name="wildfly-cloud-tests (1)" target="11" />
+      <module name="wildfly-cloud-tests-core-env-vars-override-model (1)" target="11" />
+      <module name="wildfly-cloud-tests-desired" target="11" />
+      <module name="wildfly-cloud-tests-framework-kubernetes (1)" target="11" />
+      <module name="wildfly-cloud-tests-jcloud-wildfly" target="11" />
+      <module name="wildfly-cloud-tests-junit5" target="11" />
+      <module name="wildfly-cloud-tests-manual-rhoask" target="11" />
+      <module name="wildfly-cloud-tests-microprofile-reactive-messaging-strimzi (1)" target="11" />
+      <module name="wildfly-cloud-tests-mini-http" target="11" />
+      <module name="wildfly-cloud-tests-mini-http-openshift" target="11" />
+      <module name="wildfly-cloud-tests-mp-config-sources (1)" target="11" />
+      <module name="wildfly-cloud-tests-mpconfig" target="11" />
+      <module name="wildfly-cloud-tests-openshift-poc" target="11" />
+      <module name="wildfly-cloud-tests-temp" target="11" />
+      <module name="wildfly-cloud-testsuite" target="11" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="wildfly-cloud-dekorate-tests-core" options="" />
+      <module name="wildfly-cloud-dekorate-tests-core-env-vars-override-model" options="-J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-desired-tests" options="-Xlint:unchecked" />
+      <module name="wildfly-cloud-jcloud-tests-core" options="-J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests" options="" />
+      <module name="wildfly-cloud-tests (1)" options="" />
+      <module name="wildfly-cloud-tests-common" options="-Xlint:unchecked" />
+      <module name="wildfly-cloud-tests-common (1)" options="-Xlint:unchecked" />
+      <module name="wildfly-cloud-tests-core" options="" />
+      <module name="wildfly-cloud-tests-core-env-vars-override-model" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-datasources" options="" />
+      <module name="wildfly-cloud-tests-desired" options="-Xlint:unchecked" />
+      <module name="wildfly-cloud-tests-ds-postgresql" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server-with-postgresql-datasource:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-framework" options="" />
+      <module name="wildfly-cloud-tests-framework-app" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-framework-kubernetes" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-framework-kubernetes (1)" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-framework-openshift" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-jcloud-wildfly" options="-Xlint:unchecked" />
+      <module name="wildfly-cloud-tests-junit5" options="-Xlint:unchecked" />
+      <module name="wildfly-cloud-tests-manual" options="" />
+      <module name="wildfly-cloud-tests-manual-rhoask" options="-J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-microprofile" options="" />
+      <module name="wildfly-cloud-tests-microprofile-reactive-messaging" options="" />
+      <module name="wildfly-cloud-tests-microprofile-reactive-messaging-strimzi" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-microprofile-reactive-messaging-kafka:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-microprofile-reactive-messaging-strimzi (1)" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-microprofile-reactive-messaging-kafka:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-mini-http" options="-Awildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server:latest" />
+      <module name="wildfly-cloud-tests-mini-http-openshift" options="-Awildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server:latest" />
+      <module name="wildfly-cloud-tests-mp-config-sources" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-mpconfig" options="-Xlint:unchecked" />
+      <module name="wildfly-cloud-tests-oidc-auto-registration" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server-with-elytron-oidc-client:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-openshift-poc" options="-J-Dwildfly.cloud.test.base.image.name=wildfly-cloud-test-image/image-cloud-server:latest -J-Ddekorate.docker.registry=localhost:5000 -J-Ddekorate.push=true" />
+      <module name="wildfly-cloud-tests-temp" options="" />
+      <module name="wildfly-cloud-testsuite" options="-Xlint:unchecked" />
+    </option>
+  </component>
+</project>
