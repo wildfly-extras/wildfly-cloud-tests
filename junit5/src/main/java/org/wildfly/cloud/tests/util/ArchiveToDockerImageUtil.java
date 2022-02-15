@@ -72,6 +72,10 @@ public class ArchiveToDockerImageUtil {
         }
     }
 
+    public void cleanupImage() throws Exception {
+
+    }
+
     private String writeArchiveToTempDirectory(Path dir) {
         String archiveName = archive.getName();
         archive.as(ZipExporter.class).exportTo(dir.resolve(archiveName).toFile(), true);

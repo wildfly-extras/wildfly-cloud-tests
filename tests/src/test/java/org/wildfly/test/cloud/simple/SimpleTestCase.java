@@ -17,33 +17,28 @@
  *
  */
 
-package org.wildfly.cloud.tests.api;
+package org.wildfly.test.cloud.simple;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
+import org.wildfly.cloud.tests.api.BuildImageTest;
+import org.wildfly.cloud.tests.api.Deployment;
 
 /**
- * Add to a static method returning a Shrinkwrap Archive (or subclass)
- * and the framework will create an image based on that.
- *
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Deployment {
-    /**
-     * The name of the image to use
-     *
-     * @return the image name
-     */
-    String fromImage();
+@BuildImageTest
+public class SimpleTestCase {
+    @Deployment(fromImage = "wildfly-cloud-test-image/cloud-server:latest", toImage = "wildfly/simple-test-case")
+    public static WebArchive createDeployment() {
+        WebArchive wa = ShrinkWrap.create(WebArchive.class, "myapp.war")
+                .addClass(SimpleTestCase.class);
+        return wa;
+    }
 
-    /**
-     * The name of the image to create containing the deployment
-     *
-     * @return the image name
-     */
-    String toImage();
+    @Test
+    public void testSomething() {
+        org.junit.jupiter.api.Assertions.assertTrue(true);
+    }
 }

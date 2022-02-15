@@ -30,117 +30,27 @@
     </parent>
     <artifactId>wildfly-cloud-tests</artifactId>
 
-    <properties>
-
-
-    </properties>
-
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>wildfly-cloud-tests-junit5</artifactId>
-            <scope>test</scope>
+            <groupId>org.jboss.shrinkwrap</groupId>
+            <artifactId>shrinkwrap-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap</groupId>
+            <artifactId>shrinkwrap-impl-base</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly.cloud-tests</groupId>
+            <artifactId>wildfly-cloud-tests-junit5</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <!-- When built in OpenShift the 'openshift' profile will be used when invoking mvn. -->
-            <!-- Use this profile for any OpenShift specific customization your app will need. -->
-            <!-- By default that is to put the resulting archive into the 'deployments' folder. -->
-            <!-- http://maven.apache.org/guides/mini/guide-building-for-different-environments.html -->
-            <id>openshift</id>
-            <build>
-                <plugins>
-<!--
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                    </plugin>
--->
-                    <plugin>
-                        <groupId>org.wildfly.plugins</groupId>
-                        <artifactId>wildfly-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>provision-base-cloud-server</id>
-                                <phase>process-test-resources</phase>
-                                <goals>
-                                    <goal>package</goal>
-                                </goals>
-                                <configuration>
-                                    <!-- some tests check for the provisioned galleon layers -->
-                                    <record-provisioning-state>true</record-provisioning-state>
-                                    <feature-packs>
-                                        <feature-pack>
-                                            <location>org.wildfly:wildfly-galleon-pack:${version.wildfly}</location>
-                                        </feature-pack>
-                                        <feature-pack>
-                                            <location>org.wildfly.cloud:wildfly-cloud-galleon-pack:${version.wildfly.cloud.galleon.pack}</location>
-                                        </feature-pack>
-                                    </feature-packs>
-                                    <layers>
-                                        <layer>cloud-server</layer>
-                                    </layers>
-                                    <galleon-options>
-                                        <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
-                                    </galleon-options>
-                                    <targetDir>target/cloud-server</targetDir>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>build-cloud-server</id>
-                                <phase>process-test-classes</phase>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                                <configuration>
-                                    <images>
-                                        <image>
-                                            <name>wildfly/test-cloud-server:latest</name>
-                                            <alias>server</alias>
-                                            <build>
-                                                <from>${image.name.wildfly.runtime}</from>
-                                                <assembly>
-                                                    <mode>dir</mode>
-                                                    <user>jboss:root</user>
-                                                    <targetDir>/opt/server</targetDir>
-                                                    <inline>
-                                                        <formats>
-                                                            <format>dir</format>
-                                                        </formats>
-                                                        <fileSets>
-                                                            <fileSet>
-                                                                <directory>target/cloud-server/server</directory>
-                                                                <outputDirectory>/</outputDirectory>
-                                                                <includes>
-                                                                    <include>**</include>
-                                                                </includes>
-                                                            </fileSet>
-                                                        </fileSets>
-                                                    </inline>
-                                                </assembly>
-                                            </build>
-                                        </image>
-                                    </images>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>

@@ -51,6 +51,7 @@
         <!-- Misc -->
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <version.io.decorate.kubernetes-junit>2.9.0</version.io.decorate.kubernetes-junit>
     </properties>
 
     <dependencyManagement>
@@ -61,8 +62,18 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>kubernetes-junit</artifactId>
+                <version>${version.io.decorate.kubernetes-junit}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-engine</artifactId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${version.org.junit.jupiter-engine.jupiter-engine}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
                 <version>${version.org.junit.jupiter-engine.jupiter-engine}</version>
             </dependency>
             <dependency>
@@ -96,6 +107,7 @@
     </build>
 
     <modules>
+        <module>images</module>
         <module>junit5</module>
         <module>tests</module>
     </modules>

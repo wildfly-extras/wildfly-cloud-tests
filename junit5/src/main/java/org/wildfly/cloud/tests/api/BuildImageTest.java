@@ -24,26 +24,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.wildfly.cloud.tests.extension.CreateDeploymentImageExtension;
+
 /**
- * Add to a static method returning a Shrinkwrap Archive (or subclass)
- * and the framework will create an image based on that.
+ * Inspects the class for a {@link Deployment} annotation, and invokes {@link CreateDeploymentImageExtension}
+ * if present.
  *
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
-@Target(ElementType.METHOD)
+@Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Deployment {
-    /**
-     * The name of the image to use
-     *
-     * @return the image name
-     */
-    String fromImage();
-
-    /**
-     * The name of the image to create containing the deployment
-     *
-     * @return the image name
-     */
-    String toImage();
+@ExtendWith(CreateDeploymentImageExtension.class)
+public @interface BuildImageTest {
 }
