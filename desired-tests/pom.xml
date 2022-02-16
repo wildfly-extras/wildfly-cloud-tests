@@ -28,9 +28,15 @@
         <artifactId>wildfly-cloud-tests-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>wildfly-cloud-tests</artifactId>
+    <artifactId>wildfly-cloud-tests-desired</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>image-cloud-server</artifactId>
+            <scope>provided</scope>
+            <type>pom</type>
+        </dependency>
         <dependency>
             <groupId>org.jboss.shrinkwrap</groupId>
             <artifactId>shrinkwrap-api</artifactId>

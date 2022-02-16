@@ -25,23 +25,34 @@
 
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
-        <artifactId>wildfly-cloud-test-images</artifactId>
+        <artifactId>wildfly-cloud-tests-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>image-cloud-server</artifactId>
+    <artifactId>wildfly-cloud-tests</artifactId>
     <packaging>pom</packaging>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-maven-plugin</artifactId>
-                <configuration>
-                    <layers>
-                        <layer>cloud-server</layer>
-                    </layers>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>image-cloud-server</artifactId>
+            <scope>provided</scope>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap</groupId>
+            <artifactId>shrinkwrap-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap</groupId>
+            <artifactId>shrinkwrap-impl-base</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
 </project>
