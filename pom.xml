@@ -164,10 +164,9 @@
     </build>
 
     <modules>
+        <module>common</module>
         <module>images</module>
-        <module>junit5</module>
-        <module>dekorate-tests</module>
-        <module>desired-tests</module>
+        <module>tests</module>
     </modules>
 
 

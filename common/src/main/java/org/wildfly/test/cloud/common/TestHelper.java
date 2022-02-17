@@ -61,7 +61,6 @@ public class TestHelper {
                 if (response.code() == 200) {
                     String log = k8sClient.pods().withName(podName).inContainer(containerName).getLog();
                     if (log.contains("WFLYSRV0025")) {
-                        System.out.println("Returning true");
                         return true;
                     }
                 }
