@@ -37,21 +37,27 @@
     <properties>
         <!-- Image creation properties -->
         <image.name.wildfly.runtime>quay.io/jfdenise/wildfly-runtime-jdk11:latest</image.name.wildfly.runtime>
-        <version.wildfly>26.0.0.Final</version.wildfly>
+        <version.wildfly>27.0.0.Beta1-SNAPSHOT</version.wildfly>
         <version.wildfly.cloud.galleon.pack>1.0.0.Beta3</version.wildfly.cloud.galleon.pack>
 
         <!-- Dependency versions -->
+        <version.org.jboss.jboss-dmr>1.6.1.Final</version.org.jboss.jboss-dmr>
         <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
-        <version.org.junit.jupiter-engine.jupiter-engine>5.8.1</version.org.junit.jupiter-engine.jupiter-engine>
+        <version.org.junit.jupiter.jupiter>5.8.1</version.org.junit.jupiter.jupiter>
+        <version.io.decorate.dekorate>2.9.0</version.io.decorate.dekorate>
+        <version.io.fabric8.kubernetes>5.10.0</version.io.fabric8.kubernetes>
+        <!-- We need to override the version of this since we end up bringing in two incompatible versions -->
+        <version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml>2.12.3</version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml>
 
         <!-- Plugin versions -->
         <version.io.fabric8.docker-maven-plugin>0.39.0</version.io.fabric8.docker-maven-plugin>
+        <version.org.apache.maven.plugins.maven-failsafe-plugin>3.0.0-M3</version.org.apache.maven.plugins.maven-failsafe-plugin>
         <version.org.wildfly.plugins.wildfly-maven-plugin>3.0.0.Beta1</version.org.wildfly.plugins.wildfly-maven-plugin>
 
         <!-- Misc -->
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <version.io.decorate.kubernetes-junit>2.9.0</version.io.decorate.kubernetes-junit>
+
     </properties>
 
     <dependencyManagement>
@@ -82,19 +88,45 @@
                 <type>pom</type>
             </dependency>
             <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>wildfly-cloud-tests-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
+                <version>${version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>kubernetes-annotations</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.dekorate</groupId>
                 <artifactId>kubernetes-junit</artifactId>
-                <version>${version.io.decorate.kubernetes-junit}</version>
+                <version>${version.io.decorate.dekorate}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-client</artifactId>
+                <version>${version.io.fabric8.kubernetes}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss</groupId>
+                <artifactId>jboss-dmr</artifactId>
+                <version>${version.org.jboss.jboss-dmr}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-api</artifactId>
-                <version>${version.org.junit.jupiter-engine.jupiter-engine}</version>
+                <version>${version.org.junit.jupiter.jupiter}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
-                <version>${version.org.junit.jupiter-engine.jupiter-engine}</version>
+                <version>${version.org.junit.jupiter.jupiter}</version>
             </dependency>
             <dependency>
                 <groupId>org.jboss.shrinkwrap</groupId>
@@ -112,6 +144,11 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${version.org.apache.maven.plugins.maven-failsafe-plugin}</version>
+                </plugin>
                 <plugin>
                     <groupId>org.wildfly.plugins</groupId>
                     <artifactId>wildfly-maven-plugin</artifactId>

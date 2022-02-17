@@ -25,15 +25,39 @@
 
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
-        <artifactId>wildfly-cloud-tests-parent</artifactId>
+        <artifactId>wildfly-cloud-dekorate-tests-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>wildfly-cloud-dekorate-tests-parent</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>wildfly-cloud-tests-common</artifactId>
 
-    <modules>
-        <module>common</module>
-        <module>tests</module>
-    </modules>
-
+    <dependencies>
+        <!-- Images -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>image-cloud-server</artifactId>
+            <scope>provided</scope>
+            <type>pom</type>
+        </dependency>
+        <!-- Other dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss</groupId>
+            <artifactId>jboss-dmr</artifactId>
+            <scope>provided</scope>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.dekorate</groupId>-->
+<!--            <artifactId>kubernetes-junit</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>
