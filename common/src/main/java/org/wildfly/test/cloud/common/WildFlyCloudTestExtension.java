@@ -47,27 +47,31 @@ public class WildFlyCloudTestExtension implements Extension, BeforeEachCallback,
                 projectName);
 
         Object testInstance = context.getTestInstance().get();
-        Arrays.stream(testInstance.getClass().getDeclaredFields())
-                .forEach(field -> {
-                    if (!field.getType().isAssignableFrom(TestHelper.class)) {
-                        return;
-                    }
+        Class clazz = testInstance.getClass();
+        while (clazz != Object.class) {
+            Arrays.stream(clazz.getDeclaredFields())
+                    .forEach(field -> {
+                        if (!field.getType().isAssignableFrom(TestHelper.class)) {
+                            return;
+                        }
 
-                    //This is to make sure we don't write on fields by accident.
-                    //Note: we don't require the exact annotation. Any annotation named Inject will do (be it javax, guice etc)
-                    if (!stream(field.getDeclaredAnnotations()).filter(a -> a.annotationType().getSimpleName().equalsIgnoreCase("Inject"))
-                            .findAny().isPresent()) {
-                        return;
-                    }
+                        //This is to make sure we don't write on fields by accident.
+                        //Note: we don't require the exact annotation. Any annotation named Inject will do (be it javax, guice etc)
+                        if (!stream(field.getDeclaredAnnotations()).filter(a -> a.annotationType().getSimpleName().equalsIgnoreCase("Inject"))
+                                .findAny().isPresent()) {
+                            return;
+                        }
 
-                    field.setAccessible(true);
-                    try {
-                        field.set(testInstance, helper);
-                    } catch (IllegalAccessException e) {
-                        throw DekorateException.launderThrowable(e);
-                    }
+                        field.setAccessible(true);
+                        try {
+                            field.set(testInstance, helper);
+                        } catch (IllegalAccessException e) {
+                            throw DekorateException.launderThrowable(e);
+                        }
 
-                });
+                    });
+            clazz = clazz.getSuperclass();
+        }
 
     }
 

@@ -47,25 +47,17 @@ public class EndpointTestCaseIT extends WildFlyCloudTestCase {
     @Inject
     private KubernetesList list;
 
-    @Inject
-    private TestHelper helper;
-
-    @BeforeEach
-    public void waitForWildFlyReadiness() {
-        helper.waitUntilWildFlyIsReady(30000);
-    }
-
     @Test
     public void envVarOverridesManagementAttribute() throws Exception {
         String command = "/subsystem=logging/root-logger=ROOT:read-attribute(name=level)";
-        ModelNode reply = helper.executeCLICommands(command);
-        ModelNode result = helper.checkOperation(true, reply);
+        ModelNode reply = getHelper().executeCLICommands(command);
+        ModelNode result = getHelper().checkOperation(true, reply);
         assertEquals("DEBUG", result.asString());
         httpClientCall();
     }
 
     private void httpClientCall() throws Exception {
-        helper.doWithWebPortForward("", (url) -> {
+        getHelper().doWithWebPortForward("", (url) -> {
 
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder().get().url(url)

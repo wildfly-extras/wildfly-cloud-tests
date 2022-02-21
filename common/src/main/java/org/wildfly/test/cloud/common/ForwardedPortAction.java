@@ -19,28 +19,12 @@
 
 package org.wildfly.test.cloud.common;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.RegisterExtension;
-
-import io.dekorate.testing.annotation.Inject;
+import java.net.URL;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
-public class WildFlyCloudTestCase {
-    @RegisterExtension
-    private WildFlyCloudTestExtension wildflyExtension = new WildFlyCloudTestExtension();
-
-    @Inject
-    private TestHelper helper;
-
-    @BeforeEach
-    public void waitForWildFlyReadiness() {
-         helper.waitUntilWildFlyIsReady(30000);
-    }
-
-    public TestHelper getHelper() {
-        return helper;
-    }
-
+@FunctionalInterface
+public interface ForwardedPortAction<T> {
+    T get(URL url) throws Exception;
 }
