@@ -143,6 +143,16 @@ public class TestHelper {
         return result.get("result");
     }
 
+    public <R> R doWithWebPortForward(String path, ForwardedPortAction<R> action) throws Exception {
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+        try (LocalPortForward p = k8sClient.services().withName(containerName).portForward(8080)) {
+            assertTrue(p.isAlive());
+            URL url = new URL("http://localhost:" + p.getLocalPort() + path);
+            return action.get(url);
+        }
+    }
     private String getFirstPodName() {
         Pod pod = k8sClient.pods().list().getItems().get(0);
         return pod.getMetadata().getName();

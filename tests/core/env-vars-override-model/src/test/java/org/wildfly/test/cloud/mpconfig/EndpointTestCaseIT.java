@@ -22,12 +22,6 @@
 package org.wildfly.test.cloud.mpconfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.wildfly.test.cloud.common.TestHelper.waitUntilWildFlyIsReady;
-
-import java.io.IOException;
-import java.net.URL;
 
 import org.jboss.dmr.ModelNode;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,9 +32,7 @@ import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import io.dekorate.testing.annotation.Inject;
 import io.dekorate.testing.annotation.KubernetesIntegrationTest;
 import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.LocalPortForward;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -64,18 +56,16 @@ public class EndpointTestCaseIT extends WildFlyCloudTestCase {
     }
 
     @Test
-    public void envVarOverridesManagementAttribute() throws IOException {
-        // httpClientCall();
+    public void envVarOverridesManagementAttribute() throws Exception {
         String command = "/subsystem=logging/root-logger=ROOT:read-attribute(name=level)";
         ModelNode reply = helper.executeCLICommands(command);
         ModelNode result = helper.checkOperation(true, reply);
         assertEquals("DEBUG", result.asString());
+        httpClientCall();
     }
 
-    private void httpClientCall() throws IOException {
-        try (LocalPortForward p = client.services().withName(CONTAINER_NAME).portForward(8080)) { //port matches what is configured in properties file
-            assertTrue(p.isAlive());
-            URL url = new URL("http://localhost:" + p.getLocalPort() + "/");
+    private void httpClientCall() throws Exception {
+        helper.doWithWebPortForward("", (url) -> {
 
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder().get().url(url)
@@ -83,6 +73,7 @@ public class EndpointTestCaseIT extends WildFlyCloudTestCase {
                     .build();
             Response response = client.newCall(request).execute();
             assertEquals(response.body().string(), "{\"result\":\"OK\"}");
-        }
+            return null;
+        });
     }
 }
