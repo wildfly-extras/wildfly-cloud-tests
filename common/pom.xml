@@ -54,5 +54,20 @@
             <artifactId>kubernetes-client</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.dekorate</groupId>
+            <artifactId>dekorate-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.dekorate</groupId>
+            <artifactId>core-junit</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId> io.dekorate</groupId>
+            <artifactId>kubernetes-junit</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

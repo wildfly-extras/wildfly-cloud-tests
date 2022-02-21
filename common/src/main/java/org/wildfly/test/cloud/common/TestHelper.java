@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import org.jboss.dmr.ModelNode;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.LocalPortForward;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
@@ -45,6 +46,22 @@ import okhttp3.Response;
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
 public class TestHelper {
+    private KubernetesClient k8sClient;
+    private String containerName;
+
+    TestHelper(KubernetesClient k8sClient, String containerName) {
+        this.k8sClient = k8sClient;
+        this.containerName = containerName;
+    }
+
+    public String getContainerName() {
+        return containerName;
+    }
+
+    public boolean waitUntilWildFlyIsReady(long delay) {
+        return waitUntilWildFlyIsReady(k8sClient, getFirstPodName(), containerName, delay);
+    }
+
     public static boolean waitUntilWildFlyIsReady(KubernetesClient k8sClient, String podName, String containerName, long delay) {
         long start = System.currentTimeMillis();
         long spent = System.currentTimeMillis() - start;
@@ -81,6 +98,9 @@ public class TestHelper {
         return false;
     }
 
+    public ModelNode executeCLICommands(String... commands) {
+        return executeCLICommands(k8sClient, getFirstPodName(), containerName, commands);
+    }
 
     public static ModelNode executeCLICommands(KubernetesClient client, String podName, String containerName, String... commands) {
         String bashCmdTemplate = String.format("$JBOSS_HOME/bin/jboss-cli.sh  -c --commands=\"%s\"", Arrays.stream(commands).collect(Collectors.joining(",")));
@@ -121,5 +141,10 @@ public class TestHelper {
     public static ModelNode checkOperation(boolean mustSucceed, ModelNode result) {
         assertEquals(mustSucceed, "success".equals(result.get("outcome").asString()));
         return result.get("result");
+    }
+
+    private String getFirstPodName() {
+        Pod pod = k8sClient.pods().list().getItems().get(0);
+        return pod.getMetadata().getName();
     }
 }

@@ -22,6 +22,7 @@
 package org.wildfly.test.cloud.mpconfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.wildfly.test.cloud.common.TestHelper.waitUntilWildFlyIsReady;
 
@@ -32,6 +33,7 @@ import org.jboss.dmr.ModelNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.wildfly.test.cloud.common.TestHelper;
+import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 
 import io.dekorate.testing.annotation.Inject;
 import io.dekorate.testing.annotation.KubernetesIntegrationTest;
@@ -44,31 +46,29 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 @KubernetesIntegrationTest(readinessTimeout = 450000L)
-public class EndpointTestCaseIT {
+public class EndpointTestCaseIT extends WildFlyCloudTestCase {
 
-    private static final String CONTAINER_NAME = "wildfly-cloud-dekorate-tests-core-env-vars-override-model";
+    private static final String CONTAINER_NAME = "wildfly-cloud-tests-core-env-vars-override-model";
     @Inject
     private KubernetesClient client;
 
     @Inject
     private KubernetesList list;
 
+    @Inject
+    private TestHelper helper;
+
     @BeforeEach
     public void waitForWildFlyReadiness() {
-        Pod pod = client.pods().list().getItems().get(0);
-        String podName = pod.getMetadata().getName();
-        waitUntilWildFlyIsReady(client, podName, CONTAINER_NAME, 30000);
+        helper.waitUntilWildFlyIsReady(30000);
     }
 
     @Test
     public void envVarOverridesManagementAttribute() throws IOException {
-        Pod pod = client.pods().list().getItems().get(0);
-        String podName = pod.getMetadata().getName();
-
         // httpClientCall();
         String command = "/subsystem=logging/root-logger=ROOT:read-attribute(name=level)";
-        ModelNode reply = TestHelper.executeCLICommands(client, podName, CONTAINER_NAME, command);
-        ModelNode result = TestHelper.checkOperation(true, reply);
+        ModelNode reply = helper.executeCLICommands(command);
+        ModelNode result = helper.checkOperation(true, reply);
         assertEquals("DEBUG", result.asString());
     }
 
