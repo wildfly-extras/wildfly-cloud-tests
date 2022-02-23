@@ -46,6 +46,8 @@
         <version.org.junit.jupiter.jupiter>5.8.1</version.org.junit.jupiter.jupiter>
         <version.io.decorate.dekorate>2.9.0</version.io.decorate.dekorate>
         <version.io.fabric8.kubernetes>5.10.0</version.io.fabric8.kubernetes>
+        <version.io.rest-assured.rest-assured>4.5.0</version.io.rest-assured.rest-assured>
+
         <!-- We need to override the version of this since we end up bringing in two incompatible versions -->
         <version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml>2.12.3</version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml>
 
@@ -62,7 +64,6 @@
         <wildfly.cloud.test.docker.host>localhost</wildfly.cloud.test.docker.host>
         <wildfly.cloud.test.docker.port>5000</wildfly.cloud.test.docker.port>
         <wildfly.cloud.test.docker.registry>${wildfly.cloud.test.docker.host}:${wildfly.cloud.test.docker.port}</wildfly.cloud.test.docker.registry>
-
     </properties>
 
     <dependencyManagement>
@@ -127,6 +128,11 @@
                 <groupId>io.fabric8</groupId>
                 <artifactId>kubernetes-client</artifactId>
                 <version>${version.io.fabric8.kubernetes}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.rest-assured</groupId>
+                <artifactId>rest-assured</artifactId>
+                <version>${version.io.rest-assured.rest-assured}</version>
             </dependency>
             <dependency>
                 <groupId>org.jboss</groupId>

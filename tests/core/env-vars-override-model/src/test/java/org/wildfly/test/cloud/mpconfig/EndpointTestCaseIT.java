@@ -24,18 +24,15 @@ package org.wildfly.test.cloud.mpconfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.jboss.dmr.ModelNode;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.wildfly.test.cloud.common.TestHelper;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 
 import io.dekorate.testing.annotation.Inject;
 import io.dekorate.testing.annotation.KubernetesIntegrationTest;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
 
 @KubernetesIntegrationTest(readinessTimeout = 450000L)
 public class EndpointTestCaseIT extends WildFlyCloudTestCase {
@@ -58,13 +55,8 @@ public class EndpointTestCaseIT extends WildFlyCloudTestCase {
 
     private void httpClientCall() throws Exception {
         getHelper().doWithWebPortForward("", (url) -> {
-
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder().get().url(url)
-                    .header("Connection", "close")
-                    .build();
-            Response response = client.newCall(request).execute();
-            assertEquals(response.body().string(), "{\"result\":\"OK\"}");
+            Response r = RestAssured.get(url);
+            assertEquals("{\"result\":\"OK\"}", r.getBody().asString());
             return null;
         });
     }
