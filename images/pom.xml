@@ -60,7 +60,8 @@
                                             <location>org.wildfly.cloud:wildfly-cloud-galleon-pack:${version.wildfly.cloud.galleon.pack}</location>
                                         </feature-pack>
                                     </feature-packs>
-                                    <!-- To be overridden by child modules -->
+                                    <!-- layers are set by child modules, which also need to set <skip>false</skip> -->
+                                    <skip>true</skip>
                                     <galleon-options>
                                         <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
                                     </galleon-options>
