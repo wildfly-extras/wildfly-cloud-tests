@@ -58,6 +58,11 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
 
+        <!-- Kubernetes registry parameters -->
+        <wildfly.cloud.test.docker.host>localhost</wildfly.cloud.test.docker.host>
+        <wildfly.cloud.test.docker.port>5000</wildfly.cloud.test.docker.port>
+        <wildfly.cloud.test.docker.registry>${wildfly.cloud.test.docker.host}:${wildfly.cloud.test.docker.port}</wildfly.cloud.test.docker.registry>
+
     </properties>
 
     <dependencyManagement>
