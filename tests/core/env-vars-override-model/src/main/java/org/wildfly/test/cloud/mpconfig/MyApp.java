@@ -27,6 +27,7 @@ import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
 import io.dekorate.docker.annotation.DockerBuild;
+import io.dekorate.kubernetes.annotation.Container;
 import io.dekorate.kubernetes.annotation.Env;
 import io.dekorate.kubernetes.annotation.KubernetesApplication;
 import io.dekorate.kubernetes.annotation.Port;
@@ -39,7 +40,8 @@ import io.dekorate.kubernetes.annotation.Port;
         envVars = {
                 @Env(name = "SERVER_PUBLIC_BIND_ADDRESS", value = "0.0.0.0"),
                 @Env(name = "WILDFLY_OVERRIDING_ENV_VARS", value = "1"),
-                @Env(name = "SUBSYSTEM_LOGGING_ROOT_LOGGER_ROOT__LEVEL", value = "DEBUG")
+                @Env(name = "SUBSYSTEM_LOGGING_ROOT_LOGGER_ROOT__LEVEL", value = "DEBUG"),
+                @Env(name = "TEST_EXPRESSION_FROM_PROPERTY", value = "testing123")
         },
         imagePullPolicy = Always)
 @ApplicationPath("")

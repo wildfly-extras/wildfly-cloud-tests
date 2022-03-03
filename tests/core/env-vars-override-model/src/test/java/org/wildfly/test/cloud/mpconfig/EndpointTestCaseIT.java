@@ -48,9 +48,21 @@ public class EndpointTestCaseIT extends WildFlyCloudTestCase {
     public void envVarOverridesManagementAttribute() throws Exception {
         String command = "/subsystem=logging/root-logger=ROOT:read-attribute(name=level)";
         ModelNode reply = getHelper().executeCLICommands(command);
-        ModelNode result = getHelper().checkOperation(true, reply);
+        ModelNode result = getHelper().checkAndGetResult(reply);
         assertEquals("DEBUG", result.asString());
         httpClientCall();
+    }
+
+    @Test
+    public void envVarsUsedAsExpressions() throws Exception {
+        String addSystemProperty = "/system-property=test-property:add(value=\"\\${test-expression-from-property}\")";
+        ModelNode result = getHelper().executeCLICommands(addSystemProperty);
+        getHelper().checkAndGetResult(result);
+
+        String resolveExpression = ":resolve-expression(expression=\"\\${test-property}\")";
+        result = getHelper().executeCLICommands(resolveExpression);
+        result = getHelper().checkAndGetResult(result);
+        assertEquals("testing123", result.asString());
     }
 
     private void httpClientCall() throws Exception {

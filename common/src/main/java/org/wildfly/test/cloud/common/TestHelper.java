@@ -43,6 +43,11 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
+ * Utility to interact with an application running in a container.
+ * It can be injected into your test, in which case it is pre-initialised
+ * with the container name for your application. Alternatively, you can call its
+ * static methods and specify the container and pod names.
+ *
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
 public class TestHelper {
@@ -134,13 +139,17 @@ public class TestHelper {
             assertFalse(errorDuringExecution.get());
         } catch (InterruptedException e) {
         }
-        ModelNode result = ModelNode.fromString(out.toString());
-        return result;
+
+        return ModelNode.fromString(out.toString());
     }
 
-    public static ModelNode checkOperation(boolean mustSucceed, ModelNode result) {
-        assertEquals(mustSucceed, "success".equals(result.get("outcome").asString()));
+    public static ModelNode checkAndGetResult(ModelNode result) {
+        assertTrue("success".equals(result.get("outcome").asString()));
         return result.get("result");
+    }
+
+    public static void checkFailed(ModelNode result) {
+        assertTrue("failed".equals(result.get("outcome").asString()));
     }
 
     public <R> R doWithWebPortForward(String path, ForwardedPortAction<R> action) throws Exception {
