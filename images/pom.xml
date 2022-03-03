@@ -30,8 +30,25 @@
     </parent>
     <artifactId>wildfly-cloud-test-images</artifactId>
     <packaging>pom</packaging>
+    <properties>
+        <!-- Here to avoid provisioning server and building images for this parent module -->
+        <wildfly.cloud.test.skip.image>true</wildfly.cloud.test.skip.image>
+    </properties>
 
     <profiles>
+        <profile>
+            <id>perform-build</id>
+            <!-- Enables the server provisioning and image building for child modules -->
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <file>
+                    <exists>../../pom.xml</exists>
+                </file>
+            </activation>
+            <properties>
+                <wildfly.cloud.test.skip.image>false</wildfly.cloud.test.skip.image>
+            </properties>
+        </profile>
         <profile>
             <id>images</id>
             <modules>
@@ -61,7 +78,7 @@
                                         </feature-pack>
                                     </feature-packs>
                                     <!-- layers are set by child modules, which also need to set <skip>false</skip> -->
-                                    <skip>true</skip>
+                                    <skip>${wildfly.cloud.test.skip.image}</skip>
                                     <galleon-options>
                                         <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
                                     </galleon-options>
@@ -80,6 +97,7 @@
                                     <goal>build</goal>
                                 </goals>
                                 <configuration>
+                                    <skip>${wildfly.cloud.test.skip.image}</skip>
                                     <images>
                                         <image>
                                             <name>wildfly-cloud-test-image/${project.name}:latest</name>

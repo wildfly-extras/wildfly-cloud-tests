@@ -59,7 +59,7 @@ Additionally, the WildFly Cloud Tests framework, allows you to inject an instanc
 
 
 ## Adding images
-If you need a server with different layers from the already existing ones, you need to add a new Maven module under the `images/` directory. Simply choose the layers you wish to provision your server with in the `wildfly-maven-plugin` plugin secion in the module `pom.xml`, remember to set `<skip>false</skip>`, and the [parent pom](images/pom.xml) will take care of the rest. See any of the existing poms under `images/` for a fuller example.
+If you need a server with different layers from the already existing ones, you need to add a new Maven module under the `images/` directory. Simply choose the layers you wish to provision your server with in the `wildfly-maven-plugin` plugin section in the module `pom.xml`, and the [parent pom](images/pom.xml) will take care of the rest. See any of the existing poms under `images/` for a fuller example.
 
 The name of the image becomes `wildfly-cloud-test-image/<artifact-id>:latest` where `<artifact-id>` is the Maven artifactId of the pom creating the image. The image simply contains an empty server, with no deployments. The tests create images containing the deployments being tested from this image.
 
