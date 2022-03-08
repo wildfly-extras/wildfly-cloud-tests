@@ -55,11 +55,11 @@ public class EndpointTestCaseIT extends WildFlyCloudTestCase {
 
     @Test
     public void envVarsUsedAsExpressions() throws Exception {
-        String addSystemProperty = "/system-property=test-property:add(value=\"\\${test-expression-from-property}\")";
+        String addSystemProperty = "/system-property=test-property:add(value=\"${test-expression-from-property}\")";
         ModelNode result = getHelper().executeCLICommands(addSystemProperty);
         getHelper().checkAndGetResult(result);
 
-        String resolveExpression = ":resolve-expression(expression=\"\\${test-property}\")";
+        String resolveExpression = ":resolve-expression(expression=\"${test-property}\")";
         result = getHelper().executeCLICommands(resolveExpression);
         result = getHelper().checkAndGetResult(result);
         assertEquals("testing123", result.asString());

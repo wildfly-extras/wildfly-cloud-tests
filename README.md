@@ -54,9 +54,7 @@ COPY --chown=jboss:root target/ROOT.war $JBOSS_HOME/standalone/deployments
 
 dekorate.io allows you to inject [`KubernetesClient`](https://github.com/fabric8io/kubernetes-client/blob/master/kubernetes-client-api/src/main/java/io/fabric8/kubernetes/client/KubernetesClient.java), [`KubernetesList`](https://github.com/fabric8io/kubernetes-client/blob/master/kubernetes-model-generator/kubernetes-model-core/src/main/java/io/fabric8/kubernetes/api/model/KubernetesList.java) (for Kubernetes resources) and [`Pod`](https://github.com/fabric8io/kubernetes-client/blob/master/kubernetes-model-generator/kubernetes-model-core/src/generated/java/io/fabric8/kubernetes/api/model/Pod.java) instances into your test. 
 
-Additionally, the WildFly Cloud Tests framework, allows you to inject an instance of [`TestHelper`](common/src/main/java/org/wildfly/test/cloud/common/TestHelper.java) initialised for the test being run. This contains methods to run actions such as REST calls using port forwarding to the relevant pods.
-
-
+Additionally, the WildFly Cloud Tests framework, allows you to inject an instance of [`TestHelper`](common/src/main/java/org/wildfly/test/cloud/common/TestHelper.java) initialised for the test being run. This contains methods to run actions such as REST calls using port forwarding to the relevant pods. It also contains methods to invoke CLI commands (via bash) in the pod.
 
 ## Adding images
 If you need a server with different layers from the already existing ones, you need to add a new Maven module under the `images/` directory. Simply choose the layers you wish to provision your server with in the `wildfly-maven-plugin` plugin section in the module `pom.xml`, and the [parent pom](images/pom.xml) will take care of the rest. See any of the existing poms under `images/` for a fuller example.

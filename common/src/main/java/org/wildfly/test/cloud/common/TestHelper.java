@@ -19,7 +19,6 @@
 
 package org.wildfly.test.cloud.common;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -108,7 +107,12 @@ public class TestHelper {
     }
 
     public static ModelNode executeCLICommands(KubernetesClient client, String podName, String containerName, String... commands) {
-        String bashCmdTemplate = String.format("$JBOSS_HOME/bin/jboss-cli.sh  -c --commands=\"%s\"", Arrays.stream(commands).collect(Collectors.joining(",")));
+        String bashCmd = String.format(
+                "$JBOSS_HOME/bin/jboss-cli.sh  -c --commands=\"%s\"",
+                Arrays
+                        .stream(commands)
+                        .map(cmd -> escapeCommand(cmd))
+                        .collect(Collectors.joining(",")));
         final CountDownLatch execLatch = new CountDownLatch(1);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         AtomicBoolean errorDuringExecution = new AtomicBoolean(false);
@@ -132,7 +136,7 @@ public class TestHelper {
                     public void onClose(int i, String s) {
                         execLatch.countDown();
                     }
-                }).exec( "bash", "-c", bashCmdTemplate);
+                }).exec( "bash", "-c", bashCmd);
         try {
             boolean ok = execLatch.await(10, TimeUnit.SECONDS);
             assertTrue(ok, "CLI Commands timed out");
@@ -140,7 +144,27 @@ public class TestHelper {
         } catch (InterruptedException e) {
         }
 
+        String output = out.toString();
+        if (output.trim().length() == 0) {
+            throw new IllegalStateException("No output was found executing the CLI command. " +
+                    "This means an error happened in the bash layer. The full command is:\n" + bashCmd);
+        }
+
         return ModelNode.fromString(out.toString());
+    }
+
+    private static String escapeCommand(String cmd) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < cmd.length(); i++) {
+            char c = cmd.charAt(i);
+            if (c == '$') {
+                if (sb.length() > 0 && sb.charAt(sb.length() - 1) != '\\') {
+                    sb.append('\\');
+                }
+            }
+            sb.append(c);
+        }
+        return sb.toString();
     }
 
     public static ModelNode checkAndGetResult(ModelNode result) {
