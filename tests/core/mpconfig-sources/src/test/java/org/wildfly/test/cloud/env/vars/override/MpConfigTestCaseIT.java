@@ -18,9 +18,10 @@
  */
 package org.wildfly.test.cloud.env.vars.override;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Map;
 
 import org.jboss.dmr.ModelNode;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 
@@ -32,7 +33,8 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
 @KubernetesIntegrationTest(readinessTimeout = 450000L)
-public class EnvVarsOverrideTestCaseIT extends WildFlyCloudTestCase {
+public class MpConfigTestCaseIT extends WildFlyCloudTestCase {
+
     @Inject
     private KubernetesClient client;
 
@@ -40,31 +42,19 @@ public class EnvVarsOverrideTestCaseIT extends WildFlyCloudTestCase {
     private KubernetesList list;
 
     @Test
-    public void envVarOverridesManagementAttribute() throws Exception {
-        String command = "/subsystem=logging/root-logger=ROOT:read-attribute(name=level)";
-        ModelNode reply = getHelper().executeCLICommands(command);
-        ModelNode result = getHelper().checkAndGetResult(reply);
-        assertEquals("DEBUG", result.asString());
-        httpClientCall();
-    }
-
-    @Test
-    public void envVarsUsedAsExpressions() throws Exception {
-        String addSystemProperty = "/system-property=test-property:add(value=\"${test-expression-from-property}\")";
-        ModelNode result = getHelper().executeCLICommands(addSystemProperty);
-        getHelper().checkAndGetResult(result);
-
-        String resolveExpression = ":resolve-expression(expression=\"${test-property}\")";
-        result = getHelper().executeCLICommands(resolveExpression);
-        result = getHelper().checkAndGetResult(result);
-        assertEquals("testing123", result.asString());
-    }
-
-    private void httpClientCall() throws Exception {
+    public void checkMPConfig() throws Exception {
         getHelper().doWithWebPortForward("", (url) -> {
             Response r = RestAssured.get(url);
-            assertEquals("{\"result\":\"OK\"}", r.getBody().asString());
+            MpConfigValues values = r.getBody().as(MpConfigValues.class);
+            Assertions.assertEquals("From env var", values.getConfigEnvVar());
+            Assertions.assertEquals("From deployment", values.getDeploymentProperty());
+            Assertions.assertEquals("From config map", values.getConfigMapProperty());
+
+            // Just here to force us to add better checks above if we add more sources
+            Map<String, String> valuesMap = r.getBody().as(Map.class);
+            Assertions.assertEquals(3, valuesMap.size());
             return null;
         });
     }
+
 }

@@ -168,7 +168,7 @@ public class TestHelper {
     }
 
     public static ModelNode checkAndGetResult(ModelNode result) {
-        assertTrue("success".equals(result.get("outcome").asString()));
+        assertTrue("success".equals(result.get("outcome").asString()), result.asString());
         return result.get("result");
     }
 

@@ -25,15 +25,27 @@
 
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
-        <artifactId>wildfly-cloud-tests</artifactId>
+        <artifactId>wildfly-cloud-tests-core</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>wildfly-cloud-tests-core</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>wildfly-cloud-tests-mp-config-sources</artifactId>
+    <packaging>war</packaging>
 
-    <modules>
-        <module>env-vars-override-model</module>
-        <module>mpconfig-sources</module>
-    </modules>
-
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.spec.javax.ws.rs</groupId>
+            <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.config</groupId>
+            <artifactId>microprofile-config-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>
