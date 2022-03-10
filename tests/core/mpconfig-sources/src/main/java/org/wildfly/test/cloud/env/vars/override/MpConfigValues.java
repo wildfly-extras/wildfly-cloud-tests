@@ -27,6 +27,7 @@ public class MpConfigValues {
     private String configEnvVar;
     private String deploymentProperty;
     private String configMapProperty;
+    private String secretProperty;
 
     public String getConfigEnvVar() {
         return configEnvVar;
@@ -50,5 +51,13 @@ public class MpConfigValues {
 
     public void setConfigMapProperty(String configMapProperty) {
         this.configMapProperty = configMapProperty;
+    }
+
+    public String getSecretProperty() {
+        return secretProperty;
+    }
+
+    public void setSecretProperty(String secretProperty) {
+        this.secretProperty = secretProperty;
     }
 }

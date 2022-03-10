@@ -124,7 +124,7 @@ data:
   ordinal: 500
   config.map.property: "From config map"
 ```
-To mount the config map as a directory, you need the following additions to the `@KubernetesApplication` annotation on your application:
+To mount the config map as a directory, you need the following additions to the `@KubernetesApplication` annotation on your application class:
 ```
 @KubernetesApplication(
         ...
@@ -134,6 +134,31 @@ To mount the config map as a directory, you need the following additions to the 
 ```
 This sets up a config map volume, and mounts it under `/etc/config/my-config-map`. If you don't want to do this you can e.g. bind the config map entries to environment variables. See the dekorate documentation for more details.
 
+#### Adding secrets
+The contents of the secret are specified in `src/main/resources/kubernetes/kubernetes.yml` as follows:
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+type: Opaque
+data:
+  secret.property: RnJvbSBzZWNyZXQ=
+```
+The value of `secret.property` is specified by base64 encoding it:
+```
+$echo -n 'From secret' | base64
+RnJvbSBzZWNyZXQ=
+```
+To mount the secret as a directory, you need the following additions to the `@KubernetesApplication` annotation on your application class:
+```
+@KubernetesApplication(
+        ...
+        secretVolumes = {@SecretVolume(secretName = "my-secret", volumeName = "my-secret", defaultMode = 0666)},
+        mounts = {@Mount(name = "my-secret", path = "/etc/config/my-secret")})
+@GeneratorOptions(inputPath = "kubernetes")        
+```
+This sets up a secret volume, and mounts it under `/etc/config/my-secret`. If you don't want to do this you can e.g. bind the secret entries to environment variables. See the dekorate documentation for more details.
 ## Adding images
 If you need a server with different layers from the already existing ones, you need to add a new Maven module under the `images/` directory. Simply choose the layers you wish to provision your server with in the `wildfly-maven-plugin` plugin section in the module `pom.xml`, and the [parent pom](images/pom.xml) will take care of the rest. See any of the existing poms under `images/` for a fuller example.
 

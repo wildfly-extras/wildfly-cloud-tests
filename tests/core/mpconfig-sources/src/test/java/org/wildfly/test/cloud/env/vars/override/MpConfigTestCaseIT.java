@@ -48,11 +48,8 @@ public class MpConfigTestCaseIT extends WildFlyCloudTestCase {
             MpConfigValues values = r.getBody().as(MpConfigValues.class);
             Assertions.assertEquals("From env var", values.getConfigEnvVar());
             Assertions.assertEquals("From deployment", values.getDeploymentProperty());
-            Assertions.assertEquals("From config map", values.getConfigMapProperty());
-
-            // Just here to force us to add better checks above if we add more sources
-            Map<String, String> valuesMap = r.getBody().as(Map.class);
-            Assertions.assertEquals(3, valuesMap.size());
+            //Assertions.assertEquals("From config map", values.getConfigMapProperty());
+            Assertions.assertEquals("From secret", values.getSecretProperty());
             return null;
         });
     }

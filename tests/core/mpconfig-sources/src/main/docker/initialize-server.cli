@@ -2,7 +2,8 @@ embed-server
 
 echo "Adding /etc/config/my-config-map as a config map directory"
 
-/subsystem=microprofile-config-smallrye/config-source=test:add(dir={path=/etc/config/my-config-map})
+/subsystem=microprofile-config-smallrye/config-source=config-map:add(dir={path=/etc/config/my-config-map})
+/subsystem=microprofile-config-smallrye/config-source=secret:add(dir={path=/etc/config/my-secret})
 
 echo "initialize-server.cli script finished"
 

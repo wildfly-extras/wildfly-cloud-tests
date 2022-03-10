@@ -42,6 +42,10 @@ public class MpConfigEndpoint {
     @ConfigProperty(name = "config.map.property", defaultValue = "N/A")
     private String configMapProperty;
 
+    @Inject
+    @ConfigProperty(name = "secret.property", defaultValue = "N/A")
+    private String secretProperty;
+
     @GET
     @Produces(APPLICATION_JSON)
     public MpConfigValues getConfiguration() {
@@ -49,6 +53,7 @@ public class MpConfigEndpoint {
         values.setConfigEnvVar(configEnvVar);
         values.setDeploymentProperty(deploymentProperty);
         values.setConfigMapProperty(configMapProperty);
+        values.setSecretProperty(secretProperty);
         return values;
     }
 }
