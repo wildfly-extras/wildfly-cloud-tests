@@ -110,7 +110,23 @@ We do this in two steps:
 
 If you do these steps, the contents of the `src/main/resources/kubernetes/kubernetes.yml` will be merged with what is output from the dekorate annotations on your test application. To see the final result that will be deployed to Kubernetes, it is saved in `target/classes/META-INF/dekorate/kubernetes.yml`.
 
-The following examples show the contents of `src/main/resources/kubernetes/kubernetes.yml` to add commonly needed resources. Note that if you have more than one resource, you can use `---` as in standard Kubernetes configurations to 'separate' them. 
+The following examples show the contents of `src/main/resources/kubernetes/kubernetes.yml` to add commonly needed resources. 
+
+Note that if you have more than one resource, ~~you can use `---` as in standard Kubernetes configurations to 'separate' them.~~  There is currently a big in this, so only the first resource will work. Instead you can use a Kubernetes list to specify multiple resources:
+
+```
+apiVersion: v1
+kind: List
+items:
+  # First resource
+  - apiVersion: v1
+    kind: ...
+    ...
+  # Second resource
+  - apiVersion: v1
+    kind: ...
+    ...
+```
 
 #### Adding config maps
 The contents of the config map are specified in `src/main/resources/kubernetes/kubernetes.yml` as follows:
@@ -159,6 +175,7 @@ To mount the secret as a directory, you need the following additions to the `@Ku
 @GeneratorOptions(inputPath = "kubernetes")        
 ```
 This sets up a secret volume, and mounts it under `/etc/config/my-secret`. If you don't want to do this you can e.g. bind the secret entries to environment variables. See the dekorate documentation for more details.
+
 ## Adding images
 If you need a server with different layers from the already existing ones, you need to add a new Maven module under the `images/` directory. Simply choose the layers you wish to provision your server with in the `wildfly-maven-plugin` plugin section in the module `pom.xml`, and the [parent pom](images/pom.xml) will take care of the rest. See any of the existing poms under `images/` for a fuller example.
 
