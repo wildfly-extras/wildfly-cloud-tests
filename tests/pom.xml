@@ -146,6 +146,7 @@
 
     <modules>
         <module>core</module>
+        <module>microprofile </module>
     </modules>
 
 </project>

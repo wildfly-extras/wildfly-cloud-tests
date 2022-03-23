@@ -7,13 +7,22 @@ Cloud test suite for WildFly
 ### Prerequisites
 
 * Install `docker` and `kubectl`
-* Install and start `minikube`
+* Install and start `minikube`, making sure it has enough memory
+----
+minikube start --memory='4gb'
+----
 * Install https://minikube.sigs.k8s.io/docs/handbook/registry/[Minikube registry] 
 
 ----
 minikube addons enable registry
 ----
-
+* Then depending on the tests you want to run, add the following
+----
+# Strimzi (Kafka)
+----
+kubectl create namespace kafka
+kubectl create -f 'https://strimzi.io/install/latest?namespace=kafka' -n kafka
+----
 * On Mac, run:
 
 ----
@@ -186,3 +195,4 @@ Once you have added a new image, add it to:
 * The `dependencies` section of [`tests/pom.xml`](tests/pom.xml)
 
 The above ensures that the image will be built before running the tests.
+
