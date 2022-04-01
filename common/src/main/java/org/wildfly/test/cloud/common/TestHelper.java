@@ -122,9 +122,6 @@ public class TestHelper {
                 .writingError(System.err)
                 //..withTTY()
                 .usingListener(new ExecListener() {
-                    @Override
-                    public void onOpen(Response response) {
-                    }
 
                     @Override
                     public void onFailure(Throwable throwable, Response response) {
@@ -187,7 +184,7 @@ public class TestHelper {
         }
     }
     private String getFirstPodName() {
-        Pod pod = k8sClient.pods().list().getItems().get(0);
+        Pod pod = k8sClient.pods().withLabel("app.kubernetes.io/name=" + containerName).list().getItems().get(0);
         return pod.getMetadata().getName();
     }
 }

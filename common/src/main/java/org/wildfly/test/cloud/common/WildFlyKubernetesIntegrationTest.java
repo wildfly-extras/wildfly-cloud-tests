@@ -85,4 +85,12 @@ public @interface WildFlyKubernetesIntegrationTest {
      * @return the namespace
      */
     String namespace() default "";
+
+    /**
+     * Any resources to be deployed before the application is deployed. This could
+     * be things like CRDs or pods based on those CRDs.
+     *
+     * @return the list of resources
+     */
+    KubernetesResource[] kubernetesResources() default {};
 }

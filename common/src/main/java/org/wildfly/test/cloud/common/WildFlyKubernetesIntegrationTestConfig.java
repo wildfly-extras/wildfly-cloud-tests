@@ -19,19 +19,27 @@
 
 package org.wildfly.test.cloud.common;
 
+import java.util.Arrays;
+import java.util.List;
+
+import io.dekorate.testing.config.EditableKubernetesIntegrationTestConfig;
 import io.dekorate.testing.config.KubernetesIntegrationTestConfig;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
-class WildFlyKubernetesIntegrationTestConfig extends KubernetesIntegrationTestConfig {
+class WildFlyKubernetesIntegrationTestConfig extends EditableKubernetesIntegrationTestConfig {
 
     private final String namespace;
+    private final List<KubernetesResource> kubernetesResources;
+
 
     private WildFlyKubernetesIntegrationTestConfig(boolean deployEnabled, boolean buildEnabled, long readinessTimeout,
-                                                   String[] additionalModules, String namespace) {
+                                                   String[] additionalModules, String namespace,
+                                                   KubernetesResource[] kubernetesResources) {
         super(deployEnabled, buildEnabled, readinessTimeout, additionalModules);
         this.namespace = namespace;
+        this.kubernetesResources = Arrays.asList(kubernetesResources);
     }
 
 
@@ -41,11 +49,15 @@ class WildFlyKubernetesIntegrationTestConfig extends KubernetesIntegrationTestCo
                 annotation.buildEnabled(),
                 annotation.readinessTimeout(),
                 annotation.additionalModules(),
-                annotation.namespace());
+                annotation.namespace(),
+                annotation.kubernetesResources());
     }
 
     public String getNamespace() {
         return namespace;
     }
 
+    public List<KubernetesResource> getKubernetesResources() {
+        return kubernetesResources;
+    }
 }

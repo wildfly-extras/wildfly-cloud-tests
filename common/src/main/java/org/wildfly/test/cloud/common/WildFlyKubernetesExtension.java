@@ -21,16 +21,39 @@ package org.wildfly.test.cloud.common;
 
 import static io.dekorate.testing.Testing.DEKORATE_STORE;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.dekorate.DekorateException;
 import io.dekorate.testing.kubernetes.KubernetesExtension;
+import io.dekorate.utils.Serialization;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.NamespaceList;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.ReplicationController;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -38,6 +61,7 @@ import io.fabric8.kubernetes.client.HttpClientAware;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.internal.readiness.Readiness;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
@@ -63,6 +87,7 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
         WildFlyTestContext testContext = initTestContext(context, config);
         if (config != null) {
             setNamespace(context, config, testContext);
+            deployKubernetesResources(context, config, testContext);
         }
         super.beforeAll(context);
     }
@@ -175,13 +200,138 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
             try {
                 new KubernetesNamespaceSwitcher().resetNamespaceToDefault(context);
             } catch (Exception e) {
-                if (e instanceof RuntimeException) {
-                    throw (RuntimeException)e;
-                }
-                throw new RuntimeException(e);
+                throw toRuntimeException(e);
             }
         }
     }
+
+    private void deployKubernetesResources(ExtensionContext context, WildFlyKubernetesIntegrationTestConfig config, WildFlyTestContext testContext) {
+        if (config.getKubernetesResources().isEmpty()) {
+            return;
+        }
+        int i = 0;
+        for (KubernetesResource kubernetesResource : config.getKubernetesResources()) {
+            KubernetesList resourceList = null;
+            try {
+                try (InputStream in = getLocalOrRemoteKubernetesResourceInputStream(kubernetesResource.definitionLocation())) {
+                    resourceList = Serialization.unmarshalAsList(in);
+                }
+            } catch (Exception e) {
+                throw toRuntimeException(e);
+            }
+            startResourcesInList(context, kubernetesResource, resourceList);
+            i++;
+        }
+    }
+
+    private void startResourcesInList(ExtensionContext context, KubernetesResource kubernetesResource, KubernetesList resourceList) {
+        KubernetesClient client = getKubernetesClient(context);
+        resourceList.getItems().stream()
+                .forEach(i -> {
+                    client.resourceList(i).createOrReplace();
+                    System.out.println("Created: " + i.getKind() + " name:" + i.getMetadata().getName() + ".");
+                });
+
+        List<HasMetadata> waitables = resourceList.getItems().stream().filter(i -> i instanceof Deployment ||
+                i instanceof Pod ||
+                i instanceof ReplicaSet ||
+                i instanceof ReplicationController).collect(Collectors.toList());
+        long started = System.currentTimeMillis();
+        System.out.println("Waiting until ready (" + kubernetesResource.readinessTimeout() + " ms)...");
+        try {
+            waitUntilCondition(context, waitables, i -> Readiness.getInstance().isReady(i), kubernetesResource.readinessTimeout(),
+                    TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException("Gave up waiting after " + kubernetesResource.readinessTimeout());
+        }
+        long ended = System.currentTimeMillis();
+        System.out.println("Waited: " + (ended - started) + " ms.");
+        //Display the item status
+        waitables.stream().map(r -> client.resource(r).fromServer().get())
+                .forEach(i -> {
+                    if (!Readiness.getInstance().isReady(i)) {
+                        readinessFailed(context);
+                        System.out.println(i.getKind() + ":" + i.getMetadata().getName() + " not ready!");
+                    }
+                });
+
+
+        if (hasReadinessFailed(context)) {
+            throw new IllegalStateException("Readiness Failed");
+        } else if (kubernetesResource.additionalResourcesCreated().length > 0) {
+            long end = started + kubernetesResource.readinessTimeout();
+            Map<String, ResourceGetter> resourceGetters = new HashMap<>();
+            for (org.wildfly.test.cloud.common.Resource resource : kubernetesResource.additionalResourcesCreated()) {
+                if (resourceGetters.put(resource.name(), ResourceGetter.create(client, resource)) != null) {
+                    throw new IllegalStateException(resource.name() + " appears more than once in additionalResourcesCreated()");
+                }
+            }
+
+            Map<String, HasMetadata> additionalWaitables = new HashMap<>();
+            while (System.currentTimeMillis() < end) {
+                for (Map.Entry<String, ResourceGetter> entry : resourceGetters.entrySet()) {
+                    if (!additionalWaitables.containsKey(entry.getKey())) {
+                        ResourceGetter getter = entry.getValue();
+                        HasMetadata hasMetadata = getter.getResource();
+                        if (hasMetadata != null) {
+                            additionalWaitables.put(entry.getKey(), hasMetadata);
+                        }
+                    }
+                }
+                if (additionalWaitables.size() == resourceGetters.size()) {
+                    break;
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.interrupted();
+                    throw new IllegalStateException(e);
+                }
+            }
+
+            if (additionalWaitables.size() != resourceGetters.size()) {
+                throw new IllegalStateException("Could not start all items in " + kubernetesResource.readinessTimeout());
+            }
+
+
+            try {
+                waitUntilCondition(context, additionalWaitables.values(), i -> Readiness.getInstance().isReady(i), end - System.currentTimeMillis(),
+                        TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                throw new IllegalStateException("Gave up waiting after " + (System.currentTimeMillis() - started));
+            }
+
+            waitables.stream().map(r -> client.resource(r).fromServer().get())
+                    .forEach(i -> {
+                        if (!Readiness.getInstance().isReady(i)) {
+                            readinessFailed(context);
+                            System.out.println(i.getKind() + ":" + i.getMetadata().getName() + " not ready!");
+                        }
+                    });
+
+            if (hasReadinessFailed(context)) {
+                throw new IllegalStateException("Readiness Failed");
+            }
+        }
+    }
+
+    private InputStream getLocalOrRemoteKubernetesResourceInputStream(String definitionLocation) throws IOException {
+        try {
+            URL url = new URL(definitionLocation);
+            return new BufferedInputStream(url.openStream());
+        } catch (MalformedURLException e) {
+            // It is not a valid URL so try resolving locally
+            Path path = Path.of(definitionLocation);
+            if (!path.isAbsolute()) {
+                path = Path.of(".").resolve(path).normalize();
+            }
+            if (!Files.exists(path)) {
+                Assertions.fail(definitionLocation + " resolves to the follwing non-existant location: " + path);
+            }
+            return new BufferedInputStream(new FileInputStream(path.toFile()));
+        }
+    }
+
 
     private void setKubernetesClientInContext(ExtensionContext context, KubernetesClient client) {
         context.getStore(DEKORATE_STORE).put(KUBERNETES_CLIENT, client);
@@ -260,8 +410,50 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
             if (exit != 0) {
                 throw new IllegalStateException("Error changing namespace to " + namespace);
             }
-
-
         }
     }
+
+    static RuntimeException toRuntimeException(Throwable throwable) {
+        if (throwable instanceof RuntimeException) {
+            return (RuntimeException) throwable;
+        } else if (throwable instanceof Error) {
+            throw (Error) throwable;
+        } else if (throwable instanceof InterruptedException) {
+            Thread.currentThread().interrupt();
+        }
+        throw new RuntimeException(throwable);
+    }
+
+    private static abstract class ResourceGetter <T extends HasMetadata> {
+        protected final KubernetesClient client;
+        protected org.wildfly.test.cloud.common.Resource resource;
+
+        public ResourceGetter(KubernetesClient client, org.wildfly.test.cloud.common.Resource resource) {
+            this.client = client;
+            this.resource = resource;
+        }
+
+        abstract T getResource();
+
+        static ResourceGetter create(KubernetesClient client, org.wildfly.test.cloud.common.Resource resource) {
+            switch (resource.type()) {
+                case DEPLOYMENT:
+                    return new DeploymentGetter(client, resource);
+                default:
+                    throw new IllegalStateException("Unhandled resource type " + resource.type());
+            }
+        }
+    }
+
+    private static class DeploymentGetter extends ResourceGetter<Deployment> {
+        public DeploymentGetter(KubernetesClient client, org.wildfly.test.cloud.common.Resource resource) {
+            super(client, resource);
+        }
+
+        @Override
+        Deployment getResource() {
+            return client.apps().deployments()./*inNamespace("default").*/withName(resource.name()).get();
+        }
+    }
+
 }
