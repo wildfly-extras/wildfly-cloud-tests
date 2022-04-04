@@ -30,14 +30,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -46,7 +42,6 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.dekorate.DekorateException;
 import io.dekorate.testing.kubernetes.KubernetesExtension;
-import io.dekorate.utils.Serialization;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Namespace;
@@ -100,9 +95,19 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
 
         WildFlyKubernetesIntegrationTestConfig config = getKubernetesIntegrationTestConfig(context);
         WildFlyTestContext testContext = context.getStore(WILDFLY_STORE).get(KUBERNETES_CONFIG_DATA, WildFlyTestContext.class);
+        boolean error = false;
         if (testContext != null) {
-            cleanupKubernetesResources(context, config, testContext);
-            deleteNamespace(context, config, testContext);
+            try {
+                cleanupKubernetesResources(context, config, testContext);
+            } catch (Throwable t) {
+                t.printStackTrace();
+                error = true;
+            } finally {
+                deleteNamespace(context, config, testContext);
+            }
+            if (error) {
+                Assertions.fail("Errors occurred cleaning up the test, see the logs for details");
+            }
         }
     }
 
@@ -216,7 +221,7 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
             KubernetesList resourceList = null;
             try {
                 try (InputStream in = getLocalOrRemoteKubernetesResourceInputStream(kubernetesResource.definitionLocation())) {
-                    resourceList = Serialization.unmarshalAsList(in);
+                    resourceList = WildFlySerialization.unmarshalAsList(in);
                 }
             } catch (Exception e) {
                 throw toRuntimeException(e);
@@ -344,7 +349,7 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
             KubernetesList resourceList = null;
             try {
                 try (InputStream in = getLocalOrRemoteKubernetesResourceInputStream(kubernetesResource.definitionLocation())) {
-                    resourceList = Serialization.unmarshalAsList(in);
+                    resourceList = WildFlySerialization.unmarshalAsList(in);
                 }
             } catch (Exception e) {
                 throw toRuntimeException(e);

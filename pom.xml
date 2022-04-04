@@ -45,7 +45,7 @@
         <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
         <version.org.junit.jupiter.jupiter>5.8.1</version.org.junit.jupiter.jupiter>
         <!-- Needs to be higher than version 2.9.0 -->
-        <version.io.decorate.dekorate>2.9-SNAPSHOT</version.io.decorate.dekorate>
+        <version.io.decorate.dekorate>2.9.0</version.io.decorate.dekorate>
         <version.io.fabric8.kubernetes>5.12.1</version.io.fabric8.kubernetes>
         <version.io.rest-assured.rest-assured>4.5.0</version.io.rest-assured.rest-assured>
 
