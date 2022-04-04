@@ -31,9 +31,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -99,6 +101,7 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
         WildFlyKubernetesIntegrationTestConfig config = getKubernetesIntegrationTestConfig(context);
         WildFlyTestContext testContext = context.getStore(WILDFLY_STORE).get(KUBERNETES_CONFIG_DATA, WildFlyTestContext.class);
         if (testContext != null) {
+            cleanupKubernetesResources(context, config, testContext);
             deleteNamespace(context, config, testContext);
         }
     }
@@ -209,7 +212,6 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
         if (config.getKubernetesResources().isEmpty()) {
             return;
         }
-        int i = 0;
         for (KubernetesResource kubernetesResource : config.getKubernetesResources()) {
             KubernetesList resourceList = null;
             try {
@@ -220,7 +222,6 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
                 throw toRuntimeException(e);
             }
             startResourcesInList(context, kubernetesResource, resourceList);
-            i++;
         }
     }
 
@@ -330,6 +331,33 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
             }
             return new BufferedInputStream(new FileInputStream(path.toFile()));
         }
+    }
+
+    private void cleanupKubernetesResources(ExtensionContext context, WildFlyKubernetesIntegrationTestConfig config, WildFlyTestContext testContext) {
+        if (config.getKubernetesResources().isEmpty()) {
+            return;
+        }
+
+        List<KubernetesResource> kubernetesResources = config.getKubernetesResources();
+        for (int i = kubernetesResources.size() - 1 ; i >= 0 ; i--) {
+            KubernetesResource kubernetesResource = kubernetesResources.get(i);
+            KubernetesList resourceList = null;
+            try {
+                try (InputStream in = getLocalOrRemoteKubernetesResourceInputStream(kubernetesResource.definitionLocation())) {
+                    resourceList = Serialization.unmarshalAsList(in);
+                }
+            } catch (Exception e) {
+                throw toRuntimeException(e);
+            }
+
+            List<HasMetadata> list = resourceList.getItems();
+            Collections.reverse(list);
+            list.stream().forEach(r -> {
+                System.out.println("Deleting: " + r.getKind() + " name:" + r.getMetadata().getName() + ". Deleted:"
+                        + getKubernetesClient(context).resource(r).cascading(true).delete());
+            });
+        }
+
     }
 
 
