@@ -36,7 +36,7 @@
 
     <properties>
         <!-- Image creation properties -->
-        <image.name.wildfly.runtime>quay.io/jfdenise/wildfly-runtime-jdk11:latest</image.name.wildfly.runtime>
+        <image.name.wildfly.runtime>quay.io/jfdenise/wildfly-runtime-jdk11-multi-arch:latest</image.name.wildfly.runtime>
         <version.wildfly>27.0.0.Beta1-SNAPSHOT</version.wildfly>
         <version.wildfly.cloud.galleon.pack>1.0.0.Beta3</version.wildfly.cloud.galleon.pack>
 
@@ -47,7 +47,7 @@
         <!-- Needs to be higher than version 2.9.0 -->
         <version.io.decorate.dekorate>2.9.0</version.io.decorate.dekorate>
         <version.io.fabric8.kubernetes>5.12.1</version.io.fabric8.kubernetes>
-        <version.io.rest-assured.rest-assured>4.5.0</version.io.rest-assured.rest-assured>
+        <version.io.rest-assured.rest-assured>5.0.1</version.io.rest-assured.rest-assured>
 
         <!-- We need to override the version of this since we end up bringing in two incompatible versions -->
         <version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml>2.12.3</version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml>
@@ -70,15 +70,8 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.wildfly.bom</groupId>
-                <artifactId>wildfly-jakartaee8-with-tools</artifactId>
-                <version>${version.wildfly}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-            <dependency>
-                <groupId>org.wildfly.bom</groupId>
-                <artifactId>wildfly-microprofile</artifactId>
+                <groupId>org.wildfly</groupId>
+                <artifactId>wildfly-component-matrix</artifactId>
                 <version>${version.wildfly}</version>
                 <scope>import</scope>
                 <type>pom</type>
@@ -132,7 +125,7 @@
             </dependency>
             <dependency>
                 <groupId>io.rest-assured</groupId>
-                <artifactId>rest-assured</artifactId>
+                <artifactId>rest-assured-all</artifactId>
                 <version>${version.io.rest-assured.rest-assured}</version>
             </dependency>
             <dependency>
