@@ -1,0 +1,74 @@
+name: WildFly Cloud Tests
+
+on:
+  schedule:
+    - cron: '45 11 * * *'
+  push:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout WildFly
+        uses: actions/checkout@v2
+        with:
+          path: wildfly
+          fetch-depth: 1
+          repository: 'wildfly/wildfly'
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Checkout WildFly Cloud Tests
+        uses: actions/checkout@v2
+        with:
+          path: cloud-tests
+          fetch-depth: 1
+
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Build WildFly
+        run: mvn -B install -DskipTests -Dskip.preview
+        working-directory: wildfly
+
+      - name: Grab WildFly Version
+        id: grab-version
+        run: |
+          mvn -B help:evaluate -Dexpression=project.version -pl .
+          TMP="$(mvn -B help:evaluate -Dexpression=project.version -pl . | grep -v '^\[')"
+          echo "version: ${TMP}"
+          echo "VERSION_WILDFLY=${TMP}" >> $GITHUB_ENV
+        working-directory: wildfly
+
+      - name: Start minikube
+        id: minikube
+        with:
+          driver: docker
+          container-runtime: containerd
+          cpus: 2
+          memory: 4000m
+          cni: bridge
+        uses: medyagh/setup-minikube@master
+
+      - name: Enable minikube registry
+        run: |
+          minikube addons enable registry
+          kubectl port-forward --namespace kube-system service/registry 5000:80 &
+
+      - name: Run Cloud Tests
+        run: mvn -B install -Pimages
+        working-directory: cloud-tests
+
+

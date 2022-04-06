@@ -11,7 +11,7 @@ Cloud test suite for WildFly
 ----
 minikube start --memory='4gb'
 ----
-* Install https://minikube.sigs.k8s.io/docs/handbook/registry/[Minikube registry] 
+* Install [Minikube registry](https://minikube.sigs.k8s.io/docs/handbook/registry/) 
 
 ----
 minikube addons enable registry
