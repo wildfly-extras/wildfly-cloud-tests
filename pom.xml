@@ -36,7 +36,7 @@
 
     <properties>
         <!-- Image creation properties -->
-        <image.name.wildfly.runtime>quay.io/jfdenise/wildfly-runtime-jdk11-multi-arch:latest</image.name.wildfly.runtime>
+        <image.name.wildfly.runtime>quay.io/wildfly-snapshots/wildfly-runtime-jdk11-multi-arch:latest</image.name.wildfly.runtime>
         <version.wildfly>27.0.0.Beta1-SNAPSHOT</version.wildfly>
         <version.wildfly.cloud.galleon.pack>1.0.0.Beta3</version.wildfly.cloud.galleon.pack>
 

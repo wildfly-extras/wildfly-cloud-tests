@@ -68,7 +68,7 @@ jobs:
           kubectl port-forward --namespace kube-system service/registry 5000:80 &
 
       - name: Run Cloud Tests
-        run: mvn -B install -Pimages
+        run: mvn -B install -Pimages -Dversion.wildfly=${VERSION_WILDFLY}
         working-directory: cloud-tests
 
 
