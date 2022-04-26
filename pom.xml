@@ -38,7 +38,8 @@
         <!-- Image creation properties -->
         <image.name.wildfly.runtime>quay.io/wildfly-snapshots/wildfly-runtime-jdk11-multi-arch:latest</image.name.wildfly.runtime>
         <version.wildfly>27.0.0.Beta1-SNAPSHOT</version.wildfly>
-        <version.wildfly.cloud.galleon.pack>1.0.0.Beta3</version.wildfly.cloud.galleon.pack>
+        <version.wildfly.cloud.galleon.pack>1.0.0.Final</version.wildfly.cloud.galleon.pack>
+        <version.wildfly.datasources.galleon.pack>2.2.0.Final</version.wildfly.datasources.galleon.pack>
 
         <!-- Dependency versions -->
         <version.org.jboss.jboss-dmr>1.6.1.Final</version.org.jboss.jboss-dmr>
@@ -55,7 +56,7 @@
         <!-- Plugin versions -->
         <version.io.fabric8.docker-maven-plugin>0.39.0</version.io.fabric8.docker-maven-plugin>
         <version.org.apache.maven.plugins.maven-failsafe-plugin>3.0.0-M3</version.org.apache.maven.plugins.maven-failsafe-plugin>
-        <version.org.wildfly.plugins.wildfly-maven-plugin>3.0.0.Beta1</version.org.wildfly.plugins.wildfly-maven-plugin>
+        <version.org.wildfly.plugins.wildfly-maven-plugin>3.0.0.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
 
         <!-- Misc -->
         <maven.compiler.source>11</maven.compiler.source>
@@ -84,6 +85,18 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>image-cloud-server</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>image-cloud-server-with-postgresql-datasource</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>image-microprofile-reactive-messaging-kafka</artifactId>
                 <version>${project.version}</version>
                 <type>pom</type>
             </dependency>

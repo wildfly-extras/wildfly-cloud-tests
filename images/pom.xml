@@ -42,7 +42,7 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
                 <file>
-                    <exists>../../pom.xml</exists>
+                    <missing>../.cloud-tests-root-marker</missing>
                 </file>
             </activation>
             <properties>
@@ -54,12 +54,30 @@
             <modules>
                 <module>cloud-server</module>
                 <module>microprofile-reactive-messaging-kafka</module>
+                <module>datasources/postgresql</module>
             </modules>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.wildfly.plugins</groupId>
                         <artifactId>wildfly-maven-plugin</artifactId>
+                        <configuration>
+                            <!-- some tests check for the provisioned galleon layers -->
+                            <record-provisioning-state>true</record-provisioning-state>
+                            <feature-packs>
+                                <feature-pack>
+                                    <location>org.wildfly:wildfly-galleon-pack:${version.wildfly}</location>
+                                </feature-pack>
+                                <feature-pack>
+                                    <location>org.wildfly.cloud:wildfly-cloud-galleon-pack:${version.wildfly.cloud.galleon.pack}</location>
+                                </feature-pack>
+                            </feature-packs>
+                            <!-- layers are set by child modules, which also need to set <skip>false</skip> -->
+                            <skip>${wildfly.cloud.test.skip.image}</skip>
+                            <galleon-options>
+                                <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
+                            </galleon-options>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>provision-base-cloud-server</id>
@@ -67,23 +85,6 @@
                                 <goals>
                                     <goal>package</goal>
                                 </goals>
-                                <configuration>
-                                    <!-- some tests check for the provisioned galleon layers -->
-                                    <record-provisioning-state>true</record-provisioning-state>
-                                    <feature-packs>
-                                        <feature-pack>
-                                            <location>org.wildfly:wildfly-galleon-pack:${version.wildfly}</location>
-                                        </feature-pack>
-                                        <feature-pack>
-                                            <location>org.wildfly.cloud:wildfly-cloud-galleon-pack:${version.wildfly.cloud.galleon.pack}</location>
-                                        </feature-pack>
-                                    </feature-packs>
-                                    <!-- layers are set by child modules, which also need to set <skip>false</skip> -->
-                                    <skip>${wildfly.cloud.test.skip.image}</skip>
-                                    <galleon-options>
-                                        <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
-                                    </galleon-options>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

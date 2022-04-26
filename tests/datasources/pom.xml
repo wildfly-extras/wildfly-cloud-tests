@@ -25,33 +25,14 @@
 
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
-        <artifactId>wildfly-cloud-tests-core</artifactId>
+        <artifactId>wildfly-cloud-tests</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>wildfly-cloud-tests-mp-config-sources</artifactId>
-    <packaging>war</packaging>
+    <artifactId>wildfly-cloud-tests-datasources</artifactId>
+    <packaging>pom</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>image-cloud-server</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.inject</groupId>
-            <artifactId>jakarta.inject-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.spec.javax.ws.rs</groupId>
-            <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.microprofile.config</groupId>
-            <artifactId>microprofile-config-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>postgresql</module>
+    </modules>
+
 </project>

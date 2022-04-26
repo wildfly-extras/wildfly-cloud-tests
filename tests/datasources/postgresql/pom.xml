@@ -25,16 +25,16 @@
 
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
-        <artifactId>wildfly-cloud-tests-core</artifactId>
+        <artifactId>wildfly-cloud-tests-datasources</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>wildfly-cloud-tests-mp-config-sources</artifactId>
+    <artifactId>wildfly-cloud-tests-ds-postgresql</artifactId>
     <packaging>war</packaging>
 
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>image-cloud-server</artifactId>
+            <artifactId>image-cloud-server-with-postgresql-datasource</artifactId>
             <type>pom</type>
             <scope>test</scope>
         </dependency>
@@ -44,8 +44,23 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>jakarta.enterprise</groupId>
+            <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jboss.spec.javax.ws.rs</groupId>
             <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.spec.javax.transaction</groupId>
+            <artifactId>jboss-transaction-api_1.3_spec</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
