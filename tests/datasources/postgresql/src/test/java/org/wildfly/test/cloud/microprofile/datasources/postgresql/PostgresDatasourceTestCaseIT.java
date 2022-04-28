@@ -43,21 +43,34 @@ public class PostgresDatasourceTestCaseIT extends WildFlyCloudTestCase {
 
     @Test
     public void checkMPConfig() throws Exception {
-        int status = getHelper().doWithWebPortForward("first",
+        int status = getHelper().doWithWebPortForward("gp/first",
                 url -> RestAssured.given().header("Content-Type", MediaType.TEXT_PLAIN).post(url).getStatusCode());
         Assertions.assertEquals(200, status);
-        status = getHelper().doWithWebPortForward("second",
+        status = getHelper().doWithWebPortForward("gp/second",
                 url -> RestAssured.given().header("Content-Type", MediaType.TEXT_PLAIN).post(url).getStatusCode());
         Assertions.assertEquals(200, status);
 
-        List<String> list = new ArrayList<>();
-        list = getHelper().doWithWebPortForward("", url -> {
+        status = getHelper().doWithWebPortForward("ls/third",
+                url -> RestAssured.given().header("Content-Type", MediaType.TEXT_PLAIN).post(url).getStatusCode());
+        Assertions.assertEquals(200, status);
+        status = getHelper().doWithWebPortForward("ls/fourth",
+                url -> RestAssured.given().header("Content-Type", MediaType.TEXT_PLAIN).post(url).getStatusCode());
+        Assertions.assertEquals(200, status);
+
+        List<String> gpDsEntries = getHelper().doWithWebPortForward("gp", url -> {
             Response r = RestAssured.get(url);
             Assertions.assertEquals(200, r.getStatusCode());
             return r.as(List.class);
         });
 
-        Assertions.assertArrayEquals(new String[]{"first", "second"}, list.toArray(new String[list.size()]));
+        List<String> lsDsEntries = getHelper().doWithWebPortForward("ls", url -> {
+            Response r = RestAssured.get(url);
+            Assertions.assertEquals(200, r.getStatusCode());
+            return r.as(List.class);
+        });
+
+        Assertions.assertArrayEquals(new String[]{"first", "second"}, gpDsEntries.toArray(new String[gpDsEntries.size()]));
+        Assertions.assertArrayEquals(new String[]{"third", "fourth"}, lsDsEntries.toArray(new String[gpDsEntries.size()]));
     }
 
 }

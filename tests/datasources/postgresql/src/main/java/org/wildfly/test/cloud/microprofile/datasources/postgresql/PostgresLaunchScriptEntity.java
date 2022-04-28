@@ -30,7 +30,7 @@ import javax.persistence.Id;
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
 @Entity
-public class PostgresEntity {
+public class PostgresLaunchScriptEntity {
     private Long id;
     private String value;
 

@@ -39,11 +39,20 @@ import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
         },
         envVars = {
                 @Env(name = "SERVER_PUBLIC_BIND_ADDRESS", value = "0.0.0.0"),
+                // Env vars for the datasource provisioned by the image
                 @Env(name = "POSTGRESQL_DATABASE", value= "postgresdb"),
                 @Env(name = "POSTGRESQL_USER", value = "postgresadmin"),
                 @Env(name = "POSTGRESQL_PASSWORD", value = "admin12"),
                 @Env(name = "POSTGRESQL_HOST", value = "postgres-service"),
-                @Env(name = "POSTGRESQL_PORT", value = "5432")
+                @Env(name = "POSTGRESQL_PORT", value = "5432"),
+                // Env vars for the launch scripts to create a datasource
+                // gives JNDI name java:jboss/datasources/test_postgresql
+                @Env(name = "DB_SERVICE_PREFIX_MAPPING", value = "test-postgresql=LAUNCH"),
+                @Env(name = "LAUNCH_DATABASE", value= "postgresdb"),
+                @Env(name = "LAUNCH_USERNAME", value = "postgresadmin"),
+                @Env(name = "LAUNCH_PASSWORD", value = "admin12"),
+                @Env(name = "TEST_POSTGRESQL_SERVICE_HOST", value = "postgres-service"),
+                @Env(name = "TEST_POSTGRESQL_SERVICE_PORT", value = "5432")
         },
         imagePullPolicy = Always)
 @ApplicationPath("")

@@ -34,22 +34,39 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class PostgresTransactionalBean {
 
-    @PersistenceContext(unitName = "test")
-    EntityManager em;
+    @PersistenceContext(unitName = "from-galleon-pack")
+    EntityManager galleonPackEm;
+
+    @PersistenceContext(unitName = "generated-by-launch-scripts")
+    EntityManager launchScriptsEm;
 
     @Transactional
-    public void storeValue(String value) {
-        PostgresEntity entity = new PostgresEntity();
+    public void storeValueInGalleonPackDs(String value) {
+        PostgresGalleonPackEntity entity = new PostgresGalleonPackEntity();
         entity.setValue(value);
-        em.persist(entity);
+        galleonPackEm.persist(entity);
     }
 
     @Transactional
-    public List<String> getAllValues() {
-        TypedQuery<PostgresEntity> query = em.createQuery("SELECT p from PostgresEntity p", PostgresEntity.class);
+    public List<String> getAllGalleonPackDsValues() {
+        TypedQuery<PostgresGalleonPackEntity> query = galleonPackEm.createQuery("SELECT p from PostgresGalleonPackEntity p", PostgresGalleonPackEntity.class);
         List<String> values = query.getResultList().stream().map(v -> v.getValue()).collect(Collectors.toList());
         return values;
     }
 
+
+    @Transactional
+    public void storeValueInLaunchScriptDs(String value) {
+        PostgresLaunchScriptEntity entity = new PostgresLaunchScriptEntity();
+        entity.setValue(value);
+        galleonPackEm.persist(entity);
+    }
+
+    @Transactional
+    public List<String> getAllLaunchScriptDsValues() {
+        TypedQuery<PostgresLaunchScriptEntity> query = galleonPackEm.createQuery("SELECT p from PostgresLaunchScriptEntity p", PostgresLaunchScriptEntity.class);
+        List<String> values = query.getResultList().stream().map(v -> v.getValue()).collect(Collectors.toList());
+        return values;
+    }
 
 }

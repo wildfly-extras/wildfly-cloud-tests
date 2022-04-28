@@ -41,17 +41,33 @@ public class PostgresDatasourceEndpoint {
     PostgresTransactionalBean bean;
 
     @POST
-    @Path("{value}")
+    @Path("gp/{value}")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response send(@PathParam("value") String value) {
-        bean.storeValue(value);
+    public Response storeInGallonPackDs(@PathParam("value") String value) {
+        bean.storeValueInGalleonPackDs(value);
         return Response.ok().build();
     }
 
     @GET
+    @Path("gp")
     @Produces(APPLICATION_JSON)
-    public List<String> getAll() {
-        return bean.getAllValues();
+    public List<String> getAllGalleonPackDsValues() {
+        return bean.getAllGalleonPackDsValues();
+    }
+
+    @POST
+    @Path("ls/{value}")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Response storeInLaunchScriptDs(@PathParam("value") String value) {
+        bean.storeValueInLaunchScriptDs(value);
+        return Response.ok().build();
+    }
+
+    @GET
+    @Path("ls")
+    @Produces(APPLICATION_JSON)
+    public List<String> getAllLaunchScriptDsValues() {
+        return bean.getAllLaunchScriptDsValues();
     }
 
 }
