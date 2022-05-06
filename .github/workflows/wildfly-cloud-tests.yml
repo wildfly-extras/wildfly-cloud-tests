@@ -40,7 +40,8 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Build WildFly
-        run: mvn -B install -DskipTests -Dskip.preview
+        # run: mvn -B install -DskipTests -Dskip.preview
+        run: mvn -B install -DskipTests 
         working-directory: wildfly
 
       - name: Grab WildFly Version
