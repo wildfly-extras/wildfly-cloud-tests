@@ -296,3 +296,7 @@ The above ensures that the image will be built before running the tests.
 
 The current philosophy is to have images providing a minimal amount of layers needed for the 
 tests. In other words, we will probably/generally not want to provision the full WildFly server.
+
+By default the created images are based on `quay.io/wildfly-snapshots/wildfly-runtime-jdk11-multi-arch:latest`.
+If you wish to use another image (e.g. to prevalidate a staged runtime image) you can do that by passing in
+the `image.name.wildfly.runtime` system property.
