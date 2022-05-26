@@ -66,6 +66,12 @@ it is saved in `target/classes/META-INF/dekorate/kubernetes.yml`
 
 A minimum `@KubernetesApplication` is:
 ```java
+@KubernetesApplication(imagePullPolicy = Always)
+```
+Out of the box the application processor of the WildFly Cloud Tests framework adds the typical WildFly ports `8080` and 
+`9990`, as well as setting the `SERVER_PUBLIC_BIND_ADDRESS=0.0.0.0` environment variable. So, the
+above trimmed down example results in an **effective configuration** of
+```java
 @KubernetesApplication(
         ports = {
                 @Port(name = "web", containerPort = 8080),
@@ -76,10 +82,10 @@ A minimum `@KubernetesApplication` is:
         },
         imagePullPolicy = Always)
 ```
-_TODO: It would be nice for the framework to add these values itself_
+Of course more ports and environment variables can be added as needed, but it is not necssary 
+to add the above ones.
 
-This is used as input for the generated kubernetes.yml, and sets up ports to 
-expose to users.
+The `@KubernetesApplication` annotation is used as input for the generated kubernetes.yml.
 
 On the test side, we use dekorate.io's Junit 5 test based framework to run the 
 tests. To enable this, add the `@WildFlyKubernetesIntegrationTest` annotation 

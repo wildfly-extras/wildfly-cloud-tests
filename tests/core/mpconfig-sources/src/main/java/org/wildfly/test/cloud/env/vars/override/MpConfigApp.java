@@ -32,12 +32,7 @@ import io.dekorate.kubernetes.annotation.SecretVolume;
 import io.dekorate.option.annotation.GeneratorOptions;
 
 @KubernetesApplication(
-        ports = {
-                @Port(name = "web", containerPort = 8080),
-                @Port(name = "admin", containerPort = 9990)
-        },
         envVars = {
-                @Env(name = "SERVER_PUBLIC_BIND_ADDRESS", value = "0.0.0.0"),
                 @Env(name = "CONFIG_ENV_VAR", value = "From env var")
         },
         configMapVolumes = {@ConfigMapVolume(configMapName = "my-config-map", volumeName = "my-config-map", defaultMode = 0666)},

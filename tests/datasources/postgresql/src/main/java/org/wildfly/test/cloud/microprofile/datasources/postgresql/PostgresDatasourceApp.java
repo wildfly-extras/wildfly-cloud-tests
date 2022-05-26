@@ -21,7 +21,6 @@ package org.wildfly.test.cloud.microprofile.datasources.postgresql;
 
 import io.dekorate.kubernetes.annotation.Env;
 import io.dekorate.kubernetes.annotation.KubernetesApplication;
-import io.dekorate.kubernetes.annotation.Port;
 import io.dekorate.option.annotation.GeneratorOptions;
 
 import javax.ws.rs.ApplicationPath;
@@ -33,12 +32,7 @@ import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
 @KubernetesApplication(
-        ports = {
-                @Port(name = "web", containerPort = 8080),
-                @Port(name = "admin", containerPort = 9990)
-        },
         envVars = {
-                @Env(name = "SERVER_PUBLIC_BIND_ADDRESS", value = "0.0.0.0"),
                 // Env vars for the datasource provisioned by the image
                 @Env(name = "POSTGRESQL_DATABASE", value= "postgresdb"),
                 @Env(name = "POSTGRESQL_USER", value = "postgresadmin"),
