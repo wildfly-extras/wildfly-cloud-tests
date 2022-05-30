@@ -30,12 +30,7 @@ import io.dekorate.kubernetes.annotation.KubernetesApplication;
 import io.dekorate.kubernetes.annotation.Port;
 
 @KubernetesApplication(
-        ports = {
-                @Port(name = "web", containerPort = 8080),
-                @Port(name = "admin", containerPort = 9990)
-        },
         envVars = {
-                @Env(name = "SERVER_PUBLIC_BIND_ADDRESS", value = "0.0.0.0"),
                 @Env(name = "WILDFLY_OVERRIDING_ENV_VARS", value = "1"),
                 @Env(name = "SUBSYSTEM_LOGGING_ROOT_LOGGER_ROOT__LEVEL", value = "DEBUG"),
                 @Env(name = "TEST_EXPRESSION_FROM_PROPERTY", value = "testing123")
