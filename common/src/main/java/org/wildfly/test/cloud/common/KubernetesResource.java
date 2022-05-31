@@ -19,6 +19,8 @@
 
 package org.wildfly.test.cloud.common;
 
+import java.lang.annotation.Annotation;
+
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
@@ -33,7 +35,7 @@ public @interface KubernetesResource {
     String definitionLocation();
 
     /**
-     * Additional resources to wait for to be ready. In some cases they are not isted
+     * Additional resources to wait for to be ready. In some cases they are not listed
      * by the resources in {@link #definitionLocation()} but rather created 'behind
      * the scenes.
      *
@@ -48,4 +50,48 @@ public @interface KubernetesResource {
      * @return the timeout
      */
     long readinessTimeout() default 500000;
+
+    public class Literal implements KubernetesResource {
+        private Resource[] additionalResourcesCreated = new Resource[0];
+        private long readinessTimeout = 50000;
+        private String definitionLocation;
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return KubernetesResource.class;
+        }
+
+        @Override
+        public String definitionLocation() {
+            return definitionLocation;
+        }
+
+        @Override
+        public Resource[] additionalResourcesCreated() {
+            return new Resource[0];
+        }
+
+        @Override
+        public long readinessTimeout() {
+            return readinessTimeout;
+        }
+
+        public Literal withDefinitionLocation(String definitionLocation) {
+            this.definitionLocation = definitionLocation;
+            return this;
+        }
+
+        public Literal withReadinessTimeout(long readinessTimeout) {
+            this.readinessTimeout = readinessTimeout;
+            return this;
+        }
+
+        public Literal withAdditionalResourcesCreated(Resource... additionalResourcesCreated) {
+            Resource[] tmp = new Resource[this.additionalResourcesCreated.length + additionalResourcesCreated.length];
+            System.arraycopy(this.additionalResourcesCreated, 0, tmp, 0, this.additionalResourcesCreated.length);
+            System.arraycopy(additionalResourcesCreated, 0, tmp, this.additionalResourcesCreated.length, additionalResourcesCreated.length);
+            this.additionalResourcesCreated = additionalResourcesCreated;
+            return this;
+        }
+    }
 }

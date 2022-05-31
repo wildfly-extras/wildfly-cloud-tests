@@ -1,0 +1,19 @@
+embed-server
+
+echo "Adding the 'rhoas' secret volume mount as a MicroProfile Config source..."
+
+/subsystem=microprofile-config-smallrye/config-source=rhosak-binding:add(dir={path=/etc/config/rhoas})
+
+echo "Adding the MicroProfile Config entries mapping the secret values..."
+
+/subsystem=microprofile-config-smallrye/config-source=reactive-messaging-properties:add(properties={\
+mp.messaging.connector.smallrye-kafka.bootstrap.servers=${KAFKA_HOST},\
+mp.messaging.connector.smallrye-kafka.security.protocol=SASL_SSL,\
+mp.messaging.connector.smallrye-kafka.sasl.mechanism=PLAIN,\
+mp.messaging.connector.smallrye-kafka.sasl.jaas.config="\n\
+org.apache.kafka.common.security.plain.PlainLoginModule required\n\
+username=\"${RHOAS_CLIENT_ID}\"\n\
+password=\"${RHOAS_CLIENT_SECRET}\";"\
+}, ordinal=500)
+
+quit

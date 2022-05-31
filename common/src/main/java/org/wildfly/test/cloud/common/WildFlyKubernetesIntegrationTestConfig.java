@@ -19,11 +19,11 @@
 
 package org.wildfly.test.cloud.common;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import io.dekorate.testing.config.EditableKubernetesIntegrationTestConfig;
-import io.dekorate.testing.config.KubernetesIntegrationTestConfig;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
@@ -32,16 +32,23 @@ class WildFlyKubernetesIntegrationTestConfig extends EditableKubernetesIntegrati
 
     private final String namespace;
     private final List<KubernetesResource> kubernetesResources;
+    private final ExtraTestSetup extraTestSetup;
 
 
     private WildFlyKubernetesIntegrationTestConfig(boolean deployEnabled, boolean buildEnabled, long readinessTimeout,
                                                    String[] additionalModules, String namespace,
-                                                   KubernetesResource[] kubernetesResources) {
+                                                   KubernetesResource[] kubernetesResources,
+                                                   Class<? extends ExtraTestSetup> additionalTestSetupClass){
         super(deployEnabled, buildEnabled, readinessTimeout, additionalModules);
         this.namespace = namespace;
-        this.kubernetesResources = Arrays.asList(kubernetesResources);
+        this.kubernetesResources = new ArrayList<>(Arrays.asList(kubernetesResources));
+        try {
+            extraTestSetup = (additionalTestSetupClass == null) ?
+                    null : additionalTestSetupClass.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
     }
-
 
     static WildFlyKubernetesIntegrationTestConfig adapt(WildFlyKubernetesIntegrationTest annotation) {
         return new WildFlyKubernetesIntegrationTestConfig(
@@ -50,7 +57,8 @@ class WildFlyKubernetesIntegrationTestConfig extends EditableKubernetesIntegrati
                 annotation.readinessTimeout(),
                 annotation.additionalModules(),
                 annotation.namespace(),
-                annotation.kubernetesResources());
+                annotation.kubernetesResources(),
+                annotation.extraTestSetup());
     }
 
     public String getNamespace() {
@@ -59,5 +67,19 @@ class WildFlyKubernetesIntegrationTestConfig extends EditableKubernetesIntegrati
 
     public List<KubernetesResource> getKubernetesResources() {
         return kubernetesResources;
+    }
+
+    ExtraTestSetup getExtraTestSetup() {
+        return extraTestSetup;
+    }
+
+    void addAdditionalKubernetesResources(List<KubernetesResource> additionalKubernetesResources) {
+        //Since the additional resources are likely needed by the actual deployment,
+        //add them first
+        List<KubernetesResource> temp = new ArrayList<>(additionalKubernetesResources);
+        temp.addAll(kubernetesResources);
+
+        kubernetesResources.clear();
+        kubernetesResources.addAll(temp);
     }
 }

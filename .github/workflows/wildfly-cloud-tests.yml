@@ -6,6 +6,14 @@ on:
   push:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      runtimeImage:
+        description: 'Name/tag of the base runtime image'
+        required: false
+      base64EncodedEnvVars:
+        # We are doing this because there is a max of 10 inputs on GH Actions
+        description: 'Env vars (one per line) encoded with base64'
+        required: false
 
 jobs:
   build:
@@ -13,6 +21,41 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Set runtime image override variable
+        if: ${{github.event.inputs.runtimeImage}}
+        run: |
+          # Set the system property to choose a different image when running the tests
+          echo Overriding the runtime image to be: ${{github.event.inputs.runtimeImage}}
+          TMP="-Dimage.name.wildfly.runtime=${{github.event.inputs.runtimeImage}}"
+          echo "RUNTIME_IMAGE_OVERRIDE=${TMP}" >> $GITHUB_ENV
+
+      - name: Unencode env vars for the tests
+        if: ${{github.event.inputs.base64EncodedEnvVars}}
+        run: |
+          echo "Decoding base64 encoded env vars"
+          echo ${{github.event.inputs.base64EncodedEnvVars}} > encodedVars.txt
+          base64 --decode encodedVars.txt > envVars.env
+          while IFS= read -r line; do
+            echo "$line" >> $GITHUB_ENV
+          done < envVars.env
+
+      ########################################################################################
+      # Use this step to read environment variables required for your manual test, and set
+      # an env var to trigger a later step to run the test, as well as any env vars for
+      # maven options etc.
+      - name: Check which manual jobs to run and set env vars
+        run: |
+          # RHOSAK_PARAMETERS
+          if [ -v KAFKA_HOST ]; then
+            if [ -v RHOAS_CLIENT_ID ]; then
+              if [ -v RHOAS_CLIENT_SECRET ]; then
+                TMP="-Pmanual-rhosak -pl tests/manual/rhosak -Dwildfly.cloud.test.manual.rhoas.kafka.host=$KAFKA_HOST -Dwildfly.cloud.test.manual.rhoas.client.id=$RHOAS_CLIENT_ID -Dwildfly.cloud.test.manual.rhoas.client.secret=$RHOAS_CLIENT_SECRET"
+                echo "RHOSAK_PARAMETERS=${TMP}" >> $GITHUB_ENV
+              fi
+            fi
+          fi
+      
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout WildFly
         uses: actions/checkout@v2
@@ -68,7 +111,16 @@ jobs:
           kubectl port-forward --namespace kube-system service/registry 5000:80 &
 
       - name: Run Cloud Tests
-        run: mvn -B install -Pimages -Dversion.wildfly=${VERSION_WILDFLY}
+        # This builds the provisioned images and runs the main (i.e. non-manual) tests
+        # Since the manual tests reuse these images, we don't need to use
+        # ${RUNTIME_IMAGE_OVERRIDE} elsewhere.
+        run: |
+          echo "Runtime image override: ${RUNTIME_IMAGE_OVERRIDE}"
+          mvn -B install -Pimages -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE}
         working-directory: cloud-tests
 
-
+      - name: Run RHOSAK Tests
+        if: ${{env.RHOSAK_PARAMETERS}}
+        working-directory: cloud-tests
+        run: |
+          mvn -B install -Dversion.wildfly=${VERSION_WILDFLY} ${RHOSAK_PARAMETERS}
