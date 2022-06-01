@@ -282,6 +282,21 @@ This sets up a secret volume, and mounts it under `/etc/config/my-secret`. If yo
 to do this you can e.g. bind the secret entries to environment variables. See the dekorate 
 documentation for more details.
 
+### 'Manual' tests
+The tests in the `tests/manual` folder will not run automatically, as they need external 
+systems to be set up before running. Still, they are good to verify our images work before 
+doing releases of them.
+
+See the README for each test for how to run them. Of course if you add such a test, add a README!
+Link all tests to the [tests/manual/README.md](tests/manual/README.md) file, along with the profile
+required to run it. [tests/manual/README.md](tests/manual/README.md) contains some further
+instructions about how to run these tests on CI.
+
+Ideally, each 'manual' test will be runnable on CI. Add instruhctions for setting up secrets and
+whatever else is needed to a 'CI Setup' section in the test README, and modify the 
+[.github/workflows/wildfly-cloud-tests.yml](.github/workflows/wildfly-cloud-tests.yml) workflow
+file to run the test.
+
 ## Adding images
 If you need a server with different layers from the already existing ones, you need to add a 
 new Maven module under the `images/` directory. Simply choose the layers you wish to provision 

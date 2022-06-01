@@ -93,4 +93,11 @@ public @interface WildFlyKubernetesIntegrationTest {
      * @return the list of resources
      */
     KubernetesResource[] kubernetesResources() default {};
+
+    /**
+     * A class to do more advanced test initialisation.
+     *
+     * @return the class
+     */
+    Class<? extends ExtraTestSetup> extraTestSetup() default ExtraTestSetup.None.class;
 }

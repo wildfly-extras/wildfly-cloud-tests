@@ -29,11 +29,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -84,6 +86,10 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
         WildFlyTestContext testContext = initTestContext(context, config);
         if (config != null) {
             setNamespace(context, config, testContext);
+
+            ExtraTestSetup extraTestSetup = config.getExtraTestSetup();
+            config.addAdditionalKubernetesResources(extraTestSetup.beforeAll(context));
+
             deployKubernetesResources(context, config, testContext);
         }
         super.beforeAll(context);
@@ -218,7 +224,7 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
             return;
         }
         for (KubernetesResource kubernetesResource : config.getKubernetesResources()) {
-            KubernetesList resourceList = null;
+            final KubernetesList resourceList;
             try {
                 try (InputStream in = getLocalOrRemoteKubernetesResourceInputStream(kubernetesResource.definitionLocation())) {
                     resourceList = WildFlySerialization.unmarshalAsList(in);
@@ -455,6 +461,11 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
             Thread.currentThread().interrupt();
         }
         throw new RuntimeException(throwable);
+    }
+
+    private List<ExtraTestSetup> loadAdditionalTestSetups() {
+        ServiceLoader<ExtraTestSetup> sl = ServiceLoader.load(ExtraTestSetup.class);
+        return sl.stream().map(p -> p.get()).collect(Collectors.toList());
     }
 
     private static abstract class ResourceGetter <T extends HasMetadata> {
