@@ -31,6 +31,10 @@
     <artifactId>wildfly-cloud-tests-mp-config-sources</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <wildfly.cloud.test.base.image.name>wildfly-cloud-test-image/image-cloud-server:latest</wildfly.cloud.test.base.image.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

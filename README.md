@@ -95,14 +95,9 @@ as well as some more fields for additional control. These include:
 * `namespace` - the namespace to install the application into, if the default namespace is not desired. This applies to both the namespace used for the application, as well as any additional resources needed. Additional resources are covered later in this document.
 * `kubernetesResources` - locations of other Kubernetes resources. See this [section](#adding-additional-complex-kubernetes-resources) for more details.
 
-Additionally, you need a `Dockerfile` in the root of the Maven module containing 
-your test. This is quite simple, and can be copied from any of the other tests:
-```shell
-# Choose the server image to use, as mentioned in the `Adding images` section
-FROM wildfly-cloud-test-image/image-cloud-server:latest
-# Copy the built application into the WildFly distribution in the image 
-COPY --chown=jboss:root target/ROOT.war $JBOSS_HOME/standalone/deployments
-```
+The framework will generate a Dockerfile from the provided information at `target/docker/Dockerfile`.
+You must select the name of the image to use (see [Adding Images](#adding-images)) and set it in a property
+called `wildfly.cloud.test.base.image.name` in the pom for the Maven module containing your test.
 
 dekorate.io allows you to inject 
 [`KubernetesClient`](https://github.com/fabric8io/kubernetes-client/blob/master/kubernetes-client-api/src/main/java/io/fabric8/kubernetes/client/KubernetesClient.java),
@@ -126,30 +121,9 @@ other pods running a database, operators and so on. Also, we might need to run a
 when preparing the runtime server before we start it.
 
 ### Adding a CLI script on startup
-You need to add a `postconfigure.sh` and a `initialize-server.cli` to the test image. The preferred location for these is under `src/main/docker`.
-
-The `postconfigure.sh` should have permissions set to `755` and simply invokes the CLI script:
-```bash
-#!/usr/bin/env bash
-"${JBOSS_HOME}"/bin/jboss-cli.sh --file="${JBOSS_HOME}/extensions/initialize-server.cli"
-```
-
-The CLI script starts an embedded server and does any required adjustments:
-```bash
-embed-server
-echo "Invoking initialize-server.cli script"
-/system-property=example:add(value=testing123)
-echo "initialize-server.cli script finished"
-quit
-```
-
-Your test's `Dockerfile` needs to copy both the files across to the image's 
-`$JBOSS_HOME/extensions/` directory:
-```
-COPY --chown=jboss:root src/main/docker/initialize-server.cli src/main/docker/postconfigure.sh $JBOSS_HOME/extensions/
-```
-Note that the final `/` in `$JBOSS_HOME/extensions/` is important to make Docker understand the 
-destination is a directory, and not a file.
+Some tests need to adjust the server configuration. To do this add a CLI script at 
+`src/main/cli-script/init.cli` and it will be included in the created Docker image and run
+when launching the server.
 
 ### Adding additional 'simple' Kubernetes resources
 What we have seen so far creates an image for the application. If we want to add more resources,
@@ -321,3 +295,11 @@ tests. In other words, we will probably/generally not want to provision the full
 By default the created images are based on `quay.io/wildfly-snapshots/wildfly-runtime-jdk11-multi-arch:latest`.
 If you wish to use another image (e.g. to prevalidate a staged runtime image) you can do that by passing in
 the `image.name.wildfly.runtime` system property.
+
+## Testing new runtime images
+To test a new runtime image (for example one that is staged before a release), simply pass in the
+name of the image in the `image.name.wildfly.runtime` system property.
+
+Also the GitHub Actions CI job allows you to pass this in as a parameter when manually triggering
+the workflow. You will likely need to run such custom jobs in your own fork of the repository
+since only admins can trigger workflows.

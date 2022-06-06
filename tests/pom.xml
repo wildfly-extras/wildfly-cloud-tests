@@ -35,6 +35,9 @@
         <!-- Set some properties here to not have to specify those on the command line when we want to write tests -->
         <dekorate.docker.registry>${wildfly.cloud.test.docker.registry}</dekorate.docker.registry>
         <dekorate.push>true</dekorate.push>
+
+        <!-- Individual tests will need to set this property -->
+        <wildfly.cloud.test.base.image.name></wildfly.cloud.test.base.image.name>
     </properties>
 
     <dependencies>
@@ -94,11 +97,23 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <!--
+                    If you need to debug the annotation processor, use the following configuration, and pass in
+                    -Ddekorate.docker.registry=localhost:5000 -Ddekorate.push=true when running mvnDebug clean install
+                -->
+                <!--
+                <configuration>
+                    <compilerArgs>
+                        <arg>-Awildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
+                    </compilerArgs>
+                </configuration>
+                -->
                 <configuration>
                     <fork>true</fork>
                     <compilerArgs>
                         <arg>-J-Ddekorate.docker.registry=${dekorate.docker.registry}</arg>
                         <arg>-J-Ddekorate.push=${dekorate.push}</arg>
+                        <arg>-Awildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>

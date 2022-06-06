@@ -1,5 +1,3 @@
-embed-server
-
 echo "Adding the 'rhoas' secret volume mount as a MicroProfile Config source..."
 
 /subsystem=microprofile-config-smallrye/config-source=rhosak-binding:add(dir={path=/etc/config/rhoas})
@@ -15,5 +13,3 @@ org.apache.kafka.common.security.plain.PlainLoginModule required\n\
 username=\"${RHOAS_CLIENT_ID}\"\n\
 password=\"${RHOAS_CLIENT_SECRET}\";"\
 }, ordinal=500)
-
-quit

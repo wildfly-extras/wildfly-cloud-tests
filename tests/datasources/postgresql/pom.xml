@@ -31,6 +31,10 @@
     <artifactId>wildfly-cloud-tests-ds-postgresql</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <wildfly.cloud.test.base.image.name>wildfly-cloud-test-image/image-cloud-server-with-postgresql-datasource:latest</wildfly.cloud.test.base.image.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
