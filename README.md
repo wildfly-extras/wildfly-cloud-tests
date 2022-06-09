@@ -97,7 +97,11 @@ as well as some more fields for additional control. These include:
 
 The framework will generate a Dockerfile from the provided information at `target/docker/Dockerfile`.
 You must select the name of the image to use (see [Adding Images](#adding-images)) and set it in a property
-called `wildfly.cloud.test.base.image.name` in the pom for the Maven module containing your test.
+called `wildfly.cloud.test.base.image.name` in the pom for the Maven module containing your test. 
+
+Note that at the moment,
+due to https://github.com/dekorateio/dekorate/issues/1000, you need to add a Dockerfile to the root
+of the Maven module containing the test.
 
 dekorate.io allows you to inject 
 [`KubernetesClient`](https://github.com/fabric8io/kubernetes-client/blob/master/kubernetes-client-api/src/main/java/io/fabric8/kubernetes/client/KubernetesClient.java),
