@@ -45,7 +45,7 @@ RHOAS_OAUTH_TOKEN_URL=https://identity.api.openshift.com/auth/realms/rhoas/proto
 The final step on the `rhoas` side is to set up permission so our associated Service Account has permissions to read from
 and write to topics on the Kafka instance. Substitute `<RHOAS_CLIENT_ID>` with the value from your local copy of the `rhoas.env` file:
 ```shell
-$ rhoas kafka acl grant-access --producer --consumer --service-account srvc-acct-XXXXXX-XXXXX-XXXXXX-XXXX-XXXXXXXX --topic all --group all
+$ rhoas kafka acl grant-access --producer --consumer --topic all --group all --service-account srvc-acct-XXXXXX-XXXXX-XXXXXX-XXXX-XXXXXXXX 
 
 -- SNIP --
 
@@ -54,13 +54,6 @@ $ rhoas kafka acl grant-access --producer --consumer --service-account srvc-acct
 ✔️  ACLs successfully created in the Kafka instance "kabir-kafka"
 
 ```
-<<<<<<< Updated upstream
-Finally, we add the secret to our OpenShift instance by running the following command:
-```shell
-kubectl create secret generic rhoas --from-env-file=./rhoas.env                                                                            
-```
-The name of the secret is inferred from the name of the file, so it becomes `rhoas`. 
-=======
 We add the secret to our OpenShift instance by running the following command:
 ```shell
 kubectl create secret generic rhoas --from-env-file=./rhoas.env                                                                            
@@ -72,7 +65,6 @@ To run the test, run:
 ```shell
 $ mvn clean install -Pmanual-rhosak -pl tests/manual/rhosak/
 ```
->>>>>>> Stashed changes
 
 ## CI Setup
 The workflow yaml enables this test if the following env vars are defined in the base 64 encoded input:

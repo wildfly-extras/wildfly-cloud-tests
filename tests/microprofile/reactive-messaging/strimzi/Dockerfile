@@ -1,3 +1,1 @@
-# Base image built from the images/cloud-server module
-FROM wildfly-cloud-test-image/image-microprofile-reactive-messaging-kafka:latest
-COPY --chown=jboss:root target/ROOT.war $JBOSS_HOME/standalone/deployments
+# Needed until https://github.com/dekorateio/dekorate/issues/1000 is fixed
