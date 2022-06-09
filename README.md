@@ -272,8 +272,8 @@ instructions about how to run these tests on CI.
 
 Ideally, each 'manual' test will be runnable on CI. Add instruhctions for setting up secrets and
 whatever else is needed to a 'CI Setup' section in the test README, and modify the 
-[.github/workflows/wildfly-cloud-tests.yml](.github/workflows/wildfly-cloud-tests.yml) workflow
-file to run the test.
+[.github/workflows/wildfly-cloud-tests-callable.yml](.github/workflows/wildfly-cloud-tests-callable.yml) workflow
+file to include the test.
 
 ## Adding images
 If you need a server with different layers from the already existing ones, you need to add a 
@@ -304,6 +304,6 @@ the `image.name.wildfly.runtime` system property.
 To test a new runtime image (for example one that is staged before a release), simply pass in the
 name of the image in the `image.name.wildfly.runtime` system property.
 
-Also the GitHub Actions CI job allows you to pass this in as a parameter when manually triggering
+Also, the GitHub Actions CI job allows you to pass this in as a parameter when manually triggering
 the workflow. You will likely need to run such custom jobs in your own fork of the repository
 since only admins can trigger workflows.
