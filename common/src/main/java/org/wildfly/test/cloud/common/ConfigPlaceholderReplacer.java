@@ -21,6 +21,17 @@ package org.wildfly.test.cloud.common;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+/**
+ * Implementations of this class perform replacement of data in the config files.
+ */
 public interface ConfigPlaceholderReplacer {
+
+    /**
+     * Inspects a line, and if appropriate, replaces the placeholder.
+     * @param context the Junit ExtensionContext
+     * @param placeholder the placeholder to replace
+     * @param line the line being inspected
+     * @return the original line, with any required replacements done.
+     */
     String replace(ExtensionContext context, String placeholder, String line);
 }

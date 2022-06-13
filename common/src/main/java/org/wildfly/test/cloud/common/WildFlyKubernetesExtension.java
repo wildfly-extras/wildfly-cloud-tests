@@ -247,9 +247,8 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
                     StringBuilder replacedInput = new StringBuilder();
                     String line = reader.readLine();
                     while (line != null) {
-                        for (Map.Entry<String, ConfigPlaceholderReplacer> replacement : config.getPlaceholderReplacements().entrySet()) {
-                            line = replacement.getValue().replace(context, replacement.getKey(), line);
-                        }
+                        line = performConfigPlaceholderReplacementForLine(context, config, line);
+
                         replacedInput.append(line);
                         replacedInput.append("\n");
                         line = reader.readLine();
@@ -262,6 +261,17 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
             }
             startResourcesInList(context, kubernetesResource, resourceList);
         }
+    }
+
+    private String performConfigPlaceholderReplacementForLine(ExtensionContext context, WildFlyKubernetesIntegrationTestConfig config, String line) {
+        for (Map.Entry<String, ConfigPlaceholderReplacer> replacement : config.getPlaceholderReplacements().entrySet()) {
+            String placeholder = replacement.getKey();
+            ConfigPlaceholderReplacer replacer = replacement.getValue();
+            if (line.contains(placeholder)) {
+                line = replacer.replace(context, placeholder, line);
+            }
+        }
+        return line;
     }
 
     private void startResourcesInList(ExtensionContext context, KubernetesResource kubernetesResource, KubernetesList resourceList) {
@@ -419,9 +429,7 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
         List<String> lines = Files.readAllLines(KUBERNETES_YAML, StandardCharsets.UTF_8);
         List<String> replacedLines = new ArrayList<>();
         for (String line : lines) {
-            for (Map.Entry<String, ConfigPlaceholderReplacer> entry : testConfig.getPlaceholderReplacements().entrySet()) {
-                line = entry.getValue().replace(extensionContext, entry.getKey(), line);
-            }
+            line = performConfigPlaceholderReplacementForLine(extensionContext, testConfig, line);
             replacedLines.add(line);
         }
 

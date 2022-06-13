@@ -260,6 +260,57 @@ This sets up a secret volume, and mounts it under `/etc/config/my-secret`. If yo
 to do this you can e.g. bind the secret entries to environment variables. See the dekorate 
 documentation for more details.
 
+### Config Placeholder Replacement
+In some cases we don't have the full set of information needed at compile time. We can deal with this with 
+placeholders and using an implementation of [`ConfigPlaceholderReplacer`](common/src/main/java/org/wildfly/test/cloud/common/ConfigPlaceholderReplacer.java) to deal with the replacement.
+
+Example use:
+```java
+// Add an env var with a placeholder
+@KubernetesApplication(
+        envVars = {
+                @Env(name = "POD_URL", value = "$URL$")
+        },
+        imagePullPolicy = Always)
+@ApplicationPath("")
+public class EnvVarsOverrideApp extends Application {
+}
+
+
+// Add a config placeholder replacement in the test
+@WildFlyKubernetesIntegrationTest(
+    placeholderReplacements = {
+        @ConfigPlaceholderReplacement(
+            placeholder = "$URL$", 
+            replacer = SimpleReplacer.class)})
+public class MyTestCaseIT extends WildFlyCloudTestCase {
+    ...
+```
+The `placeholderReplacements` will inspect every line of both the generated `target/classes/META-INF/dekorate/kubernetes.yml` as well as any resources specified via 
+`@WildFlyKubernetesIntegrationTest.kubernetesResources` and call an instance of `SimpleReplacer` when
+performing the replacement.
+
+An example implementation of a replacer:
+```java
+import io.dekorate.testing.WithKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.wildfly.test.cloud.common.ConfigPlaceholderReplacer;
+
+public class SimpleReplacer implements ConfigPlaceholderReplacer, WithKubernetesClient {
+    @Override
+    public String replace(ExtensionContext context, String placeholder, String line) {
+        if (line.contains("$URL$")) {
+            KubernetesClient client = getKubernetesClient(context);
+            String url = client.getMasterUrl().toExternalForm();
+            line = line.replace("$URL$", url);
+        }
+        return line;
+    }
+}
+```
+In this case it will replace the `$URL$` placeholder we used for the value of the `POD_URL` environment variable with a value determined by the Kubernetes client. The `WithKubernetesClient.getKubernetesClient()` method gets the client for us in this case.
+
 ### 'Manual' tests
 The tests in the `tests/manual` folder will not run automatically, as they need external 
 systems to be set up before running. Still, they are good to verify our images work before 

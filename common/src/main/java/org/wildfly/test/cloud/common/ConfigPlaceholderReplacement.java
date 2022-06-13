@@ -19,8 +19,22 @@
 
 package org.wildfly.test.cloud.common;
 
+/**
+ * Information about a replacement to do
+ */
 public @interface ConfigPlaceholderReplacement {
+
+    /**
+     * The placeholder string to replace
+     *
+     * @return the placeholder
+     */
     String placeholder();
 
+    /**
+     * The class handling the replacement. Needs a default constructor.
+     *
+     * @return the class handling the replacement
+     */
     Class<? extends ConfigPlaceholderReplacer> replacer();
 }
