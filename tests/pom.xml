@@ -166,6 +166,7 @@
     <modules>
         <module>core</module>
         <module>datasources</module>
+        <module>elytron-oidc-client</module>
         <module>manual</module>
         <module>microprofile</module>
     </modules>

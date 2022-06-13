@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: keycloak-server-cloud-test
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: keycloak-server-cloud-test
+      template:
+        metadata:
+          labels:
+            app: keycloak-server-cloud-test
+        spec:
+          containers:
+            - name: keycloak-server-cloud-test
+              image: quay.io/keycloak/keycloak:18.0.0
+              imagePullPolicy: "IfNotPresent"
+              args: ["start-dev"]
+              env:
+                - name: KEYCLOAK_ADMIN
+                  value: "admin"
+                - name: KEYCLOAK_ADMIN_PASSWORD
+                  value: "admin"
+                - name: KC_PROXY
+                  value: "edge"
+              ports:
+                - name: k-port
+                  containerPort: 8080
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: keycloak-server-cloud-test-service
+    spec:
+      selector:
+        app: keycloak-server-cloud-test
+      type: NodePort
+      ports:
+        - name: keycloak-server-cloud-test-service-port
+          protocol: TCP
+          port: 8080
+          targetPort: k-port
+          # Well known port used by test
+          nodePort: 30075
+
