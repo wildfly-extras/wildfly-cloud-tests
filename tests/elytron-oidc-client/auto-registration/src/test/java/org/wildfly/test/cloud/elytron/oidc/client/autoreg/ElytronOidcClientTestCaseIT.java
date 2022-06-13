@@ -18,6 +18,7 @@
  */
 package org.wildfly.test.cloud.elytron.oidc.client.autoreg;
 
+import io.dekorate.testing.WithKubernetesClient;
 import io.dekorate.testing.annotation.Inject;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.ServicePort;
@@ -68,16 +69,35 @@ import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.wildfly.test.cloud.common.ConfigPlaceholderReplacement;
+import org.wildfly.test.cloud.common.ConfigPlaceholderReplacer;
 import org.wildfly.test.cloud.common.KubernetesResource;
 
 @WildFlyKubernetesIntegrationTest(
+        placeholderReplacements = {
+            @ConfigPlaceholderReplacement(
+                    placeholder = "$CLUSTER_IP$",
+                    replacer = ElytronOidcClientTestCaseIT.ClusterIPReplacer.class)},
         kubernetesResources = {
                 @KubernetesResource(
                         definitionLocation = "src/test/container/keycloak.yml"
                         ),
         })
 public class ElytronOidcClientTestCaseIT extends WildFlyCloudTestCase {
+    public static class ClusterIPReplacer implements ConfigPlaceholderReplacer, WithKubernetesClient {
 
+        @Override
+        public String replace(ExtensionContext context, String placeholder, String line) {
+            if (line.contains("$CLUSTER_IP$")) {
+                KubernetesClient client = getKubernetesClient(context);
+                String host = client.getMasterUrl().getHost();
+                System.out.println("Replacing $CLUSTER_IP$ with Cluster IP address " + host);
+                line = line.replace("$CLUSTER_IP$", host);
+            }
+            return line;
+        }
+    }
     private static final String KEYCLOAK_USERNAME = "username";
     private static final String KEYCLOAK_PASSWORD = "password";
 
@@ -121,7 +141,6 @@ public class ElytronOidcClientTestCaseIT extends WildFlyCloudTestCase {
         HttpContext context = new BasicHttpContext();
         HttpResponse response = httpClient.execute(getMethod, context);
         try {
-            int statusCode = response.getStatusLine().getStatusCode();
             Form keycloakLoginForm = new Form(response);
             HttpResponse afterLoginClickResponse = simulateClickingOnButton(httpClient, keycloakLoginForm, username, password, "Sign In");
             afterLoginClickResponse.getEntity().getContent();
@@ -208,7 +227,6 @@ public class ElytronOidcClientTestCaseIT extends WildFlyCloudTestCase {
         public Form(HttpResponse response) throws IOException {
             this.response = response;
             final String responseString = new BasicResponseHandler().handleResponse(response);
-            System.out.println("RESPONSE " + responseString);
             final Document doc = Jsoup.parse(responseString);
             final Element form = doc.select(FORM).first();
             this.action = form.attr(ACTION);
