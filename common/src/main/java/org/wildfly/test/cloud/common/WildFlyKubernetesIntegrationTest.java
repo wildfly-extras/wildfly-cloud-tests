@@ -100,4 +100,13 @@ public @interface WildFlyKubernetesIntegrationTest {
      * @return the class
      */
     Class<? extends ExtraTestSetup> extraTestSetup() default ExtraTestSetup.None.class;
+
+    /**
+     * A list of replacements to do in the generated kubernetes.yml and in the {@code #kubernetesResources}.
+     * Useful for when we don't have the full information needed until the test is run. The replacements are done
+     * before deploying to Kubernetes.
+     *
+     * @return the list of replacements
+     */
+    ConfigPlaceholderReplacement[] placeholderReplacements() default {};
 }
