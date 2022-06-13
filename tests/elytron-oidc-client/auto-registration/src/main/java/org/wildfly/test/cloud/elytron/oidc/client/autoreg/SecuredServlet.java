@@ -22,10 +22,8 @@ import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
 import io.dekorate.kubernetes.annotation.KubernetesApplication;
 import io.dekorate.kubernetes.annotation.Port;
 import io.dekorate.kubernetes.annotation.ServiceType;
-import io.dekorate.option.annotation.GeneratorOptions;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.security.Principal;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.HttpMethodConstraint;
@@ -48,11 +46,10 @@ import javax.ws.rs.ApplicationPath;
             @Env(name = "OIDC_USER_NAME", value = "demo"),
             @Env(name = "OIDC_USER_PASSWORD", value = "demo"),
             @Env(name = "OIDC_SECURE_DEPLOYMENT_SECRET", value = "mysecret"),
-            @Env(name = "OIDC_PROVIDER_URL", value = "http://192.168.49.2:30079/realms/WildFly"),
+            @Env(name = "OIDC_PROVIDER_URL", value = "http://192.168.49.2:30075/auth/realms/WildFly"),
             @Env(name = "OIDC_HOSTNAME_HTTP", value = "192.168.49.2:30074"),},
         imagePullPolicy = Always)
 @ApplicationPath("")
-@GeneratorOptions(inputPath = "kubernetes")
 @WebServlet("/secured")
 @ServletSecurity(httpMethodConstraints = {
     @HttpMethodConstraint(value = "GET", rolesAllowed = {"Users"})})

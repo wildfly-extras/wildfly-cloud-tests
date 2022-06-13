@@ -68,12 +68,21 @@ import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.wildfly.test.cloud.common.KubernetesResource;
 
-@WildFlyKubernetesIntegrationTest
+@WildFlyKubernetesIntegrationTest(
+        kubernetesResources = {
+                @KubernetesResource(
+                        definitionLocation = "src/test/container/keycloak.yml"
+                        ),
+        })
 public class ElytronOidcClientTestCaseIT extends WildFlyCloudTestCase {
 
     private static final String KEYCLOAK_USERNAME = "username";
     private static final String KEYCLOAK_PASSWORD = "password";
+
+    private static final String KEYCLOAK_SERVICE_NAME = "keycloak-server-cloud-test-service";
+
     @Inject
     private KubernetesClient client;
 
@@ -82,9 +91,7 @@ public class ElytronOidcClientTestCaseIT extends WildFlyCloudTestCase {
 
     @Test
     public void checkKeycloak() throws Exception {
-        
-        // TODO, configure keycloak realm, ...
-        
+
         Integer appPort = null;
         for (ServicePort sp : client.services().withName(getHelper().getContainerName()).get().getSpec().getPorts()) {
             if ("http".equals(sp.getName())) {
@@ -93,6 +100,14 @@ public class ElytronOidcClientTestCaseIT extends WildFlyCloudTestCase {
             }
         }
         Assertions.assertNotNull(appPort, "nodePort of application is not found in service");
+        Integer keycloakPort = null;
+        for (ServicePort sp : client.services().withName(KEYCLOAK_SERVICE_NAME).get().getSpec().getPorts()) {
+            if ("http".equals(sp.getName())) {
+                keycloakPort = sp.getNodePort();
+                break;
+            }
+        }
+        Assertions.assertNotNull(keycloakPort, "nodePort of keycloak server is not found in service");
         loginToApp("demo", "demo", new URL("http://" + client.getMasterUrl().getHost() + ":" + appPort + "/secured"));
     }
 
