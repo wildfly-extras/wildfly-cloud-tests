@@ -21,7 +21,9 @@ package org.wildfly.test.cloud.common;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.dekorate.testing.config.EditableKubernetesIntegrationTestConfig;
 
@@ -32,22 +34,31 @@ class WildFlyKubernetesIntegrationTestConfig extends EditableKubernetesIntegrati
 
     private final String namespace;
     private final List<KubernetesResource> kubernetesResources;
+    private final Map<String, ConfigPlaceholderReplacer> placeholderReplacements;
     private final ExtraTestSetup extraTestSetup;
 
 
     private WildFlyKubernetesIntegrationTestConfig(boolean deployEnabled, boolean buildEnabled, long readinessTimeout,
                                                    String[] additionalModules, String namespace,
                                                    KubernetesResource[] kubernetesResources,
-                                                   Class<? extends ExtraTestSetup> additionalTestSetupClass){
+                                                   Class<? extends ExtraTestSetup> additionalTestSetupClass,
+                                                   ConfigPlaceholderReplacement[] placeholderReplacements){
         super(deployEnabled, buildEnabled, readinessTimeout, additionalModules);
         this.namespace = namespace;
         this.kubernetesResources = new ArrayList<>(Arrays.asList(kubernetesResources));
+
+        Map<String, ConfigPlaceholderReplacer> replacements = new LinkedHashMap<>();
+
         try {
             extraTestSetup = (additionalTestSetupClass == null) ?
                     null : additionalTestSetupClass.getDeclaredConstructor().newInstance();
+            for (ConfigPlaceholderReplacement replacement : placeholderReplacements) {
+                replacements.put(replacement.placeholder(), replacement.replacer().getDeclaredConstructor().newInstance());
+            }
         } catch (Exception e) {
             throw new RuntimeException();
         }
+        this.placeholderReplacements = replacements;
     }
 
     static WildFlyKubernetesIntegrationTestConfig adapt(WildFlyKubernetesIntegrationTest annotation) {
@@ -58,7 +69,8 @@ class WildFlyKubernetesIntegrationTestConfig extends EditableKubernetesIntegrati
                 annotation.additionalModules(),
                 annotation.namespace(),
                 annotation.kubernetesResources(),
-                annotation.extraTestSetup());
+                annotation.extraTestSetup(),
+                annotation.placeholderReplacements());
     }
 
     public String getNamespace() {
@@ -71,6 +83,10 @@ class WildFlyKubernetesIntegrationTestConfig extends EditableKubernetesIntegrati
 
     ExtraTestSetup getExtraTestSetup() {
         return extraTestSetup;
+    }
+
+    public Map<String, ConfigPlaceholderReplacer> getPlaceholderReplacements() {
+        return placeholderReplacements;
     }
 
     void addAdditionalKubernetesResources(List<KubernetesResource> additionalKubernetesResources) {

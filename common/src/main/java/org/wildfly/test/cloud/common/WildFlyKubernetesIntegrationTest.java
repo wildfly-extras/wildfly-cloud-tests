@@ -100,4 +100,6 @@ public @interface WildFlyKubernetesIntegrationTest {
      * @return the class
      */
     Class<? extends ExtraTestSetup> extraTestSetup() default ExtraTestSetup.None.class;
+
+    ConfigPlaceholderReplacement[] placeholderReplacements() default {};
 }

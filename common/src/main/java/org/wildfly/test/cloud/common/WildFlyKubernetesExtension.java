@@ -22,13 +22,18 @@ package org.wildfly.test.cloud.common;
 import static io.dekorate.testing.Testing.DEKORATE_STORE;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -67,6 +72,8 @@ import io.fabric8.kubernetes.client.internal.readiness.Readiness;
  */
 public class WildFlyKubernetesExtension extends KubernetesExtension {
 
+    private static final Path KUBERNETES_YAML = Paths.get("target/classes/META-INF/dekorate/kubernetes.yml");
+    private static final Path KUBERNETES_BAK = Paths.get("target/classes/META-INF/dekorate/kubernetes.bak");
 
     @Override
     public WildFlyKubernetesIntegrationTestConfig getKubernetesIntegrationTestConfig(ExtensionContext context) {
@@ -92,6 +99,8 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
 
             deployKubernetesResources(context, config, testContext);
         }
+
+        backupAndReplacePlaceholdersInKubernetesYaml(context, config);
         super.beforeAll(context);
     }
 
@@ -113,6 +122,13 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
             }
             if (error) {
                 Assertions.fail("Errors occurred cleaning up the test, see the logs for details");
+            }
+        }
+        if (Files.exists(KUBERNETES_BAK)) {
+            try {
+                Files.delete(KUBERNETES_BAK);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -227,7 +243,19 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
             final KubernetesList resourceList;
             try {
                 try (InputStream in = getLocalOrRemoteKubernetesResourceInputStream(kubernetesResource.definitionLocation())) {
-                    resourceList = WildFlySerialization.unmarshalAsList(in);
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                    StringBuilder replacedInput = new StringBuilder();
+                    String line = reader.readLine();
+                    while (line != null) {
+                        for (Map.Entry<String, ConfigPlaceholderReplacer> replacement : config.getPlaceholderReplacements().entrySet()) {
+                            line = replacement.getValue().replace(context, replacement.getKey(), line);
+                        }
+                        replacedInput.append(line);
+                        replacedInput.append("\n");
+                        line = reader.readLine();
+                    }
+
+                    resourceList = WildFlySerialization.unmarshalAsList(new ByteArrayInputStream(replacedInput.toString().getBytes(StandardCharsets.UTF_8)));
                 }
             } catch (Exception e) {
                 throw toRuntimeException(e);
@@ -378,6 +406,27 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
 
     private WildFlyTestContext getWildFlyTestContext(ExtensionContext context) {
         return context.getStore(WILDFLY_STORE).get(KUBERNETES_CONFIG_DATA, WildFlyTestContext.class);
+    }
+
+    private void backupAndReplacePlaceholdersInKubernetesYaml(ExtensionContext extensionContext, WildFlyKubernetesIntegrationTestConfig testConfig) throws IOException {
+        // Back
+        if (!Files.exists(KUBERNETES_YAML)) {
+            return;
+        }
+
+        Files.copy(KUBERNETES_YAML, KUBERNETES_BAK);
+
+        List<String> lines = Files.readAllLines(KUBERNETES_YAML, StandardCharsets.UTF_8);
+        List<String> replacedLines = new ArrayList<>();
+        for (String line : lines) {
+            for (Map.Entry<String, ConfigPlaceholderReplacer> entry : testConfig.getPlaceholderReplacements().entrySet()) {
+                line = entry.getValue().replace(extensionContext, entry.getKey(), line);
+            }
+            replacedLines.add(line);
+        }
+
+        Files.delete(KUBERNETES_YAML);
+        Files.write(KUBERNETES_YAML, replacedLines);
     }
 
     private static class WildFlyTestContext {
