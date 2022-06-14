@@ -22,6 +22,8 @@ package org.wildfly.test.cloud.common.annotation.processor;
 import io.dekorate.Logger;
 import io.dekorate.LoggerFactory;
 import io.dekorate.doc.Description;
+import io.dekorate.kubernetes.annotation.KubernetesApplication;
+import io.dekorate.kubernetes.annotation.Port;
 import io.dekorate.processor.AbstractAnnotationProcessor;
 import io.dekorate.utils.Maps;
 
@@ -80,7 +82,7 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
                 if (found) {
                     throw new IllegalStateException("More than one @KubernetesApplication class found on classpath");
                 }
-
+                Port[] ports = mainClass.getAnnotation(KubernetesApplication.class).ports();
                 Path targetDirectory = determineTargetDirectory(mainClass);
                 Path cliScript = targetDirectory.getParent().resolve(CLI_SCRIPT_SOURCE).normalize().toAbsolutePath();
 
@@ -95,7 +97,7 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
 
 
 
-                addDefaults(cliScript != null);
+                addDefaults(cliScript != null, ports);
 
                 mainClass.getSimpleName();
 
@@ -107,7 +109,7 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
         return false;
     }
 
-    private void addDefaults(boolean cliScriptAdded) {
+    private void addDefaults(boolean cliScriptAdded, Port[] ports) {
         Map<String, Object> inputProperties = new HashMap<>();
 
         inputProperties.put("dekorate.kubernetes.env-vars[0].name", "SERVER_PUBLIC_BIND_ADDRESS");
@@ -117,12 +119,19 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
             inputProperties.put("dekorate.kubernetes.env-vars[1].name", CLI_LAUNCH_SCRIPT_VAR);
             inputProperties.put("dekorate.kubernetes.env-vars[1].value", CLI_SCRIPT_IN_IMAGE);
         }
-
+        
         inputProperties.put("dekorate.kubernetes.ports[0].name", "http");
         inputProperties.put("dekorate.kubernetes.ports[0].containerPort", "8080");
-
+        String nodePort = getNodePort("http", ports);
+        if ( nodePort != null) {
+            inputProperties.put("dekorate.kubernetes.ports[0].nodePort", nodePort);
+        }
         inputProperties.put("dekorate.kubernetes.ports[1].name", "admin");
         inputProperties.put("dekorate.kubernetes.ports[1].containerPort", "9990");
+        nodePort = getNodePort("admin", ports);
+        if ( nodePort != null) {
+            inputProperties.put("dekorate.kubernetes.ports[1].nodePort", nodePort);
+        }
 
         //Not needed at the moment.
         // It seemed needed when using -A to pass in values when trying to debug. Now we use system properies instead.
@@ -145,6 +154,17 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
 
         getSession().addPropertyConfiguration(properties);
 
+    }
+
+    private String getNodePort(String name, Port[] ports) {
+        for (Port port : ports) {
+            if(name.equals(port.name())) {
+                if(port.nodePort() != 0) {
+                    return ""+port.nodePort();
+                }
+            }
+        }
+        return null;
     }
 
     private Path determineTargetDirectory(Element mainClass) {

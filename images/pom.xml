@@ -55,6 +55,7 @@
                 <module>cloud-server</module>
                 <module>microprofile-reactive-messaging-kafka</module>
                 <module>datasources/postgresql</module>
+                <module>elytron-oidc-client</module>
             </modules>
             <build>
                 <plugins>
