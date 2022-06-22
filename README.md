@@ -6,28 +6,54 @@ Cloud test suite for WildFly
 
 ### Prerequisites
 
-* Install `docker` and `kubectl`
+* Install `docker` or `podman` and `kubectl`.
+* If you are using `podman` you first need to configure it :
+  ````shell
+  systemctl --user enable --now podman.socket
+  ````
+  and check the status
+  ````shell
+  systemctl status podman.socket
+  ````
+  This should return the socket path that you need to specify for minikube to start: something like `/run/user/${GUID}/podman/podman.sock`.
+  You need to set the environement variable `DOCKER_HOST` to the proper URL (don't forget une *unix://* prefix). 
+  ````shell
+  export DOCKER_HOST=unix:///run/user/1000/podman/podman.sock
+  ````
+  Also until at least until Minikube v1.26, podman is ran using sudo (cf. [Minikube podman page](https://minikube.sigs.k8s.io/docs/drivers/podman/)).
+
+  Thus you need to add your current user to the **/etc/sudoers** file by appending the following line to it: `${usernamme} ALL=(ALL) NOPASSWD: /usr/bin/podman`.
 * Install and start `minikube`, making sure it has enough memory
-````shell
-minikube start --memory='4gb'
-````
+  ````shell
+  minikube start --memory='4gb'
+  ````
+  If you are using `podman` you should specify the driver like this
+  ````shell
+  minikube start --memory='4gb' --driver=podman
+  ````
 * Install [Minikube registry](https://minikube.sigs.k8s.io/docs/handbook/registry/)
-````shell
-minikube addons enable registry
-````
+  ````shell
+  minikube addons enable registry
+  ````
 * In order to push to the minikube registry and expose it on localhost:5000:
-````shell
-# On Mac:
-docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"
+  ````shell
+  # On Mac:
+  docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"
 
-# On Linux:
-kubectl port-forward --namespace kube-system service/registry 5000:80 &
+  # On Linux:
+  kubectl port-forward --namespace kube-system service/registry 5000:80 &
 
-# On Windows:
-kubectl port-forward --namespace kube-system service/registry 5000:80
-docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:host.docker.internal:5000"
-````
+  # On Windows:
+  kubectl port-forward --namespace kube-system service/registry 5000:80
+  docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:host.docker.internal:5000"
+  ````
 
+  On linux you might need to add this registry as an insecure one by editing the file **/etc/containers/registries.conf** and adding the following lines:
+  ````
+  [[registry]]
+  location="localhost:5000"
+  insecure=true
+  ````
 ### Run the tests
 
 ````shell
