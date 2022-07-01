@@ -59,7 +59,8 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
 
     private static final Logger LOGGER = LoggerFactory.getLogger();
 
-    private static final String DOCKER_FILE_RELATIVE_TO_TARGET = "docker/Dockerfile";
+    private static final String DOCKER_FILE = "Dockerfile";
+    private static final String DOCKER_FILE_RELATIVE_TO_TARGET = "docker/" + DOCKER_FILE;
     private static final String GENERATED_DOCKER_FILE_LOCATION = "target/" + DOCKER_FILE_RELATIVE_TO_TARGET;
 
     private static final String CLI_SCRIPT_SOURCE = "src/main/cli-script/init.cli";
@@ -93,11 +94,15 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
                     cliScript = null;
                 }
 
-                generateDockerFile(targetDirectory, cliScript);
+
+                boolean suppliedDockerFile = isDockerFileSupplied(targetDirectory);
+                if (!suppliedDockerFile) {
+                    generateDockerFile(targetDirectory, cliScript);
+                }
 
 
 
-                addDefaults(cliScript != null, ports);
+                addDefaults(cliScript != null, ports, !suppliedDockerFile);
 
                 mainClass.getSimpleName();
 
@@ -109,7 +114,7 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
         return false;
     }
 
-    private void addDefaults(boolean cliScriptAdded, Port[] ports) {
+    private void addDefaults(boolean cliScriptAdded, Port[] ports, boolean useGenerateDockerFile) {
         Map<String, Object> inputProperties = new HashMap<>();
 
         inputProperties.put("dekorate.kubernetes.env-vars[0].name", "SERVER_PUBLIC_BIND_ADDRESS");
@@ -147,8 +152,10 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
         }
         */
 
-        // We want to generate our DockerFile, so override the location
-        inputProperties.put("dekorate.docker.docker-file", GENERATED_DOCKER_FILE_LOCATION);
+        if (useGenerateDockerFile) {
+            // We want to generate our DockerFile, so override the location
+            inputProperties.put("dekorate.docker.docker-file", GENERATED_DOCKER_FILE_LOCATION);
+        }
 
         Map<String, Object> properties = Maps.fromProperties(inputProperties);
 
@@ -185,6 +192,9 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
     }
 
     private void generateDockerFile(Path targetDirectory, Path cliScript) {
+
+
+
         String imageName = processingEnv.getOptions().get("wildfly.cloud.test.base.image.name");
         if (imageName == null || imageName.trim().isBlank()) {
             throw new IllegalStateException("No image name set via the 'wildfly.cloud.test.base.image.name' property in the test module pom");
@@ -222,4 +232,25 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnota
         }
     }
 
+    private boolean isDockerFileSupplied(Path targetDirectory) {
+        Path dockerFile = targetDirectory.getParent().resolve(DOCKER_FILE);
+        if (!Files.exists(dockerFile)) {
+            return false;
+        }
+        // Check if there is any content
+        final List<String> lines;
+        try {
+            lines = Files.readAllLines(dockerFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        for (String line : lines) {
+            line = line.trim();
+            if (line.length() > 0 && !line.startsWith("#")) {
+                // Line contained some instructions, so consider the user wants to override it
+                return true;
+            }
+        }
+        return false;
+    }
 }
