@@ -38,8 +38,8 @@
         <!-- Image creation properties -->
         <image.name.wildfly.runtime>quay.io/wildfly-snapshots/wildfly-runtime-jdk11-multi-arch:latest</image.name.wildfly.runtime>
         <version.wildfly>27.0.0.Alpha2-SNAPSHOT</version.wildfly>
-        <version.wildfly.cloud.galleon.pack>1.1.2.Final</version.wildfly.cloud.galleon.pack>
-        <version.wildfly.datasources.galleon.pack>2.2.0.Final</version.wildfly.datasources.galleon.pack>
+        <version.wildfly.cloud.galleon.pack>2.0.0.Alpha1</version.wildfly.cloud.galleon.pack>
+        <version.wildfly.datasources.galleon.pack>2.2.2.Final</version.wildfly.datasources.galleon.pack>
 
         <!-- Dependency versions -->
         <version.org.jboss.jboss-dmr>1.6.1.Final</version.org.jboss.jboss-dmr>
