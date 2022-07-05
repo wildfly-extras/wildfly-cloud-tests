@@ -25,6 +25,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.wildfly.test.cloud.common.KubernetesResource;
 import org.wildfly.test.cloud.common.Resource;
@@ -36,9 +37,12 @@ import io.restassured.RestAssured;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 
+import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
+@Tag(KUBERNETES)
 @WildFlyKubernetesIntegrationTest(
         namespace = "kafka",
         kubernetesResources = {

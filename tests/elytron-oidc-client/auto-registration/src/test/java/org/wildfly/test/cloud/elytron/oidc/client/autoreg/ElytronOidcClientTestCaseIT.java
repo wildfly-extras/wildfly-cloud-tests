@@ -62,6 +62,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
@@ -74,6 +75,9 @@ import org.wildfly.test.cloud.common.ConfigPlaceholderReplacement;
 import org.wildfly.test.cloud.common.ConfigPlaceholderReplacer;
 import org.wildfly.test.cloud.common.KubernetesResource;
 
+import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+
+@Tag(KUBERNETES)
 @WildFlyKubernetesIntegrationTest(
         placeholderReplacements = {
             @ConfigPlaceholderReplacement(

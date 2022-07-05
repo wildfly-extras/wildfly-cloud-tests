@@ -19,6 +19,7 @@
 package org.wildfly.test.cloud.env.vars.override;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
@@ -29,6 +30,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
+import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+
+@Tag(KUBERNETES)
 @WildFlyKubernetesIntegrationTest
 public class MpConfigTestCaseIT extends WildFlyCloudTestCase {
 
