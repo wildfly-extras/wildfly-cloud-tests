@@ -30,47 +30,57 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Extends io.dekorate.testing.annotation.KubernetesIntegrationTest
+ * Extends io.dekorate.testing.openshift.annotation.OpenshiftIntegrationTest
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
 @Target({ TYPE, METHOD, ANNOTATION_TYPE })
 @Retention(RUNTIME)
-@ExtendWith(WildFlyKubernetesExtension.class)
-public @interface WildFlyKubernetesIntegrationTest {
+@ExtendWith(WildFlyOpenshiftExtension.class)
+public @interface WildFlyOpenshiftIntegrationTest {
 
     ////////////////////////////////////////////////////////////////////////
-    // Fields from io.dekorate.testing.annotation.KubernetesIntegrationTest
+    // Fields from io.dekorate.testing.openshift.annotation.OpenshiftIntegrationTest
     ////////////////////////////////////////////////////////////////////////
 
     /**
      * Flag to define whether the extension should automatically apply resources.
      *
      * @return True, if extension should automatically deploy dekorate generated resources.
-     * @see io.dekorate.testing.annotation.KubernetesIntegrationTest
      */
     boolean deployEnabled() default true;
 
     /**
-     * Flag to define whether the extension should automatically apply resources.
+     * Flag to define whether the extension should automatically perform container builds.
      *
      * @return True, if extensions should automatically perform container builds.
-     * @see io.dekorate.testing.annotation.KubernetesIntegrationTest
      */
     boolean buildEnabled() default true;
+
+    /**
+     * Flag to define whether the extension should automatically push image.
+     *
+     * @return True, if extension should automatically push the image.
+     */
+    boolean pushEnabled() default false;
+
+    /**
+     * The amount of time in seconds to wait for the image stream tags to be available.
+     *
+     * @return The max amount in milliseconds.
+     */
+    long imageStreamTagTimeout() default 120000;
 
     /**
      * The amount of time in milliseconds to wait for application to become ready.
      *
      * @return The max amount in milliseconds.
-     * @see io.dekorate.testing.annotation.KubernetesIntegrationTest
      */
-    long readinessTimeout() default 500000;
+    long readinessTimeout() default 300000;
 
     /**
      * List of additional modules to be loaded by the test framework.
      *
      * @return The list of additional modules to be loaded.
-     * @see io.dekorate.testing.annotation.KubernetesIntegrationTest
      */
     String[] additionalModules() default {};
 
@@ -78,13 +88,14 @@ public @interface WildFlyKubernetesIntegrationTest {
     // WildFly specific fields
     ////////////////////////////////////////////////////////////////////////
 
-    /**
-     * The namespace to deploy the test application and other resources into.
-     * If empty, the default namespace will be used
-     *
-     * @return the namespace
-     */
-    String namespace() default "";
+// TODO - check this is not needed by OpenShift. If it is, add it in again
+//    /**
+//     * The namespace to deploy the test application and other resources into.
+//     * If empty, the default namespace will be used
+//     *
+//     * @return the namespace
+//     */
+//    String namespace() default "";
 
     /**
      * Any resources to be deployed before the application is deployed. This could

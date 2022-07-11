@@ -16,24 +16,26 @@
  *  limitations under the License.
  *
  */
-package org.wildfly.test.cloud.env.vars.override;
 
-import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
+package org.wildfly.test.cloud.common;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
+import java.util.List;
+import java.util.Map;
 
-import io.dekorate.kubernetes.annotation.Env;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
+interface WildFlyIntegrationTestConfig {
+    //////////////////////////////////////////////////////////////////////////////
+    // From the dekorate annotations
+    String[] getAdditionalModules();
 
-@KubernetesApplication(
-        envVars = {
-                @Env(name = "WILDFLY_OVERRIDING_ENV_VARS", value = "1"),
-                @Env(name = "SUBSYSTEM_LOGGING_ROOT_LOGGER_ROOT__LEVEL", value = "DEBUG"),
-                @Env(name = "TEST_EXPRESSION_FROM_PROPERTY", value = "testing123")
-        },
-        imagePullPolicy = Always)
-@ApplicationPath("")
-public class EnvVarsOverrideApp extends Application {
+    //////////////////////////////////////////////////////////////////////////////
+    // WildFly specific fields
+    String getNamespace();
 
+    List<KubernetesResource> getKubernetesResources();
+
+    ExtraTestSetup getExtraTestSetup();
+
+    Map<String, ConfigPlaceholderReplacer> getPlaceholderReplacements();
+
+    void addAdditionalKubernetesResources(List<KubernetesResource> additionalKubernetesResources);
 }

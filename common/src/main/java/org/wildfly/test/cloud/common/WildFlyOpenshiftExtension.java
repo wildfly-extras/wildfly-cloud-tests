@@ -19,40 +19,46 @@
 
 package org.wildfly.test.cloud.common;
 
-import io.dekorate.testing.kubernetes.KubernetesExtension;
+import io.dekorate.testing.openshift.OpenshiftExtension;
+import io.dekorate.testing.openshift.config.OpenshiftIntegrationTestConfig;
+
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-/**
- * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
- */
-public class WildFlyKubernetesExtension extends KubernetesExtension {
+public class WildFlyOpenshiftExtension extends OpenshiftExtension {
 
     private final WildFlyCommonExtension delegate = WildFlyCommonExtension.createForKubernetes();
 
-    @Override
-    public WildFlyKubernetesIntegrationTestConfig getKubernetesIntegrationTestConfig(ExtensionContext context) {
+    public WildFlyOpenshiftIntegrationTestConfig getIntegrationTestConfig(ExtensionContext context) {
         // Override the super class method so we can use our own configuration
         return context.getElement()
-                .map(e -> WildFlyKubernetesIntegrationTestConfig.adapt(e.getAnnotation(WildFlyKubernetesIntegrationTest.class)))
+                .map(e -> WildFlyOpenshiftIntegrationTestConfig.adapt(e.getAnnotation(WildFlyOpenshiftIntegrationTest.class)))
                 .orElseThrow(
-                        () -> new IllegalStateException("Test class not annotated with @" + WildFlyKubernetesIntegrationTest.class.getSimpleName()));
+                        () -> new IllegalStateException("Test class not annotated with @" + WildFlyOpenshiftIntegrationTestConfig.class.getSimpleName()));
     }
+
+    private static final ExtensionContext.Namespace WILDFLY_STORE = ExtensionContext.Namespace.create("org", "wildfly", "test");
+    private static final String KUBERNETES_CONFIG_DATA = "kubernetes-config";
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
-        delegate.beforeAll(getKubernetesIntegrationTestConfig(context), context);
+        delegate.beforeAll(getIntegrationTestConfig(context), context);
         super.beforeAll(context);
     }
 
     @Override
     public void afterAll(ExtensionContext context) {
         super.afterAll(context);
-        delegate.afterAll(getKubernetesIntegrationTestConfig(context), context);
+        delegate.afterAll(getIntegrationTestConfig(context), context);
     }
 
     @Override
     public void postProcessTestInstance(Object testInstance, ExtensionContext context) {
         super.postProcessTestInstance(testInstance, context);
         delegate.postProcessTestInstance(testInstance, context, () -> getName(context));
+    }
+
+    @Override
+    public OpenshiftIntegrationTestConfig getOpenshiftIntegrationTestConfig(ExtensionContext context) {
+        return getIntegrationTestConfig(context);
     }
 }

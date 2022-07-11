@@ -65,6 +65,16 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>io.dekorate</groupId>
+            <artifactId>openshift-annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.dekorate</groupId>
+            <artifactId>openshift-junit</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <scope>provided</scope>
@@ -151,6 +161,7 @@
         <module>elytron-oidc-client</module>
         <module>manual</module>
         <module>microprofile</module>
+        <module>temp</module>
     </modules>
 
     <profiles>

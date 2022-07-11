@@ -19,22 +19,6 @@
 
 package org.wildfly.test.cloud.common.annotation.processor;
 
-import io.dekorate.Logger;
-import io.dekorate.LoggerFactory;
-import io.dekorate.doc.Description;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-import io.dekorate.kubernetes.annotation.Port;
-import io.dekorate.processor.AbstractAnnotationProcessor;
-import io.dekorate.utils.Maps;
-
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,18 +29,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
+
+import io.dekorate.Logger;
+import io.dekorate.LoggerFactory;
+import io.dekorate.doc.Description;
+import io.dekorate.kubernetes.annotation.KubernetesApplication;
+import io.dekorate.kubernetes.annotation.Port;
+import io.dekorate.processor.AbstractAnnotationProcessor;
+import io.dekorate.utils.Maps;
+
 /**
  * Adds the following to the config:
  * <ul>
  *     <li>ports 8080 and 9990</li>
- *     <li>the env var SERVER_PUBLIC_BIND_ADDRESS=0.0.0.0</li>
- *     <li>Generates the Dockerfile to create the image, and adds the CLI script to trigger it if it exists</li>
+ *     <li>the env var SERVER_PUBLIC_BIND_ADDRESS=0.0.0.0</li>*
  * </ul>
  */
-@SupportedSourceVersion(SourceVersion.RELEASE_11)
-@Description("Generates kubernetes manifests.")
-@SupportedAnnotationTypes("io.dekorate.kubernetes.annotation.KubernetesApplication")
-public class WildFlyDefaultsKubernetesAnnotationProcessor extends AbstractAnnotationProcessor {
+//@SupportedSourceVersion(SourceVersion.RELEASE_11)
+//@Description("Generates kubernetes manifests.")
+//@SupportedAnnotationTypes("io.dekorate.kubernetes.annotation.KubernetesApplication")
+public class WildFlyDefaultsOpenshiftAnnotationProcessor extends AbstractAnnotationProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger();
 
