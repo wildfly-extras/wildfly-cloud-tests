@@ -19,10 +19,10 @@
 
 package org.wildfly.test.cloud.common;
 
-import io.dekorate.testing.config.EditableKubernetesIntegrationTestConfig;
-
 import java.util.List;
 import java.util.Map;
+
+import io.dekorate.testing.config.EditableKubernetesIntegrationTestConfig;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>

@@ -27,7 +27,6 @@ import io.dekorate.kubernetes.annotation.ConfigMapVolume;
 import io.dekorate.kubernetes.annotation.Env;
 import io.dekorate.kubernetes.annotation.KubernetesApplication;
 import io.dekorate.kubernetes.annotation.Mount;
-import io.dekorate.kubernetes.annotation.Port;
 import io.dekorate.kubernetes.annotation.SecretVolume;
 import io.dekorate.option.annotation.GeneratorOptions;
 

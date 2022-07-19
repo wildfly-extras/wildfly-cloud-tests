@@ -23,19 +23,11 @@ import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
-import io.dekorate.docker.annotation.DockerBuild;
 import io.dekorate.kubernetes.annotation.Env;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-import io.dekorate.kubernetes.annotation.Port;
 import io.dekorate.openshift.annotation.OpenshiftApplication;
-import io.dekorate.s2i.annotation.S2iBuild;
 
-@S2iBuild(enabled = false)
-@DockerBuild(registry = "default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com", group = "kkhan1-dev")
-@OpenshiftApplication(ports = {@Port(name= "http", containerPort = 8080, nodePort = 8080), @Port(name= "admin", containerPort = 9990, nodePort = 9990)},
+@OpenshiftApplication(
         envVars = {
-                @Env(name = "SERVER_PUBLIC_BIND_ADDRESS", value = "0.0.0.0"),
-                // TODO Remove everything over here
                 @Env(name = "WILDFLY_OVERRIDING_ENV_VARS", value = "1"),
                 @Env(name = "SUBSYSTEM_LOGGING_ROOT_LOGGER_ROOT__LEVEL", value = "DEBUG"),
                 @Env(name = "TEST_EXPRESSION_FROM_PROPERTY", value = "testing123")

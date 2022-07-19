@@ -19,8 +19,9 @@
 
 package org.wildfly.test.cloud.common;
 
-import io.dekorate.testing.kubernetes.KubernetesExtension;
 import org.junit.jupiter.api.extension.ExtensionContext;
+
+import io.dekorate.testing.kubernetes.KubernetesExtension;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>

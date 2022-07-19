@@ -18,6 +18,8 @@
  */
 package org.wildfly.test.cloud.env.vars.override;
 
+import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -29,8 +31,6 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-
-import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
 
 @Tag(KUBERNETES)
 @WildFlyKubernetesIntegrationTest

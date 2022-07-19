@@ -18,22 +18,23 @@
  */
 package org.wildfly.test.cloud.microprofile.datasources.postgresql;
 
-import io.dekorate.testing.annotation.Inject;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.restassured.RestAssured;
-import io.restassured.response.Response;
+import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+
+import java.util.List;
+
+import javax.ws.rs.core.MediaType;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 
-import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+import io.dekorate.testing.annotation.Inject;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
 
 @Tag(KUBERNETES)
 @WildFlyKubernetesIntegrationTest

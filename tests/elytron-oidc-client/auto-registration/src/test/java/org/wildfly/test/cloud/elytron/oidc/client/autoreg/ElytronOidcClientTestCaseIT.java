@@ -18,16 +18,14 @@
  */
 package org.wildfly.test.cloud.elytron.oidc.client.autoreg;
 
-import io.dekorate.testing.WithKubernetesClient;
-import io.dekorate.testing.annotation.Inject;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
@@ -61,21 +59,24 @@ import org.apache.http.impl.cookie.RFC6265CookieSpec;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
-import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.wildfly.test.cloud.common.ConfigPlaceholderReplacement;
 import org.wildfly.test.cloud.common.ConfigPlaceholderReplacer;
 import org.wildfly.test.cloud.common.KubernetesResource;
+import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
+import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 
-import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+import io.dekorate.testing.WithKubernetesClient;
+import io.dekorate.testing.annotation.Inject;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.client.KubernetesClient;
 
 @Tag(KUBERNETES)
 @WildFlyKubernetesIntegrationTest(

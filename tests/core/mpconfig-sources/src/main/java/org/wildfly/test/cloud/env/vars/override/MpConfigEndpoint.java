@@ -20,12 +20,12 @@ package org.wildfly.test.cloud.env.vars.override;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import javax.inject.Inject;
 
 @Path("")
 public class MpConfigEndpoint {

@@ -19,14 +19,14 @@
 
 package org.wildfly.test.cloud.microprofile.datasources.postgresql;
 
-import io.dekorate.kubernetes.annotation.Env;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-import io.dekorate.option.annotation.GeneratorOptions;
+import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
-import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
+import io.dekorate.kubernetes.annotation.Env;
+import io.dekorate.kubernetes.annotation.KubernetesApplication;
+import io.dekorate.option.annotation.GeneratorOptions;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>

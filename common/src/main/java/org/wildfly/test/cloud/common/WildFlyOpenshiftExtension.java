@@ -19,10 +19,10 @@
 
 package org.wildfly.test.cloud.common;
 
+import org.junit.jupiter.api.extension.ExtensionContext;
+
 import io.dekorate.testing.openshift.OpenshiftExtension;
 import io.dekorate.testing.openshift.config.OpenshiftIntegrationTestConfig;
-
-import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class WildFlyOpenshiftExtension extends OpenshiftExtension {
 

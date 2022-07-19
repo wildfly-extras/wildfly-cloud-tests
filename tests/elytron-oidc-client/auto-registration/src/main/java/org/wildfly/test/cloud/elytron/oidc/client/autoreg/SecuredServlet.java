@@ -17,11 +17,8 @@
  */
 package org.wildfly.test.cloud.elytron.oidc.client.autoreg;
 
-import io.dekorate.kubernetes.annotation.Env;
 import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-import io.dekorate.kubernetes.annotation.Port;
-import io.dekorate.kubernetes.annotation.ServiceType;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -33,6 +30,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.ApplicationPath;
+
+import io.dekorate.kubernetes.annotation.Env;
+import io.dekorate.kubernetes.annotation.KubernetesApplication;
+import io.dekorate.kubernetes.annotation.Port;
+import io.dekorate.kubernetes.annotation.ServiceType;
 
 /**
  * A simple secured HTTP servlet.

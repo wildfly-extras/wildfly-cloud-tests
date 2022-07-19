@@ -19,6 +19,8 @@
 
 package org.wildfly.test.cloud.microprofile.reactive.messaging.strimzi;
 
+import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,10 +36,7 @@ import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 
 import io.restassured.RestAssured;
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
-
-import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>

@@ -20,9 +20,6 @@
 package org.wildfly.test.cloud.common;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.dekorate.testing.annotation.Inject;
 

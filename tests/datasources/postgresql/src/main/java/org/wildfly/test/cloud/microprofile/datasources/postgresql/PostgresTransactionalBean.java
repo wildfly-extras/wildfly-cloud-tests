@@ -22,13 +22,14 @@
 
 package org.wildfly.test.cloud.microprofile.datasources.postgresql;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
-import java.util.List;
-import java.util.stream.Collectors;
 
 
 @ApplicationScoped

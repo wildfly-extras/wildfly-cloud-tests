@@ -19,10 +19,10 @@
 
 package org.wildfly.test.cloud.common;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import java.util.Collections;
 import java.util.List;
+
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 public interface ExtraTestSetup {
     /**

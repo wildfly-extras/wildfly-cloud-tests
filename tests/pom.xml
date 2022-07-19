@@ -33,9 +33,7 @@
 
     <properties>
         <!-- Set some properties here to not have to specify those on the command line when we want to write tests -->
-        <dekorate.docker.registry>${wildfly.cloud.test.docker.registry}</dekorate.docker.registry>
         <dekorate.push>true</dekorate.push>
-
         <!-- Individual tests will need to set this property -->
         <wildfly.cloud.test.base.image.name></wildfly.cloud.test.base.image.name>
     </properties>
@@ -109,21 +107,29 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <!--
                     If you need to debug the annotation processor, use the following configuration, and pass in
-                    -Ddekorate.docker.registry=localhost:5000 -Ddekorate.push=true when running mvnDebug clean install
+                        -Ddekorate.docker.registry=localhost:5000
+                        -Ddekorate.push=true
+                        -Dwildfly.cloud.test.base.image.name=<base image name>
+                    manually when running mvnDebug clean install.
+
+                    For OpenShift you will need to adjust -Ddekorate.docker.registry, and additionally pass in
+                     -Dwildfly.cloud.test.docker.group to point to your OpenShift project.
                 -->
                 <!--
                 <configuration>
-                    <compilerArgs>
-                        <arg>-Awildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
-                    </compilerArgs>
                 </configuration>
                 -->
                 <configuration>
                     <fork>true</fork>
                     <compilerArgs>
+                        <arg>-J-Dwildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
+                        <!--
+                            Dekorate allows specifying these with -D on the command-line.
+                            in order to not HAVE to do that, we pass them in explicitly here.
+                        -->
                         <arg>-J-Ddekorate.docker.registry=${dekorate.docker.registry}</arg>
                         <arg>-J-Ddekorate.push=${dekorate.push}</arg>
-                        <arg>-Awildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
+
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -170,6 +176,9 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+            <properties>
+
+            </properties>
             <build>
                 <plugins>
                     <plugin>
