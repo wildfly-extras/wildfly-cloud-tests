@@ -65,7 +65,7 @@
         <!-- Kubernetes registry parameters -->
         <wildfly.cloud.test.docker.host>localhost</wildfly.cloud.test.docker.host>
         <wildfly.cloud.test.docker.port>5000</wildfly.cloud.test.docker.port>
-        <wildfly.cloud.test.docker.registry>${wildfly.cloud.test.docker.host}:${wildfly.cloud.test.docker.port}</wildfly.cloud.test.docker.registry>
+        <dekorate.docker.registry>${wildfly.cloud.test.docker.host}:${wildfly.cloud.test.docker.port}</dekorate.docker.registry>
     </properties>
 
     <dependencyManagement>
@@ -128,12 +128,45 @@
             </dependency>
             <dependency>
                 <groupId>io.dekorate</groupId>
+                <artifactId>openshift-annotations</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>openshift-junit</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
                 <artifactId>kubernetes-annotations</artifactId>
                 <version>${version.io.decorate.dekorate}</version>
             </dependency>
             <dependency>
                 <groupId>io.dekorate</groupId>
                 <artifactId>kubernetes-junit</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>kubernetes-annotations</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>kubernetes-junit</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>openshift-annotations</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>openshift-junit</artifactId>
                 <version>${version.io.decorate.dekorate}</version>
                 <scope>test</scope>
             </dependency>

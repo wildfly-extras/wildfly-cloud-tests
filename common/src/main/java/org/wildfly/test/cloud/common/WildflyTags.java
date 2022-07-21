@@ -19,25 +19,7 @@
 
 package org.wildfly.test.cloud.common;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.junit.jupiter.api.extension.ExtensionContext;
-
-public interface ExtraTestSetup {
-    /**
-     * Called during the beforeAll stage of each test. May or may not return any KubernetesResources.
-     * If it returns KubernetesResources, they will be added to the list in the test's
-     * WildFlyKubernetesIntegrationTest.kubernetesResources.
-     *
-     * @param context
-     * @return the added resources. Must not be {@code null}.
-     */
-    default List<KubernetesResource> beforeAll(ExtensionContext context) {
-        return Collections.emptyList();
-    }
-
-    class None implements ExtraTestSetup {
-
-    }
+public class WildflyTags {
+    public static final String KUBERNETES = "Kubernetes";
+    public static final String OPENSHIFT = "OpenShift";
 }

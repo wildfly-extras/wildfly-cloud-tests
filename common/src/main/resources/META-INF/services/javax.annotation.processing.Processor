@@ -1,1 +1,2 @@
 org.wildfly.test.cloud.common.annotation.processor.WildFlyDefaultsKubernetesAnnotationProcessor
+org.wildfly.test.cloud.common.annotation.processor.WildFlyDefaultsOpenshiftAnnotationProcessor

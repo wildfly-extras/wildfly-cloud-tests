@@ -23,11 +23,8 @@ import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
-import io.dekorate.docker.annotation.DockerBuild;
-import io.dekorate.kubernetes.annotation.Container;
 import io.dekorate.kubernetes.annotation.Env;
 import io.dekorate.kubernetes.annotation.KubernetesApplication;
-import io.dekorate.kubernetes.annotation.Port;
 
 @KubernetesApplication(
         envVars = {

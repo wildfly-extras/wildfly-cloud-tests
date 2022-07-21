@@ -35,6 +35,7 @@ import io.restassured.response.Response;
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
+@Tag(KUBERNETES)
 @WildFlyKubernetesIntegrationTest(
         extraTestSetup = RhosakCliAdditionalTestSetup.class
 )

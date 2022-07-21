@@ -22,31 +22,36 @@ package org.wildfly.test.cloud.common;
 import java.util.List;
 import java.util.Map;
 
-import io.dekorate.testing.config.EditableKubernetesIntegrationTestConfig;
+import io.dekorate.testing.openshift.config.EditableOpenshiftIntegrationTestConfig;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
-class WildFlyKubernetesIntegrationTestConfig extends EditableKubernetesIntegrationTestConfig implements WildFlyIntegrationTestConfig {
+class WildFlyOpenshiftIntegrationTestConfig extends EditableOpenshiftIntegrationTestConfig implements WildFlyIntegrationTestConfig {
 
     private final WildFlyIntegrationTestConfigDelegate wildFlyIntegrationTestConfigDelegate;
 
 
-    private WildFlyKubernetesIntegrationTestConfig(boolean deployEnabled, boolean buildEnabled, long readinessTimeout,
-                                                   String[] additionalModules, WildFlyIntegrationTestConfigDelegate wildFlyIntegrationTestConfigDelegate){
-        super(deployEnabled, buildEnabled, readinessTimeout, additionalModules);
+    private WildFlyOpenshiftIntegrationTestConfig(boolean deployEnabled, boolean buildEnabled,
+                                                  boolean pushEnabled, long imageStreamTagTimeout,
+                                                  long readinessTimeout, String[] additionalModules,
+                                                  WildFlyIntegrationTestConfigDelegate wildFlyIntegrationTestConfigDelegate){
+        super(deployEnabled, buildEnabled, pushEnabled, imageStreamTagTimeout, readinessTimeout, additionalModules);
         this.wildFlyIntegrationTestConfigDelegate = wildFlyIntegrationTestConfigDelegate;
     }
 
-    static WildFlyKubernetesIntegrationTestConfig adapt(WildFlyKubernetesIntegrationTest annotation) {
-        return new WildFlyKubernetesIntegrationTestConfig(
+    static WildFlyOpenshiftIntegrationTestConfig adapt(WildFlyOpenshiftIntegrationTest annotation) {
+        return new WildFlyOpenshiftIntegrationTestConfig(
                 annotation.deployEnabled(),
                 annotation.buildEnabled(),
+                annotation.pushEnabled(),
+                annotation.imageStreamTagTimeout(),
                 annotation.readinessTimeout(),
                 annotation.additionalModules(),
                 WildFlyIntegrationTestConfigDelegate.create(annotation));
     }
 
+    @Override
     public String getNamespace() {
         return wildFlyIntegrationTestConfigDelegate.getNamespace();
     }

@@ -81,6 +81,7 @@ public class TestHelper {
                 Response response = client.newCall(request).execute();
                 if (response.code() == 200) {
                     String log = k8sClient.pods().withName(podName).inContainer(containerName).getLog();
+
                     if (log.contains("WFLYSRV0025")) {
                         return true;
                     }
@@ -177,6 +178,9 @@ public class TestHelper {
         if (!path.startsWith("/")) {
             path = "/" + path;
         }
+        // In dekorate they connect directly to the pod instead.
+        // Despite the service running on port 80, the below service port forward actually pulls out the first pod
+        // and sets up a port-forward to that. That pod listens on port 8080 rather than 80.
         try (LocalPortForward p = k8sClient.services().withName(containerName).portForward(8080)) {
             assertTrue(p.isAlive());
             URL url = new URL("http://localhost:" + p.getLocalPort() + path);

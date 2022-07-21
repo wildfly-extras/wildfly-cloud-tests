@@ -19,14 +19,17 @@
 
 package org.wildfly.test.cloud.common.annotation.processor;
 
+import java.util.Map;
+
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 
 import io.dekorate.doc.Description;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
 import io.dekorate.kubernetes.annotation.Port;
+import io.dekorate.openshift.annotation.OpenshiftApplication;
+import io.dekorate.s2i.annotation.S2iBuild;
 
 /**
  * Adds the following to the config:
@@ -38,12 +41,12 @@ import io.dekorate.kubernetes.annotation.Port;
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 @Description("Generates kubernetes manifests.")
-@SupportedAnnotationTypes("io.dekorate.kubernetes.annotation.KubernetesApplication")
-public class WildFlyDefaultsKubernetesAnnotationProcessor extends WildFlyDefaultsAbstractAnnotationProcessor {
+@SupportedAnnotationTypes("io.dekorate.openshift.annotation.OpenshiftApplication")
+public class WildFlyDefaultsOpenshiftAnnotationProcessor extends WildFlyDefaultsAbstractAnnotationProcessor {
 
     @Override
-    Class<KubernetesApplication> getAnnotationClass() {
-        return KubernetesApplication.class;
+    Class<OpenshiftApplication> getAnnotationClass() {
+        return OpenshiftApplication.class;
     }
 
     @Override
@@ -53,11 +56,22 @@ public class WildFlyDefaultsKubernetesAnnotationProcessor extends WildFlyDefault
 
     @Override
     String getEnvVarPrefix() {
-        return "dekorate.kubernetes.";
+        return "dekorate.openshift.";
     }
 
     @Override
     String getPortPrefix() {
-        return "dekorate.kubernetes.";
+        return "dekorate.openshift.";
+    }
+
+    @Override
+    void addAddtionalProperties(Map<String, Object> inputProperties, S2iBuild s2iBuild) {
+        if (s2iBuild == null) {
+            // Let dekorate handle this since the test is set up differently from expected
+            inputProperties.put("dekorate.s2i.enabled", "false");
+        }
+        // TODO - figure out how to make these two dynamic
+        inputProperties.put("dekorate.docker.registry", "default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com");
+        inputProperties.put("dekorate.docker.group", "kkhan1-dev");
     }
 }

@@ -16,28 +16,24 @@
  *  limitations under the License.
  *
  */
+package org.wildfly.cloud.test.openshift.poc;
 
-package org.wildfly.test.cloud.common;
+import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
 
-import java.util.Collections;
-import java.util.List;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
+import io.dekorate.kubernetes.annotation.Env;
+import io.dekorate.openshift.annotation.OpenshiftApplication;
 
-public interface ExtraTestSetup {
-    /**
-     * Called during the beforeAll stage of each test. May or may not return any KubernetesResources.
-     * If it returns KubernetesResources, they will be added to the list in the test's
-     * WildFlyKubernetesIntegrationTest.kubernetesResources.
-     *
-     * @param context
-     * @return the added resources. Must not be {@code null}.
-     */
-    default List<KubernetesResource> beforeAll(ExtensionContext context) {
-        return Collections.emptyList();
-    }
+@OpenshiftApplication(
+        envVars = {
+                @Env(name = "WILDFLY_OVERRIDING_ENV_VARS", value = "1"),
+                @Env(name = "SUBSYSTEM_LOGGING_ROOT_LOGGER_ROOT__LEVEL", value = "DEBUG"),
+                @Env(name = "TEST_EXPRESSION_FROM_PROPERTY", value = "testing123")
+        },
+        imagePullPolicy = Always)
+@ApplicationPath("")
+public class EnvVarsOverrideApp extends Application {
 
-    class None implements ExtraTestSetup {
-
-    }
 }
