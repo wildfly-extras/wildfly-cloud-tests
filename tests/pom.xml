@@ -47,6 +47,7 @@
         <wildfly.cloud.test.base.image.name></wildfly.cloud.test.base.image.name>
         <!-- Only used for OpenShift, and users need to specify this on the command line -->
         <dekorate.docker.group></dekorate.docker.group>
+
     </properties>
 
     <dependencies>
@@ -160,7 +161,7 @@
             <plugin>
                 <artifactId>maven-install-plugin</artifactId>
                 <configuration>
-                    <skip>true</skip>
+                    <skip>false</skip>
                 </configuration>
             </plugin>
             <plugin>
@@ -173,12 +174,12 @@
     </build>
 
     <modules>
+        <module>framework</module>
         <module>core</module>
         <module>datasources</module>
         <module>elytron-oidc-client</module>
         <module>manual</module>
         <module>microprofile</module>
-        <module>temp</module>
     </modules>
 
     <profiles>

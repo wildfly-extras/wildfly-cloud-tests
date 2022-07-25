@@ -603,8 +603,9 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
         private final Path backup;
 
         ExtensionType(String name) {
-            yaml = Paths.get("target/classes/META-INF/dekorate/kubernetes.yml");
-            backup = Paths.get("target/classes/META-INF/dekorate/kubernetes.bak");
+            String base = "target/classes/META-INF/dekorate/" + name;
+            yaml = Paths.get(base + ".yml");
+            backup = Paths.get(base + ".bak");
         }
     }
 }

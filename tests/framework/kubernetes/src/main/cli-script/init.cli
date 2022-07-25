@@ -1,0 +1,8 @@
+echo "Adding /etc/config/my-config-map as a config map directory"
+
+/subsystem=microprofile-config-smallrye/config-source=additional-a:add(dir={path=/etc/config/a})
+/subsystem=microprofile-config-smallrye/config-source=additional-b:add(dir={path=/etc/config/b})
+/subsystem=microprofile-config-smallrye/config-source=resource-c:add(dir={path=/etc/config/c})
+/subsystem=microprofile-config-smallrye/config-source=resource-d:add(dir={path=/etc/config/d})
+
+echo "initialize-server.cli script finished"
