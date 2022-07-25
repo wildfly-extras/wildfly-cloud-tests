@@ -26,7 +26,7 @@ import io.dekorate.testing.openshift.config.OpenshiftIntegrationTestConfig;
 
 public class WildFlyOpenshiftExtension extends OpenshiftExtension {
 
-    private final WildFlyCommonExtension delegate = WildFlyCommonExtension.createForKubernetes();
+    private final WildFlyCommonExtension delegate = WildFlyCommonExtension.createForOpenshift();
 
     public WildFlyOpenshiftIntegrationTestConfig getIntegrationTestConfig(ExtensionContext context) {
         // Override the super class method so we can use our own configuration

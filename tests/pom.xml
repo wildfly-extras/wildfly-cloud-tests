@@ -254,6 +254,9 @@
                                     <includes>
                                         <include>**/*IT.class</include>
                                     </includes>
+                                    <systemProperties>
+                                        <dekorate.docker.group>${dekorate.docker.group}</dekorate.docker.group>
+                                    </systemProperties>
                                 </configuration>
                             </execution>
                         </executions>
