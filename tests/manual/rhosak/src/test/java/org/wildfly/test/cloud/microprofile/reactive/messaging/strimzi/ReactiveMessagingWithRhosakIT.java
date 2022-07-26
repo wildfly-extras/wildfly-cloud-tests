@@ -22,7 +22,7 @@ package org.wildfly.test.cloud.microprofile.reactive.messaging.strimzi;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
