@@ -57,7 +57,7 @@ import io.dekorate.utils.Maps;
  */
 abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnotationProcessor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger();
+    protected static final Logger LOGGER = LoggerFactory.getLogger();
 
     private static final String DOCKER_FILE = "Dockerfile";
     private static final String DOCKER_FILE_RELATIVE_TO_TARGET = "docker/" + DOCKER_FILE;
@@ -178,6 +178,12 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
         }
         */
 
+        if (s2iBuild == null) {
+            // If the annotation is used we let that take precedence
+            // Let dekorate handle this since the test is set up differently from expected
+            setPropertyWithDefault(inputProperties, "dekorate.s2i.enabled", "false");
+        }
+
         if (useGenerateDockerFile) {
             // We want to generate our DockerFile, so override the location
             inputProperties.put("dekorate.docker.docker-file", GENERATED_DOCKER_FILE_LOCATION);
@@ -189,6 +195,14 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
 
         getSession().addPropertyConfiguration(properties);
 
+    }
+
+    private void setPropertyWithDefault(Map<String, Object> inputProperties, String propertyName, String defaultValue) {
+        String value = System.getProperty(propertyName);
+        if (value == null) {
+            value = defaultValue;
+        }
+        inputProperties.put(propertyName, value);
     }
 
     private String getNodePort(String name, Port[] ports) {

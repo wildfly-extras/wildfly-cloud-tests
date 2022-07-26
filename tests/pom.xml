@@ -32,10 +32,21 @@
     <packaging>pom</packaging>
 
     <properties>
-        <!-- Set some properties here to not have to specify those on the command line when we want to write tests -->
+        <!--
+            Set some properties here to not have to specify those on the command line when we want to write tests.
+
+        -->
+        <!--
+            This needs to be true for Kubernetes. For OpenShift false is better.
+            Openshift will actually work with this as true, but it results in the annotation processors pushing up an
+            image for an unused s2i build to OpenShift, which takes extra time. Since this happens during test
+            compilation, it means images are pushed up for tests not targeting OpenShift as well.
+        -->
         <dekorate.push>true</dekorate.push>
         <!-- Individual tests will need to set this property -->
         <wildfly.cloud.test.base.image.name></wildfly.cloud.test.base.image.name>
+        <!-- Only used for OpenShift, and users need to specify this on the command line -->
+        <dekorate.docker.group></dekorate.docker.group>
     </properties>
 
     <dependencies>
@@ -176,9 +187,6 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <properties>
-
-            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -205,8 +213,32 @@
         </profile>
         <profile>
             <id>openshift-tests</id>
+            <properties>
+                <!--
+                    This will work with true
+                -->
+                <dekorate.push>false</dekorate.push>
+            </properties>
+
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <fork>true</fork>
+                            <compilerArgs>
+                                <arg>-J-Dwildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
+                                <arg>-J-Ddekorate.docker.group=${dekorate.docker.group}</arg>
+                                <!--
+                                    Dekorate allows specifying these with -D on the command-line.
+                                    in order to not HAVE to do that, we pass them in explicitly here.
+                                -->
+                                <arg>-J-Ddekorate.docker.registry=${dekorate.docker.registry}</arg>
+                                <arg>-J-Ddekorate.push=${dekorate.push}</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>

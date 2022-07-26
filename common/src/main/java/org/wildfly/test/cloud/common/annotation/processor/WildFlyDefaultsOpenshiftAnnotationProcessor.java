@@ -66,12 +66,17 @@ public class WildFlyDefaultsOpenshiftAnnotationProcessor extends WildFlyDefaults
 
     @Override
     void addAddtionalProperties(Map<String, Object> inputProperties, S2iBuild s2iBuild) {
-        if (s2iBuild == null) {
-            // Let dekorate handle this since the test is set up differently from expected
-            inputProperties.put("dekorate.s2i.enabled", "false");
+        String dockerGroup = getBlankPropertyAsNull("dekorate.docker.group");
+        if (dockerGroup != null) {
+            inputProperties.put("dekorate.docker.group", dockerGroup);
         }
-        // TODO - figure out how to make these two dynamic
-        inputProperties.put("dekorate.docker.registry", "default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com");
-        inputProperties.put("dekorate.docker.group", "kkhan1-dev");
+    }
+
+    private String getBlankPropertyAsNull(String propertyName) {
+        String value = System.getProperty("dekorate.docker.group");
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value;
     }
 }
