@@ -140,6 +140,10 @@ jobs:
       - name: Openshift usage
         if: inputs.type == 'Openshift'
         run: |
+          
+          # Not sure if this is the right fix but there are a few instances where the connection
+          # to the registry is refused.
+          
           echo "Logging in..."
           oc login -u $OPENSHIFT_USER -p $OPENSHIFT_PWD
           echo "New project: $OPENSHIFT_NS"
@@ -148,29 +152,39 @@ jobs:
           oc registry login --skip-check
           echo "Registry info"
           OPENSHIFT_IMAGE_REGISTRY=$(oc registry info)
-          echo "Registry url: $OPENSHIFT_IMAGE_REGISTRY"
-          echo "login to docker registry"        
-          docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
           echo "OPENSHIFT_IMAGE_REGISTRY=${OPENSHIFT_IMAGE_REGISTRY}" >> $GITHUB_ENV
+          echo "Registry url: $OPENSHIFT_IMAGE_REGISTRY"
+          
+          # echo "login to docker registry"        
+          # docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
           
           # Set extra Maven parameters for OpenShift
           TMP=" -Popenshift-tests -Ddekorate.docker.registry=$OPENSHIFT_IMAGE_REGISTRY -Ddekorate.docker.group=$OPENSHIFT_NS"
           echo "OPENSHIFT_MAVEN_PARAMETERS=${TMP}" >> $GITHUB_ENV
+
+      # Sometimes the login to the registry fails with a connection refused
+      # See if a retry helps
+      - name: Login to OpenShift Image Registry
+        uses: nick-fields/retry@v2
+        with:
+          retry_wait_seconds: 10
+          max_attempts: 3
+          command: docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
 
       - name: Run Cloud Tests
         # This builds the provisioned images and runs the main (i.e. non-manual) tests
         # Since the manual tests reuse these images, we don't need to use
         # ${RUNTIME_IMAGE_OVERRIDE} elsewhere.
         run: |
-          echo "Runtime image override: ${RUNTIME_IMAGE_OVERRIDE}"
-          mvn -B install -Pimages -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${OPENSHIFT_MAVEN_PARAMETERS}
+          echo "Runtime image: ${RUNTIME_IMAGE_OVERRIDE}"
+          mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${OPENSHIFT_MAVEN_PARAMETERS}
         working-directory: cloud-tests
 
       - name: Run RHOSAK Tests
         if: ${{env.RHOSAK_PARAMETERS}}
         working-directory: cloud-tests
         run: |
-          mvn -B install -Dversion.wildfly=${VERSION_WILDFLY} ${RHOSAK_PARAMETERS} ${OPENSHIFT_MAVEN_PARAMETERS}
+          mvn -B install -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RHOSAK_PARAMETERS} ${OPENSHIFT_MAVEN_PARAMETERS}
 
       - name: Update permissions for Cache post job
         # Needed because the OpenShift installation adds some files which are not readable/writable
