@@ -22,9 +22,10 @@ import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
 
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
@@ -38,6 +39,10 @@ import io.restassured.response.Response;
 
 @Tag(KUBERNETES)
 @WildFlyKubernetesIntegrationTest
+@Disabled("Disabled because the currently released datasource " +
+        "feature pack depends on an older javax. version of WildFly. " +
+        "When provisioning it pulls in an old version of WildFly which " +
+        "does not recognise the jakarta. annotations in the endpoint. ")
 public class PostgresDatasourceTestCaseIT extends WildFlyCloudTestCase {
 
     @Inject
