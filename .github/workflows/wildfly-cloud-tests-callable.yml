@@ -165,8 +165,10 @@ jobs:
       # Sometimes the login to the registry fails with a connection refused
       # See if a retry helps
       - name: Login to OpenShift Image Registry
+        if: inputs.type == 'Openshift'
         uses: nick-fields/retry@v2
         with:
+          timeout_minutes: 2
           retry_wait_seconds: 10
           max_attempts: 3
           command: docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
