@@ -610,6 +610,13 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
 
         @Override
         protected void setNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) throws Exception {
+            // The namespace should be  set already when running the tests.
+            // See if we can do without this since the
+            //      oc config set-context --current --namespace=...
+            // used by the KubernetesNamespaceSwitcher.switchNamespace(context)
+            // isn't available on the old version of OpenShift installed by
+            // the GitHub Action
+            /*
             String openshiftProject = System.getProperty("dekorate.docker.group");
             if (openshiftProject == null) {
                 throw new IllegalStateException("To run the Openshift tests, you need to specify the Openshift project via the dekorate.docker.group system property!");
@@ -619,7 +626,7 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
             } catch (Exception e) {
                 throw toRuntimeException(e);
             }
-
+            */
         }
 
         @Override
