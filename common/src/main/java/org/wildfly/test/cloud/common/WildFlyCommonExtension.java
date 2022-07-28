@@ -459,7 +459,7 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
         }
 
         private void switchKubeCtlNamespace() throws Exception {
-            ProcessBuilder pb = new ProcessBuilder("kubectl", "config", "set-context", "--current", "--namespace=" + namespace);
+            ProcessBuilder pb = new ProcessBuilder(extensionType.cliName, "config", "set-context", "--current", "--namespace=" + namespace);
             Process process = pb.start();
             int exit = process.waitFor();
             if (exit != 0) {
@@ -596,16 +596,18 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
     }
 
     enum ExtensionType {
-        KUBERNETES("kubernetes"),
-        OPENSHIFT("openshift");
+        KUBERNETES("kubernetes", "kubectl"),
+        OPENSHIFT("openshift", "oc");
 
         private final Path yaml;
         private final Path backup;
+        private final String cliName;
 
-        ExtensionType(String name) {
+        ExtensionType(String name, String cliName) {
             String base = "target/classes/META-INF/dekorate/" + name;
             yaml = Paths.get(base + ".yml");
             backup = Paths.get(base + ".bak");
+            this.cliName = cliName;
         }
     }
 }
