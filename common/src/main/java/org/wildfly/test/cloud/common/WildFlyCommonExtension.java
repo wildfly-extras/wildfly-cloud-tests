@@ -19,35 +19,6 @@
 
 package org.wildfly.test.cloud.common;
 
-import static io.dekorate.testing.Testing.DEKORATE_STORE;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import io.dekorate.DekorateException;
 import io.dekorate.testing.WithDiagnostics;
 import io.dekorate.testing.WithKubernetesClient;
@@ -68,6 +39,38 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.internal.readiness.Readiness;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.ExtensionContext;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static io.dekorate.testing.Testing.DEKORATE_STORE;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
@@ -459,11 +462,41 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
         }
 
         private void switchKubeCtlNamespace() throws Exception {
+            System.out.println("Switching namespace to " + namespace);
             ProcessBuilder pb = new ProcessBuilder(extensionType.cliName, "config", "set-context", "--current", "--namespace=" + namespace);
             Process process = pb.start();
+
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            executor.submit(new StreamReader(process.getInputStream(), System.out));
+            executor.submit(new StreamReader(process.getErrorStream(), System.err));
+
             int exit = process.waitFor();
+
             if (exit != 0) {
                 throw new IllegalStateException("Error changing namespace to " + namespace);
+            }
+        }
+    }
+
+    private static class StreamReader implements Runnable {
+        private final BufferedReader in;
+        private final PrintStream out;
+
+        public StreamReader(InputStream in, PrintStream out) {
+            this.in = new BufferedReader(new InputStreamReader(in));
+            this.out = out;
+        }
+
+        @Override
+        public void run() {
+            try {
+                String line = in.readLine();
+                while (line != null) {
+                    out.println(line);
+                    line = in.readLine();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
