@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # Will be replaced with 'resource-d'
+  name: $NAME-D$
+data:
+  ordinal: 500
+  # Will be replaced with 'D'
+  propertyD: $VALUE-D$
+

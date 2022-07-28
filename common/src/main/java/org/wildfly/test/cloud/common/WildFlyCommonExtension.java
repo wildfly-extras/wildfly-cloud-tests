@@ -19,35 +19,6 @@
 
 package org.wildfly.test.cloud.common;
 
-import static io.dekorate.testing.Testing.DEKORATE_STORE;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import io.dekorate.DekorateException;
 import io.dekorate.testing.WithDiagnostics;
 import io.dekorate.testing.WithKubernetesClient;
@@ -68,11 +39,43 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.internal.readiness.Readiness;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.ExtensionContext;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static io.dekorate.testing.Testing.DEKORATE_STORE;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
-class WildFlyCommonExtension implements WithDiagnostics, WithKubernetesClient {
+abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetesClient {
 
     private final ExtensionType extensionType;
 
@@ -81,11 +84,11 @@ class WildFlyCommonExtension implements WithDiagnostics, WithKubernetesClient {
     }
 
     static WildFlyCommonExtension createForKubernetes() {
-        return new WildFlyCommonExtension(ExtensionType.KUBERNETES);
+        return new WildFlyCommonExtension.Kubernetes();
     }
 
     static WildFlyCommonExtension createForOpenshift() {
-        return new WildFlyCommonExtension(ExtensionType.OPENSHIFT);
+        return new WildFlyCommonExtension.Openshift();
     }
 
     public WildFlyIntegrationTestConfig getIntegrationTestConfig(ExtensionContext context) {
@@ -182,59 +185,11 @@ class WildFlyCommonExtension implements WithDiagnostics, WithKubernetesClient {
         return null;
     }
 
-    private void setNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) throws Exception {
-        if (!config.getNamespace().isBlank()) {
-            KubernetesClient client = getKubernetesClient(context);
-            NonNamespaceOperation<Namespace, NamespaceList, Resource<Namespace>> namespaceOperation = client.namespaces();
-            NamespaceList list = namespaceOperation.list();
-            boolean foundNs = false;
-            for (Namespace namespace : list.getItems()) {
-                if (namespace.getMetadata().getName().equals(config.getNamespace())) {
-                    foundNs = true;
-                    break;
-                }
-            }
+    // Different for Kubernetes and OpenShift
+    protected abstract void setNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) throws Exception;
 
-            if (!foundNs) {
-                Namespace ns =
-                        new NamespaceBuilder()
-                                .withNewMetadata()
-                                .withName(config.getNamespace())
-                                .endMetadata()
-                                .build();
-                System.out.println("Creating namespace " + ns) ;
-                namespaceOperation.create(ns);
-            }
-            // Switch kubectl and the fabric8 client to the new namespace
-            testContext.setCreatedNamespace(!foundNs);
-            new KubernetesNamespaceSwitcher(config.getNamespace()).switchNamespace(context);
-
-            // Switch the fabric8 client to the namespaced one
-            Assertions.assertInstanceOf(HttpClientAware.class, client);
-            Config namespaceConfig = new ConfigBuilder(client.getConfiguration()).withNamespace(config.getNamespace()).build();
-            KubernetesClient namespacedClient = new DefaultKubernetesClient(((HttpClientAware)client).getHttpClient(), namespaceConfig);
-            testContext.setOriginalClient(client);
-            setKubernetesClientInContext(context, namespacedClient);
-        }
-    }
-
-    private void deleteNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) {
-        if (!config.getNamespace().isBlank() && testContext.isCreatedNamespace()) {
-            KubernetesClient client = getKubernetesClient(context);
-            NonNamespaceOperation<Namespace, NamespaceList, Resource<Namespace>> namespaceOperation = client.namespaces();
-            NamespaceList list = namespaceOperation.list();
-            for (Namespace namespace : list.getItems()) {
-                if (namespace.getMetadata().getName().equals(config.getNamespace())) {
-                    namespaceOperation.delete(namespace);
-                }
-            }
-            try {
-                new KubernetesNamespaceSwitcher().resetNamespaceToDefault(context);
-            } catch (Exception e) {
-                throw toRuntimeException(e);
-            }
-        }
-    }
+    // Different for Kubernetes and OpenShift
+    protected abstract void deleteNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext);
 
     private void deployKubernetesResources(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) {
         if (config.getKubernetesResources().isEmpty()) {
@@ -411,7 +366,7 @@ class WildFlyCommonExtension implements WithDiagnostics, WithKubernetesClient {
     }
 
 
-    private void setKubernetesClientInContext(ExtensionContext context, KubernetesClient client) {
+    protected void setKubernetesClientInContext(ExtensionContext context, KubernetesClient client) {
         context.getStore(DEKORATE_STORE).put(KUBERNETES_CLIENT, client);
     }
 
@@ -507,11 +462,41 @@ class WildFlyCommonExtension implements WithDiagnostics, WithKubernetesClient {
         }
 
         private void switchKubeCtlNamespace() throws Exception {
-            ProcessBuilder pb = new ProcessBuilder("kubectl", "config", "set-context", "--current", "--namespace=" + namespace);
+            System.out.println("Switching namespace to " + namespace);
+            ProcessBuilder pb = new ProcessBuilder(extensionType.cliName, "config", "set-context", "--current", "--namespace=" + namespace);
             Process process = pb.start();
+
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            executor.submit(new StreamReader(process.getInputStream(), System.out));
+            executor.submit(new StreamReader(process.getErrorStream(), System.err));
+
             int exit = process.waitFor();
+
             if (exit != 0) {
                 throw new IllegalStateException("Error changing namespace to " + namespace);
+            }
+        }
+    }
+
+    private static class StreamReader implements Runnable {
+        private final BufferedReader in;
+        private final PrintStream out;
+
+        public StreamReader(InputStream in, PrintStream out) {
+            this.in = new BufferedReader(new InputStreamReader(in));
+            this.out = out;
+        }
+
+        @Override
+        public void run() {
+            try {
+                String line = in.readLine();
+                while (line != null) {
+                    out.println(line);
+                    line = in.readLine();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -564,16 +549,105 @@ class WildFlyCommonExtension implements WithDiagnostics, WithKubernetesClient {
         }
     }
 
+    private static class Kubernetes extends WildFlyCommonExtension {
+        public Kubernetes() {
+            super(ExtensionType.KUBERNETES);
+        }
+
+        protected void setNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) throws Exception {
+            if (!config.getNamespace().isBlank()) {
+                KubernetesClient client = getKubernetesClient(context);
+                NonNamespaceOperation<Namespace, NamespaceList, Resource<Namespace>> namespaceOperation = client.namespaces();
+                NamespaceList list = namespaceOperation.list();
+                boolean foundNs = false;
+                for (Namespace namespace : list.getItems()) {
+                    if (namespace.getMetadata().getName().equals(config.getNamespace())) {
+                        foundNs = true;
+                        break;
+                    }
+                }
+
+                if (!foundNs) {
+                    Namespace ns =
+                            new NamespaceBuilder()
+                                    .withNewMetadata()
+                                    .withName(config.getNamespace())
+                                    .endMetadata()
+                                    .build();
+                    System.out.println("Creating namespace " + ns) ;
+                    namespaceOperation.create(ns);
+                }
+                // Switch kubectl and the fabric8 client to the new namespace
+                testContext.setCreatedNamespace(!foundNs);
+
+                new KubernetesNamespaceSwitcher(config.getNamespace()).switchNamespace(context);
+            }
+        }
+
+        protected void deleteNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) {
+            if (!config.getNamespace().isBlank() && testContext.isCreatedNamespace()) {
+                KubernetesClient client = getKubernetesClient(context);
+                NonNamespaceOperation<Namespace, NamespaceList, Resource<Namespace>> namespaceOperation = client.namespaces();
+                NamespaceList list = namespaceOperation.list();
+                for (Namespace namespace : list.getItems()) {
+                    if (namespace.getMetadata().getName().equals(config.getNamespace())) {
+                        namespaceOperation.delete(namespace);
+                    }
+                }
+                try {
+                    new KubernetesNamespaceSwitcher().resetNamespaceToDefault(context);
+                } catch (Exception e) {
+                    throw toRuntimeException(e);
+                }
+            }
+        }
+    }
+
+    private static class Openshift extends WildFlyCommonExtension {
+        public Openshift() {
+            super(ExtensionType.OPENSHIFT);
+        }
+
+        @Override
+        protected void setNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) throws Exception {
+            // The namespace should be  set already when running the tests.
+            // See if we can do without this since the
+            //      oc config set-context --current --namespace=...
+            // used by the KubernetesNamespaceSwitcher.switchNamespace(context)
+            // isn't available on the old version of OpenShift installed by
+            // the GitHub Action
+            /*
+            String openshiftProject = System.getProperty("dekorate.docker.group");
+            if (openshiftProject == null) {
+                throw new IllegalStateException("To run the Openshift tests, you need to specify the Openshift project via the dekorate.docker.group system property!");
+            }
+            try {
+                new KubernetesNamespaceSwitcher(openshiftProject).switchNamespace(context);
+            } catch (Exception e) {
+                throw toRuntimeException(e);
+            }
+            */
+        }
+
+        @Override
+        protected void deleteNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) {
+            // We probably don't need to switch back to the default here
+        }
+    }
+
     enum ExtensionType {
-        KUBERNETES("kubernetes"),
-        OPENSHIFT("openshift");
+        KUBERNETES("kubernetes", "kubectl"),
+        OPENSHIFT("openshift", "oc");
 
         private final Path yaml;
         private final Path backup;
+        private final String cliName;
 
-        ExtensionType(String name) {
-            yaml = Paths.get("target/classes/META-INF/dekorate/kubernetes.yml");
-            backup = Paths.get("target/classes/META-INF/dekorate/kubernetes.bak");
+        ExtensionType(String name, String cliName) {
+            String base = "target/classes/META-INF/dekorate/" + name;
+            yaml = Paths.get(base + ".yml");
+            backup = Paths.get(base + ".bak");
+            this.cliName = cliName;
         }
     }
 }

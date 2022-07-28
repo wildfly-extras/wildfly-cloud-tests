@@ -227,6 +227,7 @@ away, we can leverage dekorate's built in mechanism.
 We do this in two steps:
 * First we create a `src/main/resources/kubernetes/kubernetes.yml` file containing the Kubernetes resources we want to add. Some examples will follow.
 * Next we need to point dekorate to the `kubernetes.yml` by specifying `@GeneratorOptions(inputPath = "kubernetes")` on the application class. The `kubernetes` in this case refers to the folder under the `src/resources` directory.
+** As mentioned previously, for OpenShift tests you need to name this file `openshift.yml` instead of `kubernetes.yml`.
 
 If you do these steps, the contents of the `src/main/resources/kubernetes/kubernetes.yml` will 
 be merged with what is output from the dekorate annotations on your test application. To see 
@@ -297,7 +298,7 @@ yaml install a deployment called `installed-behind-the-scenes` which we need to 
 this set of resources can be considered ready for use.
 
 #### Adding config maps
-The contents of the config map are specified in `src/main/resources/kubernetes/kubernetes.yml` as follows:
+The contents of the config map are specified in `src/main/resources/kubernetes/kubernetes.yml`.  `@GeneratorOptions(inputPath = "kubernetes")` specifies the directory under `src/main/resources/`. For Kubernetes the file **must** be called `kubernetes.yml` and for OpenShift the file **must** be called `openshift.yml`.
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -321,8 +322,7 @@ want to do this you can e.g. bind the config map entries to environment variable
 dekorate documentation for more details.
 
 #### Adding secrets
-The contents of the secret are specified in `src/main/resources/kubernetes/kubernetes.yml` as 
-follows:
+The contents of the secret are specified in `src/main/resources/kubernetes/kubernetes.yml`.  `@GeneratorOptions(inputPath = "kubernetes")` specifies the directory under `src/main/resources/`. For Kubernetes the file **must** be called `kubernetes.yml` and for OpenShift the file **must** be called `openshift.yml`.
 ```yaml
 apiVersion: v1
 kind: Secret

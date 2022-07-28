@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: additional-a
+    data:
+      ordinal: 500
+      propertyA: "A"
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      # Will be replaced with 'additional-b'
+      name: $NAME-B$
+    data:
+      ordinal: 500
+      # Will be replaced with 'B'
+      propertyB: $VALUE-B$
+
