@@ -18,21 +18,31 @@
  */
 package org.wildfly.test.cloud.microprofile.datasources.postgresql;
 
+import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+
+import java.util.List;
+
+import jakarta.ws.rs.core.MediaType;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
+import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
+
 import io.dekorate.testing.annotation.Inject;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
-import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 
-import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.List;
-
+@Tag(KUBERNETES)
 @WildFlyKubernetesIntegrationTest
+@Disabled("Disabled because the currently released datasource " +
+        "feature pack depends on an older javax. version of WildFly. " +
+        "When provisioning it pulls in an old version of WildFly which " +
+        "does not recognise the jakarta. annotations in the endpoint. ")
 public class PostgresDatasourceTestCaseIT extends WildFlyCloudTestCase {
 
     @Inject

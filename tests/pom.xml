@@ -32,12 +32,22 @@
     <packaging>pom</packaging>
 
     <properties>
-        <!-- Set some properties here to not have to specify those on the command line when we want to write tests -->
-        <dekorate.docker.registry>${wildfly.cloud.test.docker.registry}</dekorate.docker.registry>
-        <dekorate.push>true</dekorate.push>
+        <!--
+            Set some properties here to not have to specify those on the command line when we want to write tests.
 
+        -->
+        <!--
+            This needs to be true for Kubernetes. For OpenShift false is better.
+            Openshift will actually work with this as true, but it results in the annotation processors pushing up an
+            image for an unused s2i build to OpenShift, which takes extra time. Since this happens during test
+            compilation, it means images are pushed up for tests not targeting OpenShift as well.
+        -->
+        <dekorate.push>true</dekorate.push>
         <!-- Individual tests will need to set this property -->
         <wildfly.cloud.test.base.image.name></wildfly.cloud.test.base.image.name>
+        <!-- Only used for OpenShift, and users need to specify this on the command line -->
+        <dekorate.docker.group></dekorate.docker.group>
+
     </properties>
 
     <dependencies>
@@ -62,6 +72,16 @@
         <dependency>
             <groupId>io.dekorate</groupId>
             <artifactId>kubernetes-junit</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.dekorate</groupId>
+            <artifactId>openshift-annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.dekorate</groupId>
+            <artifactId>openshift-junit</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -99,21 +119,29 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <!--
                     If you need to debug the annotation processor, use the following configuration, and pass in
-                    -Ddekorate.docker.registry=localhost:5000 -Ddekorate.push=true when running mvnDebug clean install
+                        -Ddekorate.docker.registry=localhost:5000
+                        -Ddekorate.push=true
+                        -Dwildfly.cloud.test.base.image.name=<base image name>
+                    manually when running mvnDebug clean install.
+
+                    For OpenShift you will need to adjust -Ddekorate.docker.registry, and additionally pass in
+                     -Dwildfly.cloud.test.docker.group to point to your OpenShift project.
                 -->
                 <!--
                 <configuration>
-                    <compilerArgs>
-                        <arg>-Awildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
-                    </compilerArgs>
                 </configuration>
                 -->
                 <configuration>
                     <fork>true</fork>
                     <compilerArgs>
+                        <arg>-J-Dwildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
+                        <!--
+                            Dekorate allows specifying these with -D on the command-line.
+                            in order to not HAVE to do that, we pass them in explicitly here.
+                        -->
                         <arg>-J-Ddekorate.docker.registry=${dekorate.docker.registry}</arg>
                         <arg>-J-Ddekorate.push=${dekorate.push}</arg>
-                        <arg>-Awildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
+
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -131,27 +159,9 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                        <phase>integration-test</phase>
-                        <configuration>
-                            <includes>
-                                <include>**/*IT.class</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <artifactId>maven-install-plugin</artifactId>
                 <configuration>
-                    <skip>true</skip>
+                    <skip>false</skip>
                 </configuration>
             </plugin>
             <plugin>
@@ -164,11 +174,97 @@
     </build>
 
     <modules>
+        <module>framework</module>
         <module>core</module>
         <module>datasources</module>
         <module>elytron-oidc-client</module>
         <module>manual</module>
         <module>microprofile</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>kubernetes-tests</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <phase>integration-test</phase>
+                                <configuration>
+                                    <groups>Kubernetes</groups>
+                                    <includes>
+                                        <include>**/*IT.class</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>openshift-tests</id>
+            <properties>
+                <!--
+                    This will work with true
+                -->
+                <dekorate.push>false</dekorate.push>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <fork>true</fork>
+                            <compilerArgs>
+                                <arg>-J-Dwildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
+                                <arg>-J-Ddekorate.docker.group=${dekorate.docker.group}</arg>
+                                <!--
+                                    Dekorate allows specifying these with -D on the command-line.
+                                    in order to not HAVE to do that, we pass them in explicitly here.
+                                -->
+                                <arg>-J-Ddekorate.docker.registry=${dekorate.docker.registry}</arg>
+                                <arg>-J-Ddekorate.push=${dekorate.push}</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <phase>integration-test</phase>
+                                <configuration>
+                                    <groups>OpenShift</groups>
+                                    <includes>
+                                        <include>**/*IT.class</include>
+                                    </includes>
+                                    <systemProperties>
+                                        <dekorate.docker.group>${dekorate.docker.group}</dekorate.docker.group>
+                                    </systemProperties>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

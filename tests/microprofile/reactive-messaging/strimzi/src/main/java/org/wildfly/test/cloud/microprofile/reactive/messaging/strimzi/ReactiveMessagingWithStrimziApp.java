@@ -19,13 +19,13 @@
 
 package org.wildfly.test.cloud.microprofile.reactive.messaging.strimzi;
 
+import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
+
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
+
 import io.dekorate.kubernetes.annotation.Env;
 import io.dekorate.kubernetes.annotation.KubernetesApplication;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-
-import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>

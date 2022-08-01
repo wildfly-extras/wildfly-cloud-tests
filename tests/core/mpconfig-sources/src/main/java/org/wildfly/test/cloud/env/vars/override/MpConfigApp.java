@@ -20,14 +20,13 @@ package org.wildfly.test.cloud.env.vars.override;
 
 import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
 
 import io.dekorate.kubernetes.annotation.ConfigMapVolume;
 import io.dekorate.kubernetes.annotation.Env;
 import io.dekorate.kubernetes.annotation.KubernetesApplication;
 import io.dekorate.kubernetes.annotation.Mount;
-import io.dekorate.kubernetes.annotation.Port;
 import io.dekorate.kubernetes.annotation.SecretVolume;
 import io.dekorate.option.annotation.GeneratorOptions;
 

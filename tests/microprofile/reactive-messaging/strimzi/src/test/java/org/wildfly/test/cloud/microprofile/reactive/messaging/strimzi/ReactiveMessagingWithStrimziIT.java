@@ -19,12 +19,15 @@
 
 package org.wildfly.test.cloud.microprofile.reactive.messaging.strimzi;
 
+import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.wildfly.test.cloud.common.KubernetesResource;
 import org.wildfly.test.cloud.common.Resource;
@@ -33,12 +36,12 @@ import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 
 import io.restassured.RestAssured;
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
+@Tag(KUBERNETES)
 @WildFlyKubernetesIntegrationTest(
         namespace = "kafka",
         kubernetesResources = {

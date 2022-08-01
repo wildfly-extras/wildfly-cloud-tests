@@ -17,22 +17,24 @@
  */
 package org.wildfly.test.cloud.elytron.oidc.client.autoreg;
 
-import io.dekorate.kubernetes.annotation.Env;
 import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-import io.dekorate.kubernetes.annotation.Port;
-import io.dekorate.kubernetes.annotation.ServiceType;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.HttpMethodConstraint;
-import javax.servlet.annotation.ServletSecurity;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.ApplicationPath;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.HttpMethodConstraint;
+import jakarta.servlet.annotation.ServletSecurity;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.ApplicationPath;
+
+import io.dekorate.kubernetes.annotation.Env;
+import io.dekorate.kubernetes.annotation.KubernetesApplication;
+import io.dekorate.kubernetes.annotation.Port;
+import io.dekorate.kubernetes.annotation.ServiceType;
 
 /**
  * A simple secured HTTP servlet.

@@ -37,7 +37,7 @@
     <properties>
         <!-- Image creation properties -->
         <image.name.wildfly.runtime>quay.io/wildfly-snapshots/wildfly-runtime-jdk11-multi-arch:latest</image.name.wildfly.runtime>
-        <version.wildfly>27.0.0.Alpha2-SNAPSHOT</version.wildfly>
+        <version.wildfly>27.0.0.Alpha4-SNAPSHOT</version.wildfly>
         <version.wildfly.cloud.galleon.pack>2.0.0.Alpha2</version.wildfly.cloud.galleon.pack>
         <version.wildfly.datasources.galleon.pack>2.2.2.Final</version.wildfly.datasources.galleon.pack>
 
@@ -65,7 +65,7 @@
         <!-- Kubernetes registry parameters -->
         <wildfly.cloud.test.docker.host>localhost</wildfly.cloud.test.docker.host>
         <wildfly.cloud.test.docker.port>5000</wildfly.cloud.test.docker.port>
-        <wildfly.cloud.test.docker.registry>${wildfly.cloud.test.docker.host}:${wildfly.cloud.test.docker.port}</wildfly.cloud.test.docker.registry>
+        <dekorate.docker.registry>${wildfly.cloud.test.docker.host}:${wildfly.cloud.test.docker.port}</dekorate.docker.registry>
     </properties>
 
     <dependencyManagement>
@@ -112,6 +112,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>wildfly-cloud-tests-framework-app</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
                 <version>${version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml}</version>
@@ -128,12 +133,45 @@
             </dependency>
             <dependency>
                 <groupId>io.dekorate</groupId>
+                <artifactId>openshift-annotations</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>openshift-junit</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
                 <artifactId>kubernetes-annotations</artifactId>
                 <version>${version.io.decorate.dekorate}</version>
             </dependency>
             <dependency>
                 <groupId>io.dekorate</groupId>
                 <artifactId>kubernetes-junit</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>kubernetes-annotations</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>kubernetes-junit</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>openshift-annotations</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>openshift-junit</artifactId>
                 <version>${version.io.decorate.dekorate}</version>
                 <scope>test</scope>
             </dependency>

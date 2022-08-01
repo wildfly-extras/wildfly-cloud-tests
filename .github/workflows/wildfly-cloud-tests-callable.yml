@@ -6,19 +6,37 @@ on:
       runtimeImage:
         description: 'Name/tag of the base runtime image'
         type: string
-        required: false
+        required: true
+      type:
+        description: "Openshift or Kubernetes"
+        type: string
+        required: true
       base64EncodedEnvVars:
         # We are doing this because there is a max of 10 inputs on GH Actions
         description: 'Env vars (one per line) encoded with base64'
         type: string
         required: false
+env:
+  # Env vars for authentication for the tests using OpenShift
+  OPENSHIFT_USER: admin
+  OPENSHIFT_PWD: admin
+  OPENSHIFT_NS: testing
 
 jobs:
-  build:
+  run-tests:
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Determine type
+        run: |
+          TMP=${{inputs.type}}
+          if [ $TMP != "Openshift" ] && [ $TMP != "Kubernetes" ]; then
+            echo "inputs.type must be either 'Kubernetes' or 'Openshift'"
+            exit 1
+          fi
+          echo "TYPE=${TMP}" >> $GITHUB_ENV
+
       - name: Set runtime image override variable
         if: ${{inputs.runtimeImage}}
         run: |
@@ -74,14 +92,16 @@ jobs:
           path: cloud-tests
           fetch-depth: 1
 
-      - uses: actions/cache@v1
+      - uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Build WildFly
-        run: mvn -B install -DskipTests -Dskip.preview
+        # WildFly main doesn't build without preview at the moment
+        # run: mvn -B install -DskipTests -Dskip.preview
+        run: mvn -B install -DskipTests
         working-directory: wildfly
 
       - name: Grab WildFly Version
@@ -95,6 +115,7 @@ jobs:
 
       - name: Start minikube
         id: minikube
+        if: inputs.type == 'Kubernetes'
         with:
           driver: docker
           container-runtime: containerd
@@ -104,21 +125,70 @@ jobs:
         uses: medyagh/setup-minikube@master
 
       - name: Enable minikube registry
+        if: inputs.type == 'Kubernetes'
         run: |
           minikube addons enable registry
           kubectl port-forward --namespace kube-system service/registry 5000:80 &
+
+      - name: Setup OpenShift
+        if: inputs.type == 'Openshift'
+        uses: manusa/actions-setup-openshift@v1.1.3
+        with:
+          oc version: v3.11.0
+          github token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Openshift usage
+        if: inputs.type == 'Openshift'
+        run: |
+          
+          # Not sure if this is the right fix but there are a few instances where the connection
+          # to the registry is refused.
+          
+          echo "Logging in..."
+          oc login -u $OPENSHIFT_USER -p $OPENSHIFT_PWD
+          echo "New project: $OPENSHIFT_NS"
+          oc new-project $OPENSHIFT_NS
+          echo "Registry login"
+          oc registry login --skip-check
+          echo "Registry info"
+          OPENSHIFT_IMAGE_REGISTRY=$(oc registry info)
+          echo "OPENSHIFT_IMAGE_REGISTRY=${OPENSHIFT_IMAGE_REGISTRY}" >> $GITHUB_ENV
+          echo "Registry url: $OPENSHIFT_IMAGE_REGISTRY"
+          
+          # echo "login to docker registry"        
+          # docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
+          
+          # Set extra Maven parameters for OpenShift
+          TMP=" -Popenshift-tests -Ddekorate.docker.registry=$OPENSHIFT_IMAGE_REGISTRY -Ddekorate.docker.group=$OPENSHIFT_NS"
+          echo "OPENSHIFT_MAVEN_PARAMETERS=${TMP}" >> $GITHUB_ENV
+
+      # Sometimes the login to the registry fails with a connection refused
+      # See if a retry helps
+      - name: Login to OpenShift Image Registry
+        if: inputs.type == 'Openshift'
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 2
+          retry_wait_seconds: 10
+          max_attempts: 3
+          command: docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
 
       - name: Run Cloud Tests
         # This builds the provisioned images and runs the main (i.e. non-manual) tests
         # Since the manual tests reuse these images, we don't need to use
         # ${RUNTIME_IMAGE_OVERRIDE} elsewhere.
         run: |
-          echo "Runtime image override: ${RUNTIME_IMAGE_OVERRIDE}"
-          mvn -B install -Pimages -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE}
+          echo "Runtime image: ${RUNTIME_IMAGE_OVERRIDE}"
+          mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${OPENSHIFT_MAVEN_PARAMETERS}
         working-directory: cloud-tests
 
       - name: Run RHOSAK Tests
         if: ${{env.RHOSAK_PARAMETERS}}
         working-directory: cloud-tests
         run: |
-          mvn -B install -Dversion.wildfly=${VERSION_WILDFLY} ${RHOSAK_PARAMETERS}
+          mvn -B install -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RHOSAK_PARAMETERS} ${OPENSHIFT_MAVEN_PARAMETERS}
+
+      - name: Update permissions for Cache post job
+        # Needed because the OpenShift installation adds some files which are not readable/writable
+        # resulting in the Cache post job failing when trying to calculate the hashes
+        run: sudo bash -c 'sudo chmod -R 777 .'
