@@ -1,0 +1,16 @@
+name: Run Tests
+env:
+  STATUS_BRANCH: run-status
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [trigger-cloud-tests-run]
+jobs:
+  kubernetes-jdk11:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
+    with:
+      runtimeImage: quay.io/wildfly/wildfly-runtime-jdk11:latest
+      type: Kubernetes
+

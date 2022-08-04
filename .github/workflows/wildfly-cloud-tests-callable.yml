@@ -16,11 +16,13 @@ on:
         description: 'Env vars (one per line) encoded with base64'
         type: string
         required: false
+
 env:
   # Env vars for authentication for the tests using OpenShift
   OPENSHIFT_USER: admin
   OPENSHIFT_PWD: admin
   OPENSHIFT_NS: testing
+  STATUS_BRANCH: run-status
 
 jobs:
   run-tests:
@@ -28,6 +30,22 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Output event
+        run: echo "${{ toJSON(github.event) }}"
+
+      - name: Output clientPayload
+        if: ${{ github.event.client_payload }}
+        run: |
+          echo "*****"
+          echo "${{ toJSON(github.event.client_payload) }}"
+          echo "*****"
+          echo "${{ toJSON(github.event.client_payload.triggerRepo) }}"
+          echo "*****"
+          echo "${{ toJSON(github.event.client_payload.ref) }}"
+
+      - name: Output event
+        run: echo "${{ toJSON(github.event) }}"
+
       - name: Determine type
         run: |
           TMP=${{inputs.type}}
@@ -73,12 +91,22 @@ jobs:
       
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout WildFly
-        uses: actions/checkout@v2
+      - name: Checkout WildFly main branch
+        if: ${{!github.event.client_payload}}
+        uses: actions/checkout@v3
         with:
           path: wildfly
           fetch-depth: 1
           repository: 'wildfly/wildfly'
+
+      - name: Checkout WildFly PR branch
+        if: ${{github.event.client_payload}}
+        uses: actions/checkout@v3
+        with:
+          path: wildfly
+          fetch-depth: 1
+          repository: ${{github.event.client_payload.triggerRepo}}
+          ref: ${{github.event.client_payload.ref}}
 
       - name: Setup Java JDK
         uses: actions/setup-java@v2
@@ -87,7 +115,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Checkout WildFly Cloud Tests
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: cloud-tests
           fetch-depth: 1
@@ -140,10 +168,10 @@ jobs:
       - name: Openshift usage
         if: inputs.type == 'Openshift'
         run: |
-          
+
           # Not sure if this is the right fix but there are a few instances where the connection
           # to the registry is refused.
-          
+
           echo "Logging in..."
           oc login -u $OPENSHIFT_USER -p $OPENSHIFT_PWD
           echo "New project: $OPENSHIFT_NS"
@@ -154,10 +182,10 @@ jobs:
           OPENSHIFT_IMAGE_REGISTRY=$(oc registry info)
           echo "OPENSHIFT_IMAGE_REGISTRY=${OPENSHIFT_IMAGE_REGISTRY}" >> $GITHUB_ENV
           echo "Registry url: $OPENSHIFT_IMAGE_REGISTRY"
-          
-          # echo "login to docker registry"        
+
+          # echo "login to docker registry"
           # docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
-          
+
           # Set extra Maven parameters for OpenShift
           TMP=" -Popenshift-tests -Ddekorate.docker.registry=$OPENSHIFT_IMAGE_REGISTRY -Ddekorate.docker.group=$OPENSHIFT_NS"
           echo "OPENSHIFT_MAVEN_PARAMETERS=${TMP}" >> $GITHUB_ENV
@@ -192,3 +220,81 @@ jobs:
         # Needed because the OpenShift installation adds some files which are not readable/writable
         # resulting in the Cache post job failing when trying to calculate the hashes
         run: sudo bash -c 'sudo chmod -R 777 .'
+
+      ##################################################  
+      # Following steps are for PRs only
+      - name: Report PR failure
+        if: ${{ github.event.client_payload && failure() }}
+        run: |
+          echo "It failed"
+          STATUS="failed"
+          echo "STATUS=${STATUS}" >> $GITHUB_ENV
+
+          
+      - name: Report PR success
+        if: ${{ github.event.client_payload && success() }}
+        run: |
+          echo "It passed"
+          STATUS="passed"
+          echo "STATUS=${STATUS}" >> $GITHUB_ENV
+          
+      - name: Checkout PR status branch
+        if: ${{ github.event.client_payload && always() }}
+        uses: actions/checkout@v3
+        with: 
+          path: status        
+          ref: ${{ env.STATUS_BRANCH }}
+
+      - name: Add run status commit
+        if: ${{ github.event.client_payload && always() }}
+        env:
+          TRIGGER_REPO: ${{  github.event.client_payload.triggerRepo }}
+          STATUS_FILE: ${{ github.event.client_payload.statusFile }}
+        working-directory: status
+        run: |
+          echo "Reporting back. Status: $STATUS"
+          RUN_URL="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          TEXT="The remote job $STATUS. Further details can be found at $RUN_URL".
+          
+          COMMIT_TEXT=$( jq -n \
+                  --arg s "$STATUS" \
+                  --arg m "$TEXT" \
+                  --arg orid "$GITHUB_RUN_ID" \
+                  '{status: $s, message: $m, originalId: $orid}' )
+          
+          
+          echo "${COMMIT_TEXT}" > "${STATUS_FILE}"
+          # git status
+          git config --local user.name "CI Action"
+          git config --local user.email "ci@example.com"
+          git add -A 
+          # git status
+          git commit -m "Committing status for ${TRIGGER_REPO} ${FILENAME}"
+          # git status
+          git log
+
+          i=0
+          echo "Committed. Attempting to push"
+          git push origin ${STATUS_BRANCH}
+          RESULT=$?
+          echo "result ${RESULT}"
+          while [[ "${RESULT}" != '0' ]]
+          do
+            # Generate random sleep time between 15 and 45 seconds
+            wait=$[ $RANDOM % 45 + 15 ]
+            echo "Sleeping $wait seconds"
+            sleep $wait
+            i=$((i+1))
+            if [[ "$i" == '10' ]]; then
+              echo "Too many failures trying to push. Giving up."
+            fi
+          
+          
+            echo "Push failed. Trying to fetch, rebase and push again..."
+            git fetch origin ${STATUS_BRANCH}
+            git rebase origin/${STATUS_BRANCH}
+            git push origin ${STATUS_BRANCH}
+            RESULT=$?
+          done
+          
+      
