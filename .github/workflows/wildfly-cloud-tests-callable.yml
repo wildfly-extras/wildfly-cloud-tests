@@ -16,6 +16,10 @@ on:
         description: 'Env vars (one per line) encoded with base64'
         type: string
         required: false
+    outputs:
+      status:
+        description: 0 if job pased, 1 if not
+        value: ${{ jobs.run-tests.outputs.status }}
 
 env:
   # Env vars for authentication for the tests using OpenShift
@@ -27,8 +31,9 @@ env:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.output-status.outputs.status }}
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Output event
         run: echo "${{ toJSON(github.event) }}"
@@ -222,79 +227,23 @@ jobs:
         run: sudo bash -c 'sudo chmod -R 777 .'
 
       ##################################################  
-      # Following steps are for PRs only
-      - name: Report PR failure
-        if: ${{ github.event.client_payload && failure() }}
+      # Following steps are to report back to the pull request runner remote_dispatch job
+      - name: Report failure
+        if: ${{ failure() }}
         run: |
           echo "It failed"
           STATUS="failed"
-          echo "STATUS=${STATUS}" >> $GITHUB_ENV
+          echo "STATUS=1" >> $GITHUB_ENV
 
-          
-      - name: Report PR success
-        if: ${{ github.event.client_payload && success() }}
+      - name: Report success
+        if: ${{ success() }}
         run: |
           echo "It passed"
           STATUS="passed"
-          echo "STATUS=${STATUS}" >> $GITHUB_ENV
-          
-      - name: Checkout PR status branch
-        if: ${{ github.event.client_payload && always() }}
-        uses: actions/checkout@v3
-        with: 
-          path: status        
-          ref: ${{ env.STATUS_BRANCH }}
+          echo "STATUS=0" >> $GITHUB_ENV
 
-      - name: Add run status commit
-        if: ${{ github.event.client_payload && always() }}
-        env:
-          TRIGGER_REPO: ${{  github.event.client_payload.triggerRepo }}
-          STATUS_FILE: ${{ github.event.client_payload.statusFile }}
-        working-directory: status
+      - id: output-status
+        if: ${{ always() }}
         run: |
-          echo "Reporting back. Status: $STATUS"
-          RUN_URL="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          TEXT="The remote job $STATUS. Further details can be found at $RUN_URL".
-          
-          COMMIT_TEXT=$( jq -n \
-                  --arg s "$STATUS" \
-                  --arg m "$TEXT" \
-                  --arg orid "$GITHUB_RUN_ID" \
-                  '{status: $s, message: $m, originalId: $orid}' )
-          
-          
-          echo "${COMMIT_TEXT}" > "${STATUS_FILE}"
-          # git status
-          git config --local user.name "CI Action"
-          git config --local user.email "ci@example.com"
-          git add -A 
-          # git status
-          git commit -m "Committing status for ${TRIGGER_REPO} ${FILENAME}"
-          # git status
-          git log
-
-          i=0
-          echo "Committed. Attempting to push"
-          git push origin ${STATUS_BRANCH}
-          RESULT=$?
-          echo "result ${RESULT}"
-          while [[ "${RESULT}" != '0' ]]
-          do
-            # Generate random sleep time between 15 and 45 seconds
-            wait=$[ $RANDOM % 45 + 15 ]
-            echo "Sleeping $wait seconds"
-            sleep $wait
-            i=$((i+1))
-            if [[ "$i" == '10' ]]; then
-              echo "Too many failures trying to push. Giving up."
-            fi
-          
-          
-            echo "Push failed. Trying to fetch, rebase and push again..."
-            git fetch origin ${STATUS_BRANCH}
-            git rebase origin/${STATUS_BRANCH}
-            git push origin ${STATUS_BRANCH}
-            RESULT=$?
-          done
-          
-      
+          echo "Setting 'status' output to ${STATUS}"
+          echo "::set-output name=status::${STATUS}"      
