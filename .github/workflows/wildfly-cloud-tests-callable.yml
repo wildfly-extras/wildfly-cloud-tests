@@ -16,18 +16,41 @@ on:
         description: 'Env vars (one per line) encoded with base64'
         type: string
         required: false
+    outputs:
+      status:
+        description: 0 if job pased, 1 if not
+        value: ${{ jobs.run-tests.outputs.status }}
+
 env:
   # Env vars for authentication for the tests using OpenShift
   OPENSHIFT_USER: admin
   OPENSHIFT_PWD: admin
   OPENSHIFT_NS: testing
+  STATUS_BRANCH: run-status
 
 jobs:
   run-tests:
     runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.output-status.outputs.status }}
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Output event
+        run: echo "${{ toJSON(github.event) }}"
+
+      - name: Output clientPayload
+        if: ${{ github.event.client_payload }}
+        run: |
+          echo "*****"
+          echo "${{ toJSON(github.event.client_payload) }}"
+          echo "*****"
+          echo "${{ toJSON(github.event.client_payload.triggerRepo) }}"
+          echo "*****"
+          echo "${{ toJSON(github.event.client_payload.ref) }}"
+
+      - name: Output event
+        run: echo "${{ toJSON(github.event) }}"
+
       - name: Determine type
         run: |
           TMP=${{inputs.type}}
@@ -73,12 +96,22 @@ jobs:
       
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout WildFly
-        uses: actions/checkout@v2
+      - name: Checkout WildFly main branch
+        if: ${{!github.event.client_payload}}
+        uses: actions/checkout@v3
         with:
           path: wildfly
           fetch-depth: 1
           repository: 'wildfly/wildfly'
+
+      - name: Checkout WildFly PR branch
+        if: ${{github.event.client_payload}}
+        uses: actions/checkout@v3
+        with:
+          path: wildfly
+          fetch-depth: 1
+          repository: ${{github.event.client_payload.triggerRepo}}
+          ref: ${{github.event.client_payload.ref}}
 
       - name: Setup Java JDK
         uses: actions/setup-java@v2
@@ -87,7 +120,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Checkout WildFly Cloud Tests
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: cloud-tests
           fetch-depth: 1
@@ -140,10 +173,10 @@ jobs:
       - name: Openshift usage
         if: inputs.type == 'Openshift'
         run: |
-          
+
           # Not sure if this is the right fix but there are a few instances where the connection
           # to the registry is refused.
-          
+
           echo "Logging in..."
           oc login -u $OPENSHIFT_USER -p $OPENSHIFT_PWD
           echo "New project: $OPENSHIFT_NS"
@@ -154,10 +187,10 @@ jobs:
           OPENSHIFT_IMAGE_REGISTRY=$(oc registry info)
           echo "OPENSHIFT_IMAGE_REGISTRY=${OPENSHIFT_IMAGE_REGISTRY}" >> $GITHUB_ENV
           echo "Registry url: $OPENSHIFT_IMAGE_REGISTRY"
-          
-          # echo "login to docker registry"        
+
+          # echo "login to docker registry"
           # docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
-          
+
           # Set extra Maven parameters for OpenShift
           TMP=" -Popenshift-tests -Ddekorate.docker.registry=$OPENSHIFT_IMAGE_REGISTRY -Ddekorate.docker.group=$OPENSHIFT_NS"
           echo "OPENSHIFT_MAVEN_PARAMETERS=${TMP}" >> $GITHUB_ENV
@@ -192,3 +225,25 @@ jobs:
         # Needed because the OpenShift installation adds some files which are not readable/writable
         # resulting in the Cache post job failing when trying to calculate the hashes
         run: sudo bash -c 'sudo chmod -R 777 .'
+
+      ##################################################  
+      # Following steps are to report back to the pull request runner remote_dispatch job
+      - name: Report failure
+        if: ${{ failure() }}
+        run: |
+          echo "It failed"
+          STATUS="failed"
+          echo "STATUS=1" >> $GITHUB_ENV
+
+      - name: Report success
+        if: ${{ success() }}
+        run: |
+          echo "It passed"
+          STATUS="passed"
+          echo "STATUS=0" >> $GITHUB_ENV
+
+      - id: output-status
+        if: ${{ always() }}
+        run: |
+          echo "Setting 'status' output to ${STATUS}"
+          echo "::set-output name=status::${STATUS}"      
