@@ -38,12 +38,12 @@ jobs:
 #          MESSAGE: ${{ toJSON(github.event.client_payload) }}
 #        run: echo $MESSAGE
 
-      - name: Checkout run-status branch
-        uses: actions/checkout@v3
-        with:
-          repository: wildfly/wildfly
-          path: status
-
+#      - name: Checkout run-status branch
+#        uses: actions/checkout@v3
+#        with:
+#          repository: wildfly/wildfly
+#          path: status
+#
       - name: Checkout run-status branch
         uses: actions/checkout@v3
         with:
@@ -109,7 +109,7 @@ jobs:
           git config --local user.email "ci@example.com"
           git add -A 
           # git status
-          git commit -m "Committing status for ${TRIGGER_REPO} ${FILENAME}"
+          git commit -m "Committing status for ${TRIGGER_REPO} ${FILENAME} ${{github.event.client_payload.ref}}"
           # git status
           git log
 
