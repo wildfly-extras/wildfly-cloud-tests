@@ -44,6 +44,7 @@
         <!-- Dependency versions -->
         <version.org.jboss.jboss-dmr>1.6.1.Final</version.org.jboss.jboss-dmr>
         <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
+        <version.org.jsoup.jsoup>1.15.3</version.org.jsoup.jsoup>
         <version.org.junit.jupiter.jupiter>5.8.1</version.org.junit.jupiter.jupiter>
         <!-- Needs to be higher than version 2.9.0 -->
         <version.io.decorate.dekorate>2.9.3</version.io.decorate.dekorate>
@@ -199,6 +200,13 @@
                 <groupId>org.jboss.shrinkwrap</groupId>
                 <artifactId>shrinkwrap-impl-base</artifactId>
                 <version>${version.org.jboss.shrinkwrap.shrinkwrap}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${version.org.jsoup.jsoup}</version>
+                <!-- WildFly may say 'test' so make sure we use 'compile' -->
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
