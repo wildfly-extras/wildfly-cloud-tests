@@ -143,16 +143,29 @@ jobs:
           echo "VERSION_WILDFLY=${TMP}" >> $GITHUB_ENV
         working-directory: wildfly
 
-      - name: Start minikube
+#      - name: Start minikube
+#        id: minikube
+#        if: inputs.type == 'Kubernetes'
+#        with:
+#          driver: docker
+#          container-runtime: containerd
+#          cpus: 2
+#          memory: 4000m
+#          cni: bridge
+#        uses: medyagh/setup-minikube@master
+
+      - name: Setup Minikube
         id: minikube
         if: inputs.type == 'Kubernetes'
+        uses: manusa/actions-setup-minikube@v2.7.0
         with:
           driver: docker
-          container-runtime: containerd
-          cpus: 2
-          memory: 4000m
-          cni: bridge
-        uses: medyagh/setup-minikube@master
+          container runtime: containerd
+          minikube version: 'v1.26.1'
+          # Downgrade K8s since 1.25 has some problems with https
+          kubernetes version: 'v1.24.3'
+          github token: ${{ secrets.GITHUB_TOKEN }}
+          start args: "--memory='4gb' --cpus='2'"
 
       - name: Enable minikube registry
         if: inputs.type == 'Kubernetes'
