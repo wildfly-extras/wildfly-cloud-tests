@@ -35,8 +35,8 @@ jobs:
       status: ${{ steps.output-status.outputs.status }}
 
     steps:
-      - name: Output event
-        run: echo "${{ toJSON(github.event) }}"
+#      - name: Output event
+#        run: echo "${{ toJSON(github.event) }}"
 
       - name: Output clientPayload
         if: ${{ github.event.client_payload }}
