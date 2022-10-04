@@ -29,7 +29,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 
 @ApplicationScoped
