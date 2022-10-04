@@ -35,7 +35,6 @@ import io.dekorate.s2i.annotation.S2iBuild;
  * Adds the following to the config:
  * <ul>
  *     <li>ports 8080 and 9990</li>
- *     <li>the env var SERVER_PUBLIC_BIND_ADDRESS=0.0.0.0</li>
  *     <li>Generates the Dockerfile to create the image, and adds the CLI script to trigger it if it exists</li>
  * </ul>
  */

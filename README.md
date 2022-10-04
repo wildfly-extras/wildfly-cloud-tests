@@ -156,16 +156,12 @@ A minimum `@KubernetesApplication` is:
 ```
 
 Out of the box the application processor of the WildFly Cloud Tests framework adds the typical WildFly ports `8080` and 
-`9990`, as well as setting the `SERVER_PUBLIC_BIND_ADDRESS=0.0.0.0` environment variable. So, the
-above trimmed down example results in an **effective configuration** of
+`9990`. So, the above trimmed down example results in an **effective configuration** of
 ```java
 @KubernetesApplication(
         ports = {
                 @Port(name = "web", containerPort = 8080),
                 @Port(name = "admin", containerPort = 9990)
-        },
-        envVars = {
-                @Env(name = "SERVER_PUBLIC_BIND_ADDRESS", value = "0.0.0.0")
         },
         imagePullPolicy = Always)
 ```
