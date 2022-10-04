@@ -51,7 +51,6 @@ import io.dekorate.utils.Maps;
  * Adds the following to the config:
  * <ul>
  *     <li>ports 8080 and 9990</li>
- *     <li>the env var SERVER_PUBLIC_BIND_ADDRESS=0.0.0.0</li>
  *     <li>Generates the Dockerfile to create the image, and adds the CLI script to trigger it if it exists</li>
  * </ul>
  */
@@ -143,12 +142,9 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
                              S2iBuild s2iBuild) {
         Map<String, Object> inputProperties = new HashMap<>();
 
-        inputProperties.put(getEnvVarPrefix() + "env-vars[0].name", "SERVER_PUBLIC_BIND_ADDRESS");
-        inputProperties.put(getEnvVarPrefix() + "env-vars[0].value", "0.0.0.0");
-
         if (cliScriptAdded) {
-            inputProperties.put(getEnvVarPrefix() + "env-vars[1].name", CLI_LAUNCH_SCRIPT_VAR);
-            inputProperties.put(getEnvVarPrefix() + "env-vars[1].value", CLI_SCRIPT_IN_IMAGE);
+            inputProperties.put(getEnvVarPrefix() + "env-vars[0].name", CLI_LAUNCH_SCRIPT_VAR);
+            inputProperties.put(getEnvVarPrefix() + "env-vars[0].value", CLI_SCRIPT_IN_IMAGE);
         }
         
         inputProperties.put(getPortPrefix() + "ports[0].name", "http");
