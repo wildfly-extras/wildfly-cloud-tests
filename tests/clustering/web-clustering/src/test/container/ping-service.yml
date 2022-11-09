@@ -1,0 +1,25 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: wildfly-cloud-tests-web-clustering-ping
+  annotations:
+    description: The JGroups ping port for clustering.
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: 'true'
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: ping
+      protocol: TCP
+      port: 8888
+      targetPort: 8888
+  internalTrafficPolicy: Cluster
+  clusterIPs:
+    - None
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app.kubernetes.io/name: wildfly-cloud-tests-web-clustering
