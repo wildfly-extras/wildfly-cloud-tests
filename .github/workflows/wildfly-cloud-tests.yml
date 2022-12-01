@@ -43,19 +43,6 @@ jobs:
       runtimeImage: quay.io/wildfly/wildfly-runtime-jdk17:latest
       type: Openshift
 
-  kubernetes-jdk11-multi-arch:
-    if: ${{!github.event.inputs.runtimeImage}}
-    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
-    with:
-      runtimeImage: quay.io/wildfly-snapshots/wildfly-runtime-jdk11-multi-arch:latest
-      type: Kubernetes
-  openshift-jdk11-multi-arch:
-    if: ${{!github.event.inputs.runtimeImage}}
-    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
-    with:
-      runtimeImage: quay.io/wildfly-snapshots/wildfly-runtime-jdk11-multi-arch:latest
-      type: Openshift
-
   # Custom image jobs
   kubernetes-custom-image:
     if: ${{github.event.inputs.runtimeImage}}
