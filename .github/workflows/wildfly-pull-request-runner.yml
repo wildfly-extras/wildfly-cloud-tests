@@ -9,13 +9,13 @@ jobs:
   kubernetes-jdk11:
     uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
     with:
-      runtimeImage: quay.io/wildfly/wildfly-runtime-jdk11:latest
+      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk11
       type: Kubernetes
 
   kubernetes-jdk17:
     uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
     with:
-      runtimeImage: quay.io/wildfly/wildfly-runtime-jdk17:latest
+      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk17
       type: Kubernetes
 
   reporter:
