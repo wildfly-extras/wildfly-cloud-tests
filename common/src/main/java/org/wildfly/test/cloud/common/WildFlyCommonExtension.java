@@ -33,12 +33,11 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.kubernetes.client.HttpClientAware;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.internal.readiness.Readiness;
+import io.fabric8.kubernetes.client.impl.KubernetesClientImpl;
+import io.fabric8.kubernetes.client.readiness.Readiness;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -50,7 +49,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -445,9 +443,8 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
 
             // Replace the client used by dekorate with one for the namespace
             KubernetesClient client = getKubernetesClient(context);
-            Assertions.assertInstanceOf(HttpClientAware.class, client);
             Config namespaceConfig = new ConfigBuilder(client.getConfiguration()).withNamespace(namespace).build();
-            KubernetesClient namespacedClient = new DefaultKubernetesClient(((HttpClientAware)client).getHttpClient(), namespaceConfig);
+            KubernetesClient namespacedClient = new KubernetesClientImpl(client.getHttpClient(), namespaceConfig);
             getWildFlyTestContext(context).setOriginalClient(client);
             setKubernetesClientInContext(context, namespacedClient);
         }
