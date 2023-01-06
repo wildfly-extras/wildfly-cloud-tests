@@ -40,9 +40,19 @@ public class ReactiveMessagingWithStrimziBean {
 
     private List<String> received = new ArrayList<>();
 
+    private boolean seenOne;
+
     @Incoming("from-strimzi")
     public void receive(String value) {
         System.out.println("Received: " + value);
+        if (value.equals("one")) {
+            if (seenOne) {
+                // Avoid adding duplicate 'one' entries since the test might send more than one. See the comment there
+                System.out.println("'one' already in list. Skipping");
+                return;
+            }
+            seenOne = true;
+        }
         received.add(value);
     }
 
