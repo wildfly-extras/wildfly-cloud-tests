@@ -37,7 +37,7 @@ items:
                  failureThreshold: 30
                  periodSeconds: 10
               image: quay.io/keycloak/keycloak:20.0.0
-              args: ["start-dev", "--import-realm"]
+              args: ["start-dev", "--import-realm", "--log-level=INFO,org.keycloak:debug"]
               imagePullPolicy: "IfNotPresent"
               env:
                 - name: KEYCLOAK_ADMIN
