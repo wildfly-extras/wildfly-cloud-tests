@@ -36,17 +36,14 @@ items:
                    port: 8080
                  failureThreshold: 30
                  periodSeconds: 10
-              # quarkus image, can't import realm.
-              #quay.io/keycloak/keycloak:18.0.0
-              image: jboss/keycloak:latest
+              image: quay.io/keycloak/keycloak:20.0.0
+              args: ["start-dev", "--import-realm"]
               imagePullPolicy: "IfNotPresent"
-              # quarkus image, should work but doesn't
-              #args: ["start-dev", "--import-realm"]
               env:
-                - name: KEYCLOAK_USER
+                - name: KEYCLOAK_ADMIN
                   value: "admin"
-                - name: KEYCLOAK_PASSWORD
-                  value: "admin"
+                - name: KEYCLOAK_ADMIN_PASSWORD
+                  value: "change_me"
                 - name: KEYCLOAK_IMPORT
                   value: "/tmp/import/wildfly-realm.json"
               ports:
@@ -54,7 +51,7 @@ items:
                   containerPort: 8080
               volumeMounts:
                 - name: keycloak-volume
-                  mountPath: /tmp/import/
+                  mountPath: /opt/keycloak/data/import/
   - apiVersion: v1
     kind: Service
     metadata:
