@@ -57,24 +57,63 @@ public class ReactiveMessagingWithStrimziIT  extends WildFlyCloudTestCase {
 
     @Test
     public void test() throws Exception {
-        int status = getHelper().doWithWebPortForward("one",
-                url -> RestAssured.given().header("Content-Type", MediaType.TEXT_PLAIN).post(url).getStatusCode());
-        Assertions.assertEquals(200, status);
-        status = getHelper().doWithWebPortForward("two",
-                url -> RestAssured.given().header("Content-Type", MediaType.TEXT_PLAIN).post(url).getStatusCode());
-        Assertions.assertEquals(200, status);
+        postMessage("one");
 
-        List<String> list = new ArrayList<>();
-        long end = System.currentTimeMillis() + 20000;
-        while (list.size() != 2 && System.currentTimeMillis() < end) {
-            list = getHelper().doWithWebPortForward("", url -> {
-                Response r = RestAssured.get(url);
-                Assertions.assertEquals(200, r.getStatusCode());
-                return r.as(List.class);
-            });
+        List<String> list = getReceived();
+        if (list.size() == 0) {
+            // Occasionally we might start sending messages before the subscriber is connected property
+            // (the connection happens async as part of the application start) so retry until we get this first message
             Thread.sleep(1000);
+            long end = System.currentTimeMillis() + 20000;
+            while (true) {
+                list = getReceived();
+                if (getReceived().size() != 0) {
+                    break;
+                }
+
+                if (System.currentTimeMillis() > end) {
+                    break;
+                }
+                postMessage("one");
+                Thread.sleep(1000);
+            }
         }
 
-        Assertions.assertArrayEquals(new String[]{"one", "two"}, list.toArray(new String[list.size()]));
+
+        postMessage("two");
+
+        long end = System.currentTimeMillis() + 20000;
+        while (list.size() != 2 && System.currentTimeMillis() < end) {
+            list = getReceived();
+            Thread.sleep(1000);
+        }
+        waitUntilListPopulated(20000, "one", "two");
+
     }
+
+    private void waitUntilListPopulated(long timoutMs, String... expected) throws Exception {
+        List<String> list = new ArrayList<>();
+        long end = System.currentTimeMillis() + timoutMs;
+        while (list.size() < expected.length && System.currentTimeMillis() < end) {
+            list = getReceived();
+            Thread.sleep(1000);
+        }
+        Assertions.assertArrayEquals(expected, list.toArray(new String[list.size()]));
+    }
+
+    private List<String> getReceived() throws Exception {
+        return getHelper().doWithWebPortForward("", url -> {
+            Response r = RestAssured.get(url);
+            Assertions.assertEquals(200, r.getStatusCode());
+            return r.as(List.class);
+        });
+    }
+
+    private void postMessage(String s) throws Exception {
+        int status = getHelper().doWithWebPortForward(s,
+                url -> RestAssured.given().header("Content-Type", MediaType.TEXT_PLAIN).post(url).getStatusCode());
+        Assertions.assertEquals(200, status);
+
+    }
+
 }
