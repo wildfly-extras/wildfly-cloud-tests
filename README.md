@@ -16,7 +16,7 @@ As mentioned in the [](#run-the-tests) section, we have two sets of tests. One t
   ````
   and check the status
   ````shell
-  systemctl status podman.socket
+  systemctl status --user podman.socket
   ````
   This should return the socket path that you need to specify for minikube to start: something like `/run/user/${GUID}/podman/podman.sock`.
   You need to set the environement variable `DOCKER_HOST` to the proper URL (don't forget une *unix://* prefix). 
