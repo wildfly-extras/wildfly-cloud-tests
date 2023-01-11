@@ -26,11 +26,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.client.dsl.Loggable;
 import org.jboss.dmr.ModelNode;
 
 import io.fabric8.kubernetes.api.model.Pod;
@@ -190,5 +193,26 @@ public class TestHelper {
     private String getFirstPodName() {
         Pod pod = k8sClient.pods().withLabel("app.kubernetes.io/name=" + containerName).list().getItems().get(0);
         return pod.getMetadata().getName();
+    }
+
+    public Map<String, String> getAllPodLogs() {
+        Map<String, String> logs = new LinkedHashMap<>();
+        for (Pod pod : k8sClient.pods().list().getItems()) {
+            String name = pod.getMetadata().getName();
+            String log = getPodLog(name);
+            if (log != null) {
+                logs.put(name, log);
+            }
+        }
+        return logs;
+    }
+
+    public String getPodLog(String podName) {
+        Loggable loggable = k8sClient.pods().withName(podName);
+        if (loggable != null) {
+            return loggable.getLog();
+        } else {
+            return null;
+        }
     }
 }

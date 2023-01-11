@@ -19,9 +19,8 @@
 
 package org.wildfly.test.cloud.common;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import io.dekorate.testing.kubernetes.KubernetesExtension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
@@ -47,6 +46,7 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
 
     @Override
     public void afterAll(ExtensionContext context) {
+        delegate.dumpLogs(context);
         super.afterAll(context);
         delegate.afterAll(getKubernetesIntegrationTestConfig(context), context);
     }
