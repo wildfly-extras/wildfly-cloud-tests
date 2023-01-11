@@ -77,7 +77,8 @@ import static io.dekorate.testing.Testing.DEKORATE_STORE;
  */
 abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetesClient {
 
-    private static final String DUMP_LOGS_PROPERTY = "wildfly.test.printlogs";
+    private static final String DUMP_LOGS_PROPERTY = "wildfly.test.print.logs";
+    private static final String DUMP_SERVER_CONFIG_PROPERTY = "wildfly.test.print.server-config";
 
     private final ExtensionType extensionType;
 
@@ -150,29 +151,17 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
     }
 
 
-    void dumpLogs(ExtensionContext context) {
-        if (!System.getProperties().containsKey(DUMP_LOGS_PROPERTY)) {
-            return;
-        }
-        String value = System.getProperty(DUMP_LOGS_PROPERTY);
-        if (!value.equals("true")) {
-            String[] classes = value.split(",");
-            System.out.println(Arrays.toString(classes));
-            Set<String> classesSet = new HashSet<>(Arrays.asList(classes));
-            String testClass = context.getTestClass().get().getSimpleName();
-            if (!classesSet.contains(testClass)) {
-                return;
-            }
-        }
+    void dumpPodInformation(ExtensionContext context) {
+        dumpLogs(context);
+        dumpStandaloneXml(context);
+    }
 
-        WildFlyTestContext testContext = getTestContext(context);
-        if (testContext == null) {
-            System.out.println("Null WildFlyTestContext. Can't display logs at this point...");
+    private void dumpLogs(ExtensionContext context) {
+        if (!dumpInformation(context, DUMP_LOGS_PROPERTY)) {
             return;
         }
-        TestHelper helper = testContext.getHelper();
+        TestHelper helper = getTestHelperForDumping(context, "display logs");
         if (helper == null) {
-            System.out.println("Null TestHelper. Can't display logs at this point...");
             return;
         }
 
@@ -187,6 +176,57 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
             System.out.println(logs.get(podName));
             System.out.println("==============> END LOGS: " + podName + " <=======================\n\n\n\n\n\n");
         }
+    }
+
+    private void dumpStandaloneXml(ExtensionContext context) {
+        if (!dumpInformation(context, DUMP_SERVER_CONFIG_PROPERTY)) {
+            return;
+        }
+        TestHelper helper = getTestHelperForDumping(context, "display logs");
+        if (helper == null) {
+            return;
+        }
+
+        System.out.println();
+        System.out.println("==============================================================");
+        System.out.println("  standalone.xml contents");
+        System.out.println("==============================================================\n\n\n");
+
+        String standaloneXml =  helper.readFile("$JBOSS_HOME/standalone/configuration/standalone.xml");
+        System.out.println(standaloneXml);
+        System.out.println("==============> END standalone.xml <==========================\n\n\n\n\n\n");
+
+    }
+
+    private boolean dumpInformation(ExtensionContext context, String property) {
+        if (!System.getProperties().containsKey(property)) {
+            return false;
+        }
+        String value = System.getProperty(property);
+        if (!value.equals("true")) {
+            String[] classes = value.split(",");
+            System.out.println(Arrays.toString(classes));
+            Set<String> classesSet = new HashSet<>(Arrays.asList(classes));
+            String testClass = context.getTestClass().get().getSimpleName();
+            if (!classesSet.contains(testClass)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private TestHelper getTestHelperForDumping(ExtensionContext context, String useCase) {
+        WildFlyTestContext testContext = getTestContext(context);
+        if (testContext == null) {
+            System.out.printf("Null WildFlyTestContext. Can't %s at this point...\n", useCase);
+            return null;
+        }
+        TestHelper helper = testContext.getHelper();
+        if (helper == null) {
+            System.out.printf("Null TestHelper. Can't %s at this point...\n", useCase);
+            return null;
+        }
+        return helper;
     }
 
 

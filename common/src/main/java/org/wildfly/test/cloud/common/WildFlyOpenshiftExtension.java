@@ -46,7 +46,7 @@ public class WildFlyOpenshiftExtension extends OpenshiftExtension {
 
     @Override
     public void afterAll(ExtensionContext context) {
-        delegate.dumpLogs(context);
+        delegate.dumpPodInformation(context);
         super.afterAll(context);
         delegate.afterAll(getIntegrationTestConfig(context), context);
     }

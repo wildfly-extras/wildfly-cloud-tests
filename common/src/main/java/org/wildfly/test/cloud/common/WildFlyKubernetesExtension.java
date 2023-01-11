@@ -46,7 +46,7 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
 
     @Override
     public void afterAll(ExtensionContext context) {
-        delegate.dumpLogs(context);
+        delegate.dumpPodInformation(context);
         super.afterAll(context);
         delegate.afterAll(getKubernetesIntegrationTestConfig(context), context);
     }

@@ -122,10 +122,15 @@ to specify the project we are logged into:
 mvn clean install -Popenshift-tests -Ddekorate.docker.registry=$OPENSHIFT_IMAGE_REGISTRY -Ddekorate.docker.group=$OPENSHIFT_NS
 ```
 
-### Obtaining pod logs
+### Obtaining pod logs and standalone.xml contents
 You may want to see the logs of the pods involved in the test. If you specify
-* `-Dwildfly.test.logs` - the logs of all pods for all tests will be printed to the console 
-* `-Dwildfly.test.printlogs=MyTest1,MyTest2` - the logs for all pods for the two specified test classes will be printed to the console. The simple name of the class is used. Logs for pods for other test classes will not be printed to the console.
+* `-Dwildfly.test.print.logs` - the logs of all pods for all tests will be printed to the console 
+* `-Dwildfly.test.print.logs=MyTest1,MyTest2` - the logs for all pods for the two specified test classes will be printed to the console. The simple name of the class is used. Logs for pods for other test classes will not be printed to the console.
+
+Similarly, you can obtain the standalone.xnl from the main WildFly pod:
+* `-Dwildfly.test.print.server-config` - outputs the standalone.xml for all tests
+* `-Dwildfly.test.print.server-config=MyTest1,MyTest2` - outputs the standalone.xml for the listed tests. 
+* The simple name of the class is used. Logs for pods for other test classes will not be printed to the console.
 
 ## Adding tests
 
@@ -204,7 +209,7 @@ Additionally, the WildFly Cloud Tests framework, allows you to inject an instanc
 of [`TestHelper`](common/src/main/java/org/wildfly/test/cloud/common/TestHelper.java) 
 initialised for the test being run. This contains methods to run actions such as REST
 calls using port forwarding to the relevant pods. It also contains methods to invoke CLI
-commands (via bash) in the pod.
+commands (via bash) in the pod, as well as read the contents of files, and execute Bash commands.
 
 The [`WildFlyCloudTestCase`](common/src/main/java/org/wildfly/test/cloud/common/WildFlyCloudTestCase.java)
 base class is set up to have the `TestHelper` injected, and also waits for the server to properly
