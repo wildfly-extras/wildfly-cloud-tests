@@ -48,7 +48,7 @@ import io.dekorate.kubernetes.annotation.ServiceType;
             @Env(name = "OIDC_USER_NAME", value = "demo"),
             @Env(name = "OIDC_USER_PASSWORD", value = "demo"),
             @Env(name = "OIDC_SECURE_DEPLOYMENT_SECRET", value = "mysecret"),
-            @Env(name = "OIDC_PROVIDER_URL", value = "http://$CLUSTER_IP$:30075/auth/realms/WildFly"),
+            @Env(name = "OIDC_PROVIDER_URL", value = "http://$CLUSTER_IP$:30075/realms/WildFly"),
             @Env(name = "OIDC_HOSTNAME_HTTP", value = "$CLUSTER_IP$:30074"),},
         imagePullPolicy = Always)
 @ApplicationPath("")
