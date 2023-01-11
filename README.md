@@ -122,6 +122,11 @@ to specify the project we are logged into:
 mvn clean install -Popenshift-tests -Ddekorate.docker.registry=$OPENSHIFT_IMAGE_REGISTRY -Ddekorate.docker.group=$OPENSHIFT_NS
 ```
 
+### Obtaining pod logs
+You may want to see the logs of the pods involved in the test. If you specify
+* `-Dwildfly.test.logs` - the logs of all pods for all tests will be printed to the console 
+* `-Dwildfly.test.printlogs=MyTest1,MyTest2` - the logs for all pods for the two specified test classes will be printed to the console. The simple name of the class is used. Logs for pods for other test classes will not be printed to the console.
+
 ## Adding tests
 
 Adding tests for [OpenShift](#adding-openshift-tests) is more or less identical to adding tests for 

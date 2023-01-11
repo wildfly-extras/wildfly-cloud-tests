@@ -59,9 +59,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -75,7 +77,13 @@ import static io.dekorate.testing.Testing.DEKORATE_STORE;
  */
 abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetesClient {
 
+    private static final String DUMP_LOGS_PROPERTY = "wildfly.test.printlogs";
+
     private final ExtensionType extensionType;
+
+    public WildFlyCommonExtension() {
+        extensionType = null;
+    }
 
     private WildFlyCommonExtension(ExtensionType extensionType) {
         this.extensionType = extensionType;
@@ -100,6 +108,7 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
     private static final ExtensionContext.Namespace WILDFLY_STORE = ExtensionContext.Namespace.create("org", "wildfly", "test");
     private static final String KUBERNETES_CONFIG_DATA = "kubernetes-config";
 
+
     public void beforeAll(WildFlyIntegrationTestConfig config, ExtensionContext context) throws Exception {
         WildFlyTestContext testContext = initTestContext(context, config);
         if (config != null) {
@@ -115,7 +124,7 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
     }
 
     public void afterAll(WildFlyIntegrationTestConfig config, ExtensionContext context) {
-        WildFlyTestContext testContext = context.getStore(WILDFLY_STORE).get(KUBERNETES_CONFIG_DATA, WildFlyTestContext.class);
+        WildFlyTestContext testContext = getTestContext(context);
         boolean error = false;
         if (testContext != null) {
             try {
@@ -137,7 +146,37 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
                 e.printStackTrace();
             }
         }
+
     }
+
+
+    void dumpLogs(ExtensionContext context) {
+        if (!System.getProperties().containsKey(DUMP_LOGS_PROPERTY)) {
+            return;
+        }
+        String value = System.getProperty(DUMP_LOGS_PROPERTY);
+        if (!value.equals("true")) {
+            String[] classes = value.split(",");
+            System.out.println(Arrays.toString(classes));
+            Set<String> classesSet = new HashSet<>(Arrays.asList(classes));
+            String testClass = context.getTestClass().get().getSimpleName();
+            if (!classesSet.contains(testClass)) {
+                return;
+            }
+        }
+        System.out.println();
+        System.out.println("==============================================================");
+        System.out.println("  Dumping pod logs");
+        System.out.println("==============================================================\n\n\n");
+
+        Map<String, String> logs = getTestContext(context).getHelper().getAllPodLogs();
+        for (String podName : logs.keySet()) {
+            System.out.println("==============> LOGS FOR POD: " + podName + " <==================\n");
+            System.out.println(logs.get(podName));
+            System.out.println("==============> END LOGS: " + podName + " <=======================\n\n\n\n\n\n");
+        }
+    }
+
 
     public void postProcessTestInstance(Object testInstance, ExtensionContext context, Supplier<String> nameSupplier) {
         // Inject the TestHelper
@@ -145,6 +184,10 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
         TestHelper helper = new TestHelper(
                 getKubernetesClient(context),
                 projectName);
+
+        // Set the helper in the testContext
+        WildFlyTestContext testContext = getTestContext(context);
+        testContext.setHelper(helper);
 
         Class clazz = testInstance.getClass();
         while (clazz != Object.class) {
@@ -181,6 +224,11 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
             return testContext;
         }
         return null;
+    }
+
+    private WildFlyTestContext getTestContext(ExtensionContext context) {
+        ExtensionContext.Store store = context.getStore(WILDFLY_STORE);
+        return store.get(KUBERNETES_CONFIG_DATA, WildFlyTestContext.class);
     }
 
     // Different for Kubernetes and OpenShift
@@ -401,6 +449,7 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
         private String useNamespace;
         private boolean createdNamespace;
         private KubernetesClient originalClient;
+        private TestHelper helper;
 
         public String getUseNamespace() {
             return useNamespace;
@@ -424,6 +473,14 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
 
         public KubernetesClient getOriginalClient() {
             return originalClient;
+        }
+
+        void setHelper(TestHelper helper) {
+            this.helper = helper;
+        }
+
+        TestHelper getHelper() {
+            return helper;
         }
     }
 
