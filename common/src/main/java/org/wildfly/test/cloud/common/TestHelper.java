@@ -117,6 +117,27 @@ public class TestHelper {
                         .stream(commands)
                         .map(cmd -> escapeCommand(cmd))
                         .collect(Collectors.joining(",")));
+        String output = runCommand(client, podName, containerName, bashCmd, true);
+        return ModelNode.fromString(output);
+    }
+
+    public String readFile(String filePath) {
+        return readFile(k8sClient, getFirstPodName(), containerName, filePath);
+    }
+
+    public static String readFile(KubernetesClient client, String podName, String containerName, String filePath) {
+        String bashCmd = String.format(
+                "cat %s",
+                filePath);
+        String output = runCommand(client, podName, containerName, bashCmd, true);
+        return output;
+    }
+
+    public String runCommand(String bashCommand, boolean expectOutput) {
+        return runCommand(k8sClient, getFirstPodName(), containerName, bashCommand, expectOutput);
+    }
+
+    public static String runCommand(KubernetesClient client, String podName, String containerName, String bashCommand, boolean expectOutput) {
         final CountDownLatch execLatch = new CountDownLatch(1);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         AtomicBoolean errorDuringExecution = new AtomicBoolean(false);
@@ -137,7 +158,7 @@ public class TestHelper {
                     public void onClose(int i, String s) {
                         execLatch.countDown();
                     }
-                }).exec( "bash", "-c", bashCmd);
+                }).exec( "bash", "-c", bashCommand);
         try {
             boolean ok = execLatch.await(10, TimeUnit.SECONDS);
             assertTrue(ok, "CLI Commands timed out");
@@ -146,12 +167,12 @@ public class TestHelper {
         }
 
         String output = out.toString();
-        if (output.trim().length() == 0) {
-            throw new IllegalStateException("No output was found executing the CLI command. " +
-                    "This means an error happened in the bash layer. The full command is:\n" + bashCmd);
+        if (expectOutput && output.trim().length() == 0) {
+            throw new IllegalStateException("No output was found executing the command. " +
+                    "This likely means an error happened in the bash layer. The full command is:\n" + bashCommand);
         }
 
-        return ModelNode.fromString(out.toString());
+        return output;
     }
 
     private static String escapeCommand(String cmd) {
