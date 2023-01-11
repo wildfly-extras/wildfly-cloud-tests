@@ -164,12 +164,24 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
                 return;
             }
         }
+
+        WildFlyTestContext testContext = getTestContext(context);
+        if (testContext == null) {
+            System.out.println("Null WildFlyTestContext. Can't display logs at this point...");
+            return;
+        }
+        TestHelper helper = testContext.getHelper();
+        if (helper == null) {
+            System.out.println("Null TestHelper. Can't display logs at this point...");
+            return;
+        }
+
         System.out.println();
         System.out.println("==============================================================");
-        System.out.println("  Dumping pod logs");
+        System.out.println("  Outputting full pod logs...");
         System.out.println("==============================================================\n\n\n");
 
-        Map<String, String> logs = getTestContext(context).getHelper().getAllPodLogs();
+        Map<String, String> logs = helper.getAllPodLogs();
         for (String podName : logs.keySet()) {
             System.out.println("==============> LOGS FOR POD: " + podName + " <==================\n");
             System.out.println(logs.get(podName));
