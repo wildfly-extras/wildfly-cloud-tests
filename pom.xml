@@ -55,7 +55,7 @@
         <version.org.jetbrains.kotlin>1.7.10</version.org.jetbrains.kotlin>
 
         <!-- Lock down the jackson fasterxml versions. Fabric8 and dekorate bring in different version -->
-        <version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml>2.14.1</version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml>
+        <version.com.fasterxml.jackson>2.14.1</version.com.fasterxml.jackson>
 
         <!-- Plugin versions -->
         <version.io.fabric8.docker-maven-plugin>0.40.3</version.io.fabric8.docker-maven-plugin>
@@ -129,32 +129,32 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml}</version>
+                <version>${version.com.fasterxml.jackson}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>${version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml}</version>
+                <version>${version.com.fasterxml.jackson}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml}</version>
+                <version>${version.com.fasterxml.jackson}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>${version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml}</version>
+                <version>${version.com.fasterxml.jackson}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-properties</artifactId>
-                <version>${version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml}</version>
+                <version>${version.com.fasterxml.jackson}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
-                <version>${version.com.fasterxml.jackson.dataformat.jackson-dataformat-yaml}</version>
+                <version>${version.com.fasterxml.jackson}</version>
             </dependency>
             <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
