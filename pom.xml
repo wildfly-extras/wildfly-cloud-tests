@@ -231,6 +231,11 @@
                 <version>${version.io.rest-assured.rest-assured}</version>
             </dependency>
             <dependency>
+                <groupId>io.rest-assured</groupId>
+                <artifactId>rest-assured</artifactId>
+                <version>${version.io.rest-assured.rest-assured}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.jboss</groupId>
                 <artifactId>jboss-dmr</artifactId>
                 <version>${version.org.jboss.jboss-dmr}</version>

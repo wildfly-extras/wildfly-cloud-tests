@@ -5,7 +5,7 @@ Cloud test suite for WildFly
 ## Usage
 
 ### Prerequisites
-As mentioned in the [](#run-the-tests) section, we have two sets of tests. One targeting Kubernetes, and the other targeting OpenShift.
+As mentioned in the [run the tests](#run-the-tests) section, we have two sets of tests. One targeting Kubernetes, and the other targeting OpenShift.
 
 #### Prerequisites for Kubernetes
 
@@ -57,6 +57,41 @@ As mentioned in the [](#run-the-tests) section, we have two sets of tests. One t
   location="localhost:5000"
   insecure=true
   ````
+  
+##### Fedora 37+ Set Up
+
+The following steps should get you up and running on Fedora:
+* Install podman
+```shell
+dnf install podman podman-docker
+```
+* Edit the `/etc/containers/registries.conf` and add the following:
+```
+[[registry]]
+location="localhost:5000"
+insecure=true
+```
+
+* Start minikube
+```shell
+minikube start --container-runtime=containerd
+```
+
+* Enable addons in minikube
+```shell
+minikube addons enable registry
+```
+
+* Expose port 5000 for the tests
+```shell
+kubectl port-forward --namespace kube-system service/registry 5000:80
+```
+
+* Run the tests
+```shell
+mvn clean verify
+```
+
 #### Prerequisites for Openshift
 * Install `oc`
 * Set up an OpenShift instance (Note: This is currently only tested on the sandbox on https://developers.redhat.com)
