@@ -106,7 +106,7 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
                         () -> new IllegalStateException("Test class not annotated with @" + WildFlyKubernetesIntegrationTest.class.getSimpleName()));
     }
 
-    private static final ExtensionContext.Namespace WILDFLY_STORE = ExtensionContext.Namespace.create("org", "wildfly", "test");
+    static final ExtensionContext.Namespace WILDFLY_STORE = ExtensionContext.Namespace.create("org", "wildfly", "test");
     private static final String KUBERNETES_CONFIG_DATA = "kubernetes-config";
 
 

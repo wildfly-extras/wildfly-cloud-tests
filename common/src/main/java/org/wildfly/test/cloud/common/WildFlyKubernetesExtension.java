@@ -22,20 +22,32 @@ package org.wildfly.test.cloud.common;
 import io.dekorate.testing.kubernetes.KubernetesExtension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import static org.wildfly.test.cloud.common.WildFlyCommonExtension.WILDFLY_STORE;
+
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
 public class WildFlyKubernetesExtension extends KubernetesExtension {
+    private static final String TEST_CONFIG = "integration-test-config";
 
     private final WildFlyCommonExtension delegate = WildFlyCommonExtension.createForKubernetes();
 
     @Override
     public WildFlyKubernetesIntegrationTestConfig getKubernetesIntegrationTestConfig(ExtensionContext context) {
+        ExtensionContext.Store store = context.getStore(WILDFLY_STORE);
+        WildFlyKubernetesIntegrationTestConfig cfg =
+                store.get(TEST_CONFIG, WildFlyKubernetesIntegrationTestConfig.class);
+        if (cfg != null) {
+            return cfg;
+        }
         // Override the super class method so we can use our own configuration
-        return context.getElement()
+        cfg = context.getElement()
                 .map(e -> WildFlyKubernetesIntegrationTestConfig.adapt(e.getAnnotation(WildFlyKubernetesIntegrationTest.class)))
                 .orElseThrow(
                         () -> new IllegalStateException("Test class not annotated with @" + WildFlyKubernetesIntegrationTest.class.getSimpleName()));
+
+        store.put(TEST_CONFIG, cfg);
+        return cfg;
     }
 
     @Override

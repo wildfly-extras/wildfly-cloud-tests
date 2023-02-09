@@ -23,20 +23,31 @@ import io.dekorate.testing.openshift.OpenshiftExtension;
 import io.dekorate.testing.openshift.config.OpenshiftIntegrationTestConfig;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import static org.wildfly.test.cloud.common.WildFlyCommonExtension.WILDFLY_STORE;
+
 public class WildFlyOpenshiftExtension extends OpenshiftExtension {
+
+    private static final String TEST_CONFIG = "integration-test-config";
 
     private final WildFlyCommonExtension delegate = WildFlyCommonExtension.createForOpenshift();
 
     public WildFlyOpenshiftIntegrationTestConfig getIntegrationTestConfig(ExtensionContext context) {
+        ExtensionContext.Store store = context.getStore(WILDFLY_STORE);
+        WildFlyOpenshiftIntegrationTestConfig cfg =
+                store.get(TEST_CONFIG, WildFlyOpenshiftIntegrationTestConfig.class);
+        if (cfg != null) {
+            return cfg;
+        }
+
         // Override the super class method so we can use our own configuration
-        return context.getElement()
+        cfg = context.getElement()
                 .map(e -> WildFlyOpenshiftIntegrationTestConfig.adapt(e.getAnnotation(WildFlyOpenshiftIntegrationTest.class)))
                 .orElseThrow(
                         () -> new IllegalStateException("Test class not annotated with @" + WildFlyOpenshiftIntegrationTestConfig.class.getSimpleName()));
-    }
 
-    private static final ExtensionContext.Namespace WILDFLY_STORE = ExtensionContext.Namespace.create("org", "wildfly", "test");
-    private static final String KUBERNETES_CONFIG_DATA = "kubernetes-config";
+        store.put(TEST_CONFIG, cfg);
+        return cfg;
+    }
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
