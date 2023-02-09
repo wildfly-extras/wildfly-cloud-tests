@@ -37,31 +37,6 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
  */
 public class WildFlySerialization extends Serialization {
 
-    static {
-        // Delete this when https://github.com/dekorateio/dekorate/pull/1141 is merged and released
-        try {
-            Class<Serialization> clazz = Serialization.class;
-            hackMapper(clazz, "JSON_MAPPER");
-            hackMapper(clazz, "YAML_MAPPER");
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void hackMapper(Class clazz, String name) throws Exception {
-        // Delete this when https://github.com/dekorateio/dekorate/pull/1141 is merged and released
-        Field jsonMapper = clazz.getDeclaredField(name);
-        jsonMapper.setAccessible(true);
-        try {
-            ObjectMapper jom = (ObjectMapper) jsonMapper.get(null);
-            jom.findAndRegisterModules();
-        } finally {
-            jsonMapper.setAccessible(false);
-        }
-    }
-
-
     // Override to work around https://github.com/dekorateio/dekorate/pull/922
     public static KubernetesList unmarshalAsList(InputStream is) {
         String content = Strings.read(is);
