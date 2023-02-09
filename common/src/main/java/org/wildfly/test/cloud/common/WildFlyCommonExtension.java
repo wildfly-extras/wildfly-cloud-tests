@@ -22,6 +22,7 @@ package org.wildfly.test.cloud.common;
 import io.dekorate.DekorateException;
 import io.dekorate.testing.WithDiagnostics;
 import io.dekorate.testing.WithKubernetesClient;
+import io.dekorate.utils.Serialization;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Namespace;
@@ -308,7 +309,7 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
                         line = reader.readLine();
                     }
 
-                    resourceList = WildFlySerialization.unmarshalAsList(new ByteArrayInputStream(replacedInput.toString().getBytes(StandardCharsets.UTF_8)));
+                    resourceList = Serialization.unmarshalAsList(new ByteArrayInputStream(replacedInput.toString().getBytes(StandardCharsets.UTF_8)));
                 }
             } catch (Exception e) {
                 throw toRuntimeException(e);
@@ -447,7 +448,7 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
             KubernetesList resourceList = null;
             try {
                 try (InputStream in = getLocalOrRemoteKubernetesResourceInputStream(kubernetesResource.definitionLocation())) {
-                    resourceList = WildFlySerialization.unmarshalAsList(in);
+                    resourceList = Serialization.unmarshalAsList(in);
                 }
             } catch (Exception e) {
                 throw toRuntimeException(e);
