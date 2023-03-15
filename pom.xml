@@ -198,36 +198,9 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>kubernetes-annotations</artifactId>
-                <version>${version.io.decorate.dekorate}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>kubernetes-junit</artifactId>
-                <version>${version.io.decorate.dekorate}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>openshift-annotations</artifactId>
-                <version>${version.io.decorate.dekorate}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>openshift-junit</artifactId>
-                <version>${version.io.decorate.dekorate}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>io.fabric8</groupId>
                 <artifactId>kubernetes-client</artifactId>
                 <version>${version.io.fabric8.kubernetes}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.rest-assured</groupId>
-                <artifactId>rest-assured</artifactId>
-                <version>${version.io.rest-assured.rest-assured}</version>
             </dependency>
             <dependency>
                 <groupId>io.rest-assured</groupId>
