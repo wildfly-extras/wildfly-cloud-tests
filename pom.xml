@@ -59,7 +59,7 @@
         <!-- Plugin versions -->
         <version.io.fabric8.docker-maven-plugin>0.40.3</version.io.fabric8.docker-maven-plugin>
         <version.org.apache.maven.plugins.maven-failsafe-plugin>3.0.0-M7</version.org.apache.maven.plugins.maven-failsafe-plugin>
-        <version.org.wildfly.plugins.wildfly-maven-plugin>4.1.0.Beta5</version.org.wildfly.plugins.wildfly-maven-plugin>
+        <version.org.wildfly.plugins.wildfly-maven-plugin>4.1.0.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
 
         <!-- Misc -->
         <maven.compiler.source>11</maven.compiler.source>
