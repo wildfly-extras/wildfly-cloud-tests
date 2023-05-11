@@ -110,23 +110,18 @@ jobs:
           repository: ${{github.event.client_payload.triggerRepo}}
           ref: ${{github.event.client_payload.ref}}
 
-      - name: Setup Java JDK
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-
       - name: Checkout WildFly Cloud Tests
         uses: actions/checkout@v3
         with:
           path: cloud-tests
           fetch-depth: 1
 
-      - uses: actions/cache@v3
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+          java-version: '11'
+          distribution: 'adopt'
+          cache: maven
 
       - name: Build WildFly
         # WildFly main doesn't build without preview at the moment
