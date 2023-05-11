@@ -251,4 +251,4 @@ jobs:
         if: ${{ always() }}
         run: |
           echo "Setting 'status' output to ${STATUS}"
-          echo "::set-output name=status::${STATUS}"      
+          echo "status=${STATUS}" >> $GITHUB_OUTPUT
