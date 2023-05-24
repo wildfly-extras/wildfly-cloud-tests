@@ -79,6 +79,11 @@
             <artifactId>kubernetes-junit</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
