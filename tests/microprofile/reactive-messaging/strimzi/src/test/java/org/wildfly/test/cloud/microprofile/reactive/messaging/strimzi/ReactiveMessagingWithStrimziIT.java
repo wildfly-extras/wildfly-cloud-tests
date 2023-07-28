@@ -27,7 +27,6 @@ import java.util.List;
 import jakarta.ws.rs.core.MediaType;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.wildfly.test.cloud.common.KubernetesResource;
@@ -54,7 +53,6 @@ import io.restassured.response.Response;
                         }),
                 @KubernetesResource(definitionLocation = "src/test/container/strimzi-topic.yml")
         })
-@Disabled("Re-enable once https://github.com/wildfly-extras/wildfly-cloud-tests/issues/64 is fixed")
 public class ReactiveMessagingWithStrimziIT  extends WildFlyCloudTestCase {
 
     @Test
