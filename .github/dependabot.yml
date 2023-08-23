@@ -16,6 +16,9 @@ updates:
         update-types: ['version-update:semver-major', 'version-update:semver-minor']
       - dependency-name: 'com.fasterxml.jackson.datatype:*'
         update-types: ['version-update:semver-major', 'version-update:semver-minor']
+        # Currently test don't run with version 3.7.0
+      - dependency-name: 'io.dekorate:*'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
     open-pull-requests-limit: 10
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
