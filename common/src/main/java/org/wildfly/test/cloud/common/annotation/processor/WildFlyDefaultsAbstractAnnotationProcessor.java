@@ -26,21 +26,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
-import io.dekorate.Logger;
-import io.dekorate.LoggerFactory;
 import io.dekorate.kubernetes.annotation.Port;
 import io.dekorate.processor.AbstractAnnotationProcessor;
 import io.dekorate.project.AptProjectFactory;
@@ -56,8 +56,6 @@ import io.dekorate.utils.Maps;
  */
 abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnotationProcessor {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger();
-
     private static final String DOCKER_FILE = "Dockerfile";
     private static final String DOCKER_FILE_RELATIVE_TO_TARGET = "docker/" + DOCKER_FILE;
     private static final String GENERATED_DOCKER_FILE_LOCATION = "target/" + DOCKER_FILE_RELATIVE_TO_TARGET;
@@ -67,6 +65,7 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
     private static final String CLI_LAUNCH_SCRIPT_VAR = "CLI_LAUNCH_SCRIPT";
 
     private final AtomicReference<ProcessingEnvironment> processingEnvRef = new AtomicReference<>();
+    private final AtomicBoolean s2iWarningLogged = new AtomicBoolean();
 
     WildFlyDefaultsAbstractAnnotationProcessor() {
 
@@ -96,7 +95,8 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         processingEnv = processingEnvRef.get();
-        LOGGER.info(this.getClass().getSimpleName() + " looking for annotations: " + annotations);
+        final Messager messager = processingEnv.getMessager();
+        messager.printMessage(Diagnostic.Kind.NOTE, this.getClass().getSimpleName() + " looking for annotations: " + annotations);
         if (roundEnv.processingOver()) {
             getSession().close();
             return true;
@@ -107,9 +107,9 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
         for (TypeElement typeElement : annotations) {
             boolean found = false;
             for (Element mainClass : roundEnv.getElementsAnnotatedWith(typeElement)) {
-                LOGGER.info(this.getClass().getSimpleName() + " found @" + getAnnotationClass().getSimpleName() + " on: " + mainClass.toString());
+                messager.printMessage(Diagnostic.Kind.NOTE, this.getClass().getSimpleName() + " found @" + getAnnotationClass().getSimpleName() + " on: " + mainClass.toString());
                 if (found) {
-                    throw new IllegalStateException("More than one @" + getAnnotationClass().getSimpleName() + " class found on classpath");
+                    messager.printMessage(Diagnostic.Kind.ERROR, String.format("Found more than one @%s class found on the classpath.", getAnnotationClass().getSimpleName()), typeElement);
                 }
                 found = true;
 
@@ -118,9 +118,9 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
                 Path cliScript = targetDirectory.getParent().resolve(CLI_SCRIPT_SOURCE).normalize().toAbsolutePath();
 
                 if (Files.exists(cliScript)) {
-                    LOGGER.info("Found %s. Will add it to the image.", cliScript);
+                    messager.printMessage(Diagnostic.Kind.NOTE, String.format("Found %s. Will add it to the image.", cliScript));
                 } else {
-                    LOGGER.info("No CLI script found at %s. Not adding to image", cliScript);
+                    messager.printMessage(Diagnostic.Kind.NOTE, String.format("No CLI script found at %s. Not adding to image", cliScript));
                     cliScript = null;
                 }
 
@@ -128,7 +128,7 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
 
                 boolean suppliedDockerFile = isDockerFileSupplied(targetDirectory);
                 if (!suppliedDockerFile) {
-                    generateDockerFile(targetDirectory, cliScript);
+                    generateDockerFile(mainClass, targetDirectory, cliScript);
                 }
 
                 addDefaults(mainClass, cliScript != null, ports, !suppliedDockerFile, s2iBuild);
@@ -215,13 +215,13 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
     private Path determineTargetDirectory(Element mainClass) {
         String qualifiedName = ((TypeElement) mainClass).getQualifiedName().toString();
         String packageName = qualifiedName.substring(0, qualifiedName.lastIndexOf("."));
-        Path path;
+        Path path = null;
         try {
             FileObject fileObject = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "tmp", mainClass.getSimpleName() + ".class");
             path = Paths.get(fileObject.toUri());
 
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage(), mainClass);
         }
         while (path != null && !path.getFileName().toString().equals("target")) {
             path = path.getParent();
@@ -229,13 +229,13 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
         return path;
     }
 
-    private void generateDockerFile(Path targetDirectory, Path cliScript) {
+    private void generateDockerFile(Element mainClass, Path targetDirectory, Path cliScript) {
 
 
 
         String imageName = System.getProperty("wildfly.cloud.test.base.image.name");
         if (imageName == null || imageName.trim().isBlank()) {
-            throw new IllegalStateException("No image name set via the 'wildfly.cloud.test.base.image.name' property in the test module pom");
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "No image name set via the 'wildfly.cloud.test.base.image.name' property in the test module pom", mainClass);
         }
 
         List<String> lines = new ArrayList<>();
@@ -266,7 +266,7 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
                 Files.copy(cliScript, dockerFile.getParent().resolve(cliScript.getFileName()));
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to generate Dockerfile" + e.getMessage(), mainClass);
         }
     }
 
@@ -279,15 +279,15 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
         final List<String> lines;
         try {
             lines = Files.readAllLines(dockerFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        for (String line : lines) {
-            line = line.trim();
-            if (line.length() > 0 && !line.startsWith("#")) {
-                // Line contained some instructions, so consider the user wants to override it
-                return true;
+            for (String line : lines) {
+                line = line.trim();
+                if (line.length() > 0 && !line.startsWith("#")) {
+                    // Line contained some instructions, so consider the user wants to override it
+                    return true;
+                }
             }
+        } catch (IOException e) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to read the Dockerfile: " + e.getMessage());
         }
         return false;
     }
@@ -296,15 +296,14 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
         TypeElement dockerBuild = processingEnv.getElementUtils().getTypeElement(S2iBuild.class.getName());
         Set<? extends Element> s2iBuildClasses = roundEnv.getElementsAnnotatedWith(dockerBuild);
         if (s2iBuildClasses.size() > 1) {
-            Set<String> annotatedClasses = new HashSet<>();
-            for (Element annotatedClass : s2iBuildClasses) {
-                annotatedClasses.add(annotatedClass.toString());
+            if (s2iWarningLogged.compareAndSet(false, true)) {
+                processingEnv.getMessager()
+                        .printMessage(Diagnostic.Kind.ERROR, "Found more than one class annotated with @S2iBuild: ");
+                for (Element e : s2iBuildClasses) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Annotated with @S2iBuild", e);
+                }
             }
-            String err = "Found more than one class annotated with @S2iBuild: " + s2iBuildClasses;
-            LOGGER.error(err);
-            throw new IllegalStateException(err);
-        }
-        if (s2iBuildClasses.size() == 1) {
+        } else if (s2iBuildClasses.size() == 1){
             return s2iBuildClasses.iterator().next().getAnnotation(S2iBuild.class);
         }
         return null;
