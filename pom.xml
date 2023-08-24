@@ -49,7 +49,7 @@
         <version.io.decorate.dekorate>3.6.1</version.io.decorate.dekorate>
         <version.io.fabric8.kubernetes>6.4.0</version.io.fabric8.kubernetes>
         <version.io.rest-assured.rest-assured>5.3.1</version.io.rest-assured.rest-assured>
-        <version.com.squareup.okhttp3.okhttp>4.10.0</version.com.squareup.okhttp3.okhttp>
+        <version.com.squareup.okhttp3.okhttp>4.11.0</version.com.squareup.okhttp3.okhttp>
         <version.com.squareup.okio.okio-jvm>3.2.0</version.com.squareup.okio.okio-jvm>
         <version.org.jetbrains.kotlin>1.7.10</version.org.jetbrains.kotlin>
 
