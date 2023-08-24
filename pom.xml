@@ -54,7 +54,7 @@
         <version.org.jetbrains.kotlin>1.7.10</version.org.jetbrains.kotlin>
 
         <!-- Lock down the jackson fasterxml versions. Fabric8 and dekorate bring in different version -->
-        <version.com.fasterxml.jackson>2.14.2</version.com.fasterxml.jackson>
+        <version.com.fasterxml.jackson>2.14.3</version.com.fasterxml.jackson>
 
         <!-- Plugin versions -->
         <version.io.fabric8.docker-maven-plugin>0.40.3</version.io.fabric8.docker-maven-plugin>
