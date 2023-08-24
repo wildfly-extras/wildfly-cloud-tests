@@ -170,7 +170,7 @@ jobs:
 
       - name: Setup OpenShift
         if: inputs.type == 'Openshift'
-        uses: manusa/actions-setup-openshift@v1.1.3
+        uses: manusa/actions-setup-openshift@v1.1.5
         with:
           oc version: v3.11.0
           github token: ${{ secrets.GITHUB_TOKEN }}
