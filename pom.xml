@@ -51,7 +51,7 @@
         <version.io.rest-assured.rest-assured>5.3.1</version.io.rest-assured.rest-assured>
         <version.com.squareup.okhttp3.okhttp>4.10.0</version.com.squareup.okhttp3.okhttp>
         <version.com.squareup.okio.okio-jvm>3.2.0</version.com.squareup.okio.okio-jvm>
-        <version.org.jetbrains.kotlin>1.7.10</version.org.jetbrains.kotlin>
+        <version.org.jetbrains.kotlin>1.9.10</version.org.jetbrains.kotlin>
 
         <!-- Lock down the jackson fasterxml versions. Fabric8 and dekorate bring in different version -->
         <version.com.fasterxml.jackson>2.14.3</version.com.fasterxml.jackson>
