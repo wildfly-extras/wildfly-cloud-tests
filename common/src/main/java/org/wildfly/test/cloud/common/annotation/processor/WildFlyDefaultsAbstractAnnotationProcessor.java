@@ -94,13 +94,13 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        processingEnv = processingEnvRef.get();
-        final Messager messager = processingEnv.getMessager();
-        messager.printMessage(Diagnostic.Kind.NOTE, this.getClass().getSimpleName() + " looking for annotations: " + annotations);
         if (roundEnv.processingOver()) {
             getSession().close();
             return true;
         }
+        processingEnv = processingEnvRef.get();
+        final Messager messager = processingEnv.getMessager();
+        messager.printMessage(Diagnostic.Kind.NOTE, this.getClass().getSimpleName() + " looking for annotations: " + annotations);
 
         // We don't actually care about the annotation properties here, that is handled by dekorate.
         // Instead we will add our defaults with properties if the annotation is found.
