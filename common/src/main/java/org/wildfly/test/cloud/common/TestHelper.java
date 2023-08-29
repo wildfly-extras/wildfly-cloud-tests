@@ -22,6 +22,8 @@ package org.wildfly.test.cloud.common;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.restassured.RestAssured;
+import io.restassured.path.json.JsonPath;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -40,9 +42,6 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.LocalPortForward;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 /**
  * Utility to interact with an application running in a container.
@@ -76,16 +75,11 @@ public class TestHelper {
             try (LocalPortForward p = k8sClient.services().withName(containerName).portForward(9990)) { //port matches what is configured in properties file
                 assertTrue(p.isAlive());
                 URL url = new URL("http://localhost:" + p.getLocalPort() + "/health/ready");
-
-                OkHttpClient client = new OkHttpClient();
-                Request request = new Request.Builder().get().url(url)
-                        .header("Connection", "close")
-                        .build();
-                Response response = client.newCall(request).execute();
-                if (response.code() == 200) {
-                    String log = k8sClient.pods().withName(podName).inContainer(containerName).getLog();
-
-                    if (log.contains("WFLYSRV0025")) {
+                io.restassured.response.Response response = RestAssured.given().when().get(url);
+                if (response.getStatusCode() == 200) {
+                    JsonPath jsonPath = response.jsonPath();
+                    String readyStatus = jsonPath.getString("status");
+                    if (readyStatus.equalsIgnoreCase("UP")) {
                         return true;
                     }
                 }
