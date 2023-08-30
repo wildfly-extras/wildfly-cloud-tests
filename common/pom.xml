@@ -29,69 +29,11 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <artifactId>wildfly-cloud-tests-common</artifactId>
-
-    <dependencies>
-        <!-- Images -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>image-cloud-server</artifactId>
-            <scope>provided</scope>
-            <type>pom</type>
-        </dependency>
-        <!-- Other dependencies -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss</groupId>
-            <artifactId>jboss-dmr</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-client</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.dekorate</groupId>
-            <artifactId>dekorate-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.dekorate</groupId>
-            <artifactId>core-junit</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId> io.dekorate</groupId>
-            <artifactId>openshift-annotations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId> io.dekorate</groupId>
-            <artifactId>openshift-junit</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId> io.dekorate</groupId>
-            <artifactId>kubernetes-junit</artifactId>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                    <proc>none</proc>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <packaging>pom</packaging>
+    <modules>
+        <module>bom</module>
+        <module>annotation-processor</module>
+        <module>junit-extension</module>
+    </modules>
 
 </project>

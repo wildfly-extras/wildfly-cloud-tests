@@ -50,6 +50,18 @@
 
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.wildfly.cloud-tests</groupId>
+                <artifactId>test-bom</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <!-- Images -->
         <dependency>
@@ -61,7 +73,12 @@
         <!-- Other dependencies -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>wildfly-cloud-tests-common</artifactId>
+            <artifactId>annotation-processor</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>junit-extension</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>

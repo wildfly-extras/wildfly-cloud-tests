@@ -1,20 +1,20 @@
 /*
  * JBoss, Home of Professional Open Source.
- *  Copyright 2022 Red Hat, Inc., and individual contributors
- *  as indicated by the @author tags.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright 2023 Red Hat, Inc., and individual contributors
+ * as indicated by the @author tags.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wildfly.test.cloud.common;
@@ -24,7 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,9 +44,6 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.LocalPortForward;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 /**
  * Utility to interact with an application running in a container.
@@ -77,19 +78,20 @@ public class TestHelper {
                 assertTrue(p.isAlive());
                 URL url = new URL("http://localhost:" + p.getLocalPort() + "/health/ready");
 
-                OkHttpClient client = new OkHttpClient();
-                Request request = new Request.Builder().get().url(url)
-                        .header("Connection", "close")
+                final HttpClient client = HttpClient.newBuilder().build();
+                final HttpRequest request = HttpRequest.newBuilder()
+                        .uri(url.toURI())
+                        .GET()
                         .build();
-                Response response = client.newCall(request).execute();
-                if (response.code() == 200) {
+                final HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+                if (response.statusCode() == 200) {
                     String log = k8sClient.pods().withName(podName).inContainer(containerName).getLog();
 
                     if (log.contains("WFLYSRV0025")) {
                         return true;
                     }
                 }
-            } catch (IOException e) {
+            } catch (InterruptedException | URISyntaxException | IOException e) {
                 // Might happen if the container is not up yet
             }
             spent = System.currentTimeMillis() - start;
