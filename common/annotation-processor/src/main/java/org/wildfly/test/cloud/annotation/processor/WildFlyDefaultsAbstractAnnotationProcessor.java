@@ -1,29 +1,30 @@
 /*
  * JBoss, Home of Professional Open Source.
- *  Copyright 2022 Red Hat, Inc., and individual contributors
- *  as indicated by the @author tags.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright 2023 Red Hat, Inc., and individual contributors
+ * as indicated by the @author tags.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package org.wildfly.test.cloud.common.annotation.processor;
+package org.wildfly.test.cloud.annotation.processor;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -94,13 +95,13 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        processingEnv = processingEnvRef.get();
-        final Messager messager = processingEnv.getMessager();
-        messager.printMessage(Diagnostic.Kind.NOTE, this.getClass().getSimpleName() + " looking for annotations: " + annotations);
         if (roundEnv.processingOver()) {
             getSession().close();
             return true;
         }
+        processingEnv = processingEnvRef.get();
+        final Messager messager = processingEnv.getMessager();
+        messager.printMessage(Diagnostic.Kind.NOTE, this.getClass().getSimpleName() + " looking for annotations: " + annotations);
 
         // We don't actually care about the annotation properties here, that is handled by dekorate.
         // Instead we will add our defaults with properties if the annotation is found.
@@ -263,10 +264,10 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
             Files.write(dockerFile, lines);
 
             if (cliScript != null) {
-                Files.copy(cliScript, dockerFile.getParent().resolve(cliScript.getFileName()));
+                Files.copy(cliScript, dockerFile.getParent().resolve(cliScript.getFileName()), StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to generate Dockerfile" + e.getMessage(), mainClass);
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to generate Dockerfile: " + e.getMessage(), mainClass);
         }
     }
 
