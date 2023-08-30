@@ -120,4 +120,11 @@ public @interface WildFlyOpenshiftIntegrationTest {
      * @return the list of replacements
      */
     ConfigPlaceholderReplacement[] placeholderReplacements() default {};
+
+    /**
+     * A list of value injectors used to {@code @Inject} global fields in tests.
+     *
+     * @return an array of value injectors
+     */
+    Class<? extends ValueInjector>[] valueInjectors() default {};
 }

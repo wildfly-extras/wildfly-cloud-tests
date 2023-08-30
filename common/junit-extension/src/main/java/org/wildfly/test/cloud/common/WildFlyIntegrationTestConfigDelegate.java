@@ -30,12 +30,14 @@ class WildFlyIntegrationTestConfigDelegate {
     private final List<KubernetesResource> kubernetesResources;
     private final Map<String, ConfigPlaceholderReplacer> placeholderReplacements;
     private final ExtraTestSetup extraTestSetup;
+    private final Class<? extends ValueInjector>[] valueInjectors;
 
     private WildFlyIntegrationTestConfigDelegate(
             String namespace,
             KubernetesResource[] kubernetesResources,
             ConfigPlaceholderReplacement[] placeholderReplacements,
-            Class<? extends ExtraTestSetup> additionalTestSetupClass) {
+            Class<? extends ExtraTestSetup> additionalTestSetupClass,
+            Class<? extends ValueInjector>[] valueInjectors) {
         this.namespace = namespace;
         this.kubernetesResources = new ArrayList<>(Arrays.asList(kubernetesResources));
         Map<String, ConfigPlaceholderReplacer> replacements = new LinkedHashMap<>();
@@ -50,16 +52,19 @@ class WildFlyIntegrationTestConfigDelegate {
             throw new RuntimeException();
         }
         this.placeholderReplacements = replacements;
+        this.valueInjectors = Arrays.copyOf(valueInjectors, valueInjectors.length);
     }
 
     static WildFlyIntegrationTestConfigDelegate create(WildFlyKubernetesIntegrationTest annotation) {
         return new WildFlyIntegrationTestConfigDelegate(
-                annotation.namespace(), annotation.kubernetesResources(), annotation.placeholderReplacements(), annotation.extraTestSetup());
+                annotation.namespace(), annotation.kubernetesResources(), annotation.placeholderReplacements(), annotation.extraTestSetup(),
+                annotation.valueInjectors());
     }
 
     static WildFlyIntegrationTestConfigDelegate create(WildFlyOpenshiftIntegrationTest annotation) {
         return new WildFlyIntegrationTestConfigDelegate(
-                "", annotation.kubernetesResources(), annotation.placeholderReplacements(), annotation.extraTestSetup());
+                "", annotation.kubernetesResources(), annotation.placeholderReplacements(), annotation.extraTestSetup(),
+                annotation.valueInjectors());
     }
 
     public String getNamespace() {
@@ -86,5 +91,9 @@ class WildFlyIntegrationTestConfigDelegate {
 
         kubernetesResources.clear();
         kubernetesResources.addAll(temp);
+    }
+
+    Class<? extends ValueInjector>[] valueInjectors() {
+        return valueInjectors;
     }
 }
