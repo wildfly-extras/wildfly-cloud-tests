@@ -39,6 +39,7 @@ import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.impl.KubernetesClientImpl;
 import io.fabric8.kubernetes.client.readiness.Readiness;
+import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -50,6 +51,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -61,8 +64,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -80,15 +86,19 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
 
     private static final String DUMP_LOGS_PROPERTY = "wildfly.test.print.logs";
     private static final String DUMP_SERVER_CONFIG_PROPERTY = "wildfly.test.print.server-config";
+    private static final Logger LOGGER = Logger.getLogger(WildFlyCommonExtension.class);
 
     private final ExtensionType extensionType;
 
+    private final Queue<AutoCloseable> closeables;
+
     public WildFlyCommonExtension() {
-        extensionType = null;
+        this(null);
     }
 
     private WildFlyCommonExtension(ExtensionType extensionType) {
         this.extensionType = extensionType;
+        closeables = new LinkedList<>();
     }
 
     static WildFlyCommonExtension createForKubernetes() {
@@ -136,6 +146,15 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
                 error = true;
             } finally {
                 deleteNamespace(context, config, testContext);
+                // Close resources
+                AutoCloseable c;
+                while ((c = closeables.poll()) != null) {
+                    try {
+                        c.close();
+                    } catch (Exception e) {
+                        LOGGER.debugf(e, "Failed to close %s", c);
+                    }
+                }
             }
             if (error) {
                 Assertions.fail("Errors occurred cleaning up the test, see the logs for details");
@@ -242,31 +261,84 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
         WildFlyTestContext testContext = getTestContext(context);
         testContext.setHelper(helper);
 
-        Class clazz = testInstance.getClass();
+        Class<?> clazz = testInstance.getClass();
+        // Get all the ValueInjector's, we use a map to ensure we only end up with one injector per type. This means
+        // injectors defined on an annotation override what is found via the service loader.
+        final Map<Class<?>, ValueInjector> injectors = new LinkedHashMap<>(createValueInjectors(getIntegrationTestConfig(context).valueInjectors()));
+        // Load instances via a service loader
+        final ServiceLoader<ValueInjector> loader = ServiceLoader.load(ValueInjector.class);
+        loader.forEach((injector) -> {
+            final var found = injectors.putIfAbsent(injector.supportedType(), injector);
+            if (found != null) {
+                LOGGER.debugf("Type %s already has an injector %s defined. Ignoring injector %s.", injector.supportedType(), found, injector);
+            }
+        });
+        // Always add an injector for the TestHelper
+        final ValueInjector testHelperInjector = new ValueInjector() {
+
+            @Override
+            public Class<?> supportedType() {
+                return TestHelper.class;
+            }
+
+            @Override
+            public Object resolve(final ExtensionContext context) {
+                return helper;
+            }
+        };
+        injectors.put(testHelperInjector.supportedType(), testHelperInjector);
         while (clazz != Object.class) {
             Arrays.stream(clazz.getDeclaredFields())
                     .forEach(field -> {
-                        if (!field.getType().isAssignableFrom(TestHelper.class)) {
-                            return;
-                        }
-
                         //This is to make sure we don't write on fields by accident.
                         //Note: we don't require the exact annotation. Any annotation named Inject will do (be it javax, guice etc)
-                        if (!Arrays.stream(field.getDeclaredAnnotations()).filter(a -> a.annotationType().getSimpleName().equalsIgnoreCase("Inject"))
-                                .findAny().isPresent()) {
+                        if (Arrays.stream(field.getDeclaredAnnotations()).noneMatch(a -> a.annotationType().getSimpleName().equalsIgnoreCase("Inject"))) {
                             return;
                         }
-
-                        field.setAccessible(true);
-                        try {
-                            field.set(testInstance, helper);
-                        } catch (IllegalAccessException e) {
-                            throw DekorateException.launderThrowable(e);
+                        for (ValueInjector injector : injectors.values()) {
+                            if (injector.canInject(field.getType())) {
+                                field.setAccessible(true);
+                                final Object value = injector.resolve(context);
+                                if (value instanceof AutoCloseable) {
+                                    closeables.add((AutoCloseable) value);
+                                }
+                                try {
+                                    field.set(testInstance, value);
+                                } catch (IllegalAccessException e) {
+                                    if (value instanceof AutoCloseable) {
+                                        try {
+                                            ((AutoCloseable) value).close();
+                                        } catch (Exception ignore) {
+                                        }
+                                    }
+                                    throw DekorateException.launderThrowable(e);
+                                }
+                                break;
+                            }
                         }
 
                     });
             clazz = clazz.getSuperclass();
         }
+    }
+
+    private Map<Class<?>, ValueInjector> createValueInjectors(final Class<? extends ValueInjector>[] valueInjectors) {
+        final Map<Class<?>, ValueInjector> result = new LinkedHashMap<>();
+        for (Class<? extends ValueInjector> type : valueInjectors) {
+            // Find the no-arg constructor
+            try {
+                final Constructor<? extends ValueInjector> constructor = type.getConstructor();
+                final ValueInjector instance = constructor.newInstance();
+                final ValueInjector found = result.putIfAbsent(instance.supportedType(), instance);
+                if (found != null) {
+                    LOGGER.warnf("Type %s already has an injector %s defined. Ignoring injector %s.", instance.supportedType(), found, instance);
+                }
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                     IllegalAccessException e) {
+                throw new RuntimeException(String.format("Failed to find a default constructor for type %s", type), e);
+            }
+        }
+        return result;
     }
 
     private WildFlyTestContext initTestContext(ExtensionContext context, WildFlyIntegrationTestConfig config) {

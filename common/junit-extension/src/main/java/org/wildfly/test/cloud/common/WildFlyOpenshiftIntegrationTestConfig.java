@@ -71,4 +71,9 @@ class WildFlyOpenshiftIntegrationTestConfig extends EditableOpenshiftIntegration
     public void addAdditionalKubernetesResources(List<KubernetesResource> additionalKubernetesResources) {
         wildFlyIntegrationTestConfigDelegate.addAdditionalKubernetesResources(additionalKubernetesResources);
     }
+
+    @Override
+    public Class<? extends ValueInjector>[] valueInjectors() {
+        return wildFlyIntegrationTestConfigDelegate.valueInjectors();
+    }
 }

@@ -38,4 +38,5 @@ interface WildFlyIntegrationTestConfig {
     Map<String, ConfigPlaceholderReplacer> getPlaceholderReplacements();
 
     void addAdditionalKubernetesResources(List<KubernetesResource> additionalKubernetesResources);
+    Class<? extends ValueInjector>[] valueInjectors();
 }
