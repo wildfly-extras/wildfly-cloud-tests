@@ -32,13 +32,13 @@ jobs:
 #        run: echo $MESSAGE
 
 #      - name: Checkout run-status branch
-#        uses: actions/checkout@v3
+#        uses: actions/checkout@v4
 #        with:
 #          repository: wildfly/wildfly
 #          path: status
 #
       - name: Checkout run-status branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ env.STATUS_BRANCH }}
           path: status
@@ -69,7 +69,7 @@ jobs:
 
       - name: Checkout PR status branch
         if: ${{ always() }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: status
           ref: ${{ env.STATUS_BRANCH }}
