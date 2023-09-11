@@ -38,8 +38,8 @@
         <!-- Image creation properties -->
         <image.name.wildfly.runtime>quay.io/wildfly/wildfly-runtime:latest</image.name.wildfly.runtime>
         <version.wildfly>29.0.0.Final</version.wildfly>
-        <version.wildfly.cloud.galleon.pack>2.0.0.Final</version.wildfly.cloud.galleon.pack>
-        <version.wildfly.datasources.galleon.pack>3.0.0.Final</version.wildfly.datasources.galleon.pack>
+        <version.wildfly.cloud.galleon.pack>4.0.2.Final</version.wildfly.cloud.galleon.pack>
+        <version.wildfly.datasources.galleon.pack>5.0.0.Final</version.wildfly.datasources.galleon.pack>
 
         <!-- Plugin versions -->
         <version.io.fabric8.docker-maven-plugin>0.43.4</version.io.fabric8.docker-maven-plugin>
