@@ -33,7 +33,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <version.io.rest-assured.rest-assured>5.3.1</version.io.rest-assured.rest-assured>
+        <version.io.rest-assured.rest-assured>5.3.2</version.io.rest-assured.rest-assured>
         <version.com.squareup.okhttp3.okhttp>4.11.0</version.com.squareup.okhttp3.okhttp>
         <version.com.squareup.okio.okio-jvm>3.5.0</version.com.squareup.okio.okio-jvm>
         <version.org.jetbrains.kotlin>1.9.10</version.org.jetbrains.kotlin>
