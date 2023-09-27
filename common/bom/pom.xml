@@ -34,8 +34,8 @@
     <properties>
         <!-- Dependency versions -->
         <version.jakarta.ee>10.0.0</version.jakarta.ee>
-        <version.io.decorate.dekorate>3.6.1</version.io.decorate.dekorate>
-        <version.io.fabric8.kubernetes-client>6.4.0</version.io.fabric8.kubernetes-client>
+        <version.io.decorate.dekorate>4.0.0</version.io.decorate.dekorate>
+        <version.io.fabric8.kubernetes-client>6.8.1</version.io.fabric8.kubernetes-client>
         <version.org.jboss.jboss-dmr>1.7.0.Final</version.org.jboss.jboss-dmr>
         <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
         <version.org.jsoup.jsoup>1.16.1</version.org.jsoup.jsoup>
@@ -62,12 +62,45 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
+            <!-- This can be uncommented and the io.dekorate dependencies removed once
+                 https://github.com/dekorateio/dekorate/issues/1231 is resolved.
+              -->
+            <!-- <dependency>
                 <groupId>io.dekorate</groupId>
                 <artifactId>dekorate-bom</artifactId>
                 <version>${version.io.decorate.dekorate}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency> -->
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>core-junit</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>dekorate-core</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>kubernetes-annotations</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>kubernetes-junit</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>openshift-annotations</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>openshift-junit</artifactId>
+                <version>${version.io.decorate.dekorate}</version>
             </dependency>
 
             <!-- Project dependencies first -->
