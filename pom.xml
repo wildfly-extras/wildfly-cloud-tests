@@ -31,7 +31,7 @@
 
     <groupId>org.wildfly.cloud-tests</groupId>
     <artifactId>wildfly-cloud-tests-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0.Alpha1</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -50,11 +50,22 @@
         <wildfly.cloud.test.docker.host>localhost</wildfly.cloud.test.docker.host>
         <wildfly.cloud.test.docker.port>5000</wildfly.cloud.test.docker.port>
         <dekorate.docker.registry>${wildfly.cloud.test.docker.host}:${wildfly.cloud.test.docker.port}</dekorate.docker.registry>
+
+        <!-- Configuration parameters -->
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <skip.javadoc>${maven.javadoc.skip}</skip.javadoc>
     </properties>
 
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <configuration>
+                        <skip>${skip.javadoc}</skip>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
