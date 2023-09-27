@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
         <artifactId>wildfly-cloud-test-images</artifactId>
-        <version>1.0.0.Alpha1</version>
+        <version>1.0.0.Alpha2-SNAPSHOT</version>
     </parent>
     <artifactId>image-cloud-server-with-elytron-oidc-client</artifactId>
     <packaging>pom</packaging>
