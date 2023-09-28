@@ -33,6 +33,7 @@
     <packaging>pom</packaging>
 
     <properties>
+        <version.jakarta.ee>10.0.0</version.jakarta.ee>
         <version.io.rest-assured.rest-assured>5.3.2</version.io.rest-assured.rest-assured>
         <version.com.squareup.okhttp3.okhttp>4.11.0</version.com.squareup.okhttp3.okhttp>
         <version.com.squareup.okio.okio-jvm>3.5.0</version.com.squareup.okio.okio-jvm>
@@ -42,6 +43,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>jakarta.platform</groupId>
+                <artifactId>jakarta.jakartaee-bom</artifactId>
+                <version>${version.jakarta.ee}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>bom</artifactId>
