@@ -33,7 +33,6 @@
 
     <properties>
         <!-- Dependency versions -->
-        <version.jakarta.ee>10.0.0</version.jakarta.ee>
         <version.io.decorate.dekorate>4.0.0</version.io.decorate.dekorate>
         <version.io.fabric8.kubernetes-client>6.8.1</version.io.fabric8.kubernetes-client>
         <version.org.jboss.jboss-dmr>1.7.0.Final</version.org.jboss.jboss-dmr>
@@ -48,13 +47,6 @@
     <dependencyManagement>
         <dependencies>
             <!-- Dependency imports -->
-            <dependency>
-                <groupId>jakarta.platform</groupId>
-                <artifactId>jakarta.jakartaee-bom</artifactId>
-                <version>${version.jakarta.ee}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
