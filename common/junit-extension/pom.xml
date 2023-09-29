@@ -25,7 +25,7 @@
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
         <artifactId>wildfly-cloud-tests-common</artifactId>
-        <version>1.0.0.Alpha2-SNAPSHOT</version>
+        <version>1.0.0.Alpha2</version>
     </parent>
 
     <artifactId>junit-extension</artifactId>

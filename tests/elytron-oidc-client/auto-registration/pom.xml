@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
         <artifactId>wildfly-cloud-tests-elytron-oidc-client</artifactId>
-        <version>1.0.0.Alpha2-SNAPSHOT</version>
+        <version>1.0.0.Alpha2</version>
     </parent>
     <artifactId>wildfly-cloud-tests-oidc-auto-registration</artifactId>
     <packaging>war</packaging>
