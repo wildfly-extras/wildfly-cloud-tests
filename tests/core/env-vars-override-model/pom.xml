@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
         <artifactId>wildfly-cloud-tests-core</artifactId>
-        <version>1.0.0.Alpha2</version>
+        <version>1.0.0.Alpha3-SNAPSHOT</version>
     </parent>
     <artifactId>wildfly-cloud-tests-core-env-vars-override-model</artifactId>
     <packaging>war</packaging>

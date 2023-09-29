@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
         <artifactId>wildfly-cloud-test-images</artifactId>
-        <version>1.0.0.Alpha2</version>
+        <version>1.0.0.Alpha3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>image-cloud-server-with-postgresql-datasource</artifactId>

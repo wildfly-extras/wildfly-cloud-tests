@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
         <artifactId>wildfly-cloud-tests-datasources</artifactId>
-        <version>1.0.0.Alpha2</version>
+        <version>1.0.0.Alpha3-SNAPSHOT</version>
     </parent>
     <artifactId>wildfly-cloud-tests-ds-postgresql</artifactId>
     <packaging>war</packaging>
