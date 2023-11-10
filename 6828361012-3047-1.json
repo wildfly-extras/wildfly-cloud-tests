@@ -1,0 +1,5 @@
+{
+  "status": "failed",
+  "message": "The remote job failed. Further details can be found at https://github.com/wildfly-extras/wildfly-cloud-tests/actions/runs/6828362001",
+  "originalId": "6828362001"
+}
