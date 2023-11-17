@@ -66,6 +66,10 @@ public class TestHelper {
         return containerName;
     }
 
+    public KubernetesClient getK8sClient() {
+        return k8sClient;
+    }
+
     public boolean waitUntilWildFlyIsReady(long delay) {
         return waitUntilWildFlyIsReady(k8sClient, getFirstPodName(), containerName, delay);
     }
