@@ -30,6 +30,9 @@
     </parent>
     <artifactId>wildfly-cloud-test-images</artifactId>
     <packaging>pom</packaging>
+    <modules>
+        <module>micrometer</module>
+    </modules>
     <properties>
         <!-- Here to avoid provisioning server and building images for this parent module -->
         <wildfly.cloud.test.skip.image>true</wildfly.cloud.test.skip.image>
@@ -57,6 +60,7 @@
                 <module>datasources/postgresql</module>
                 <module>elytron-oidc-client</module>
                 <module>web-clustering</module>
+                <module>micrometer</module>
             </modules>
 
             <dependencyManagement>
