@@ -107,6 +107,12 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>image-opentelemetry</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>wildfly-cloud-tests-framework-app</artifactId>
                 <version>${project.version}</version>
             </dependency>

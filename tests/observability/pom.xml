@@ -33,6 +33,7 @@
 
     <modules>
         <module>micrometer</module>
+        <module>opentelemetry</module>
     </modules>
 
 </project>
