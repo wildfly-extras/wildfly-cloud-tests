@@ -217,7 +217,7 @@ jobs:
         # ${RUNTIME_IMAGE_OVERRIDE} elsewhere.
         run: |
           echo "Runtime image: ${RUNTIME_IMAGE_OVERRIDE}"
-          mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${OPENSHIFT_MAVEN_PARAMETERS}
+          mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${OPENSHIFT_MAVEN_PARAMETERS} -Dwildfly.test.print.logs -Dwildfly.test.print.server-config
         working-directory: cloud-tests
 
       - name: Run RHOSAK Tests
