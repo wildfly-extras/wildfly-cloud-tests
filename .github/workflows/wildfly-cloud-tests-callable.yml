@@ -211,13 +211,17 @@ jobs:
           max_attempts: 3
           command: docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
       - name: Run Cloud Tests
         # This builds the provisioned images and runs the main (i.e. non-manual) tests
         # Since the manual tests reuse these images, we don't need to use
         # ${RUNTIME_IMAGE_OVERRIDE} elsewhere.
         run: |
           echo "Runtime image: ${RUNTIME_IMAGE_OVERRIDE}"
-          mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${OPENSHIFT_MAVEN_PARAMETERS} -Dwildfly.test.print.logs -Dwildfly.test.print.server-config -Dtest=OpenTelemetryIT,MicrometerIT
+          mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${OPENSHIFT_MAVEN_PARAMETERS} -Dwildfly.test.print.logs -Dwildfly.test.print.server-config
         working-directory: cloud-tests
 
       - name: Run RHOSAK Tests

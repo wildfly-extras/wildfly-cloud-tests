@@ -17,6 +17,11 @@ on:
         # We are doing this because there is a max of 10 inputs on GH Actions
         description: 'Env vars (one per line) encoded with base64'
         required: false
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
 
 # Only run the latest job
 concurrency:
