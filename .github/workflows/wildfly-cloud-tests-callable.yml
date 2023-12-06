@@ -102,7 +102,6 @@ jobs:
           repository: jasondlee/wildfly
 
       - name: Checkout WildFly PR branch
-        if: ${{github.event.client_payload}}
         uses: actions/checkout@v4
         with:
           path: wildfly
