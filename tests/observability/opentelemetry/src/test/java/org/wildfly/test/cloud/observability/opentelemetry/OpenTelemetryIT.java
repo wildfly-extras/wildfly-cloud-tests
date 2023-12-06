@@ -20,6 +20,8 @@ package org.wildfly.test.cloud.observability.opentelemetry;
 
 import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
 
+import java.util.Map;
+
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
@@ -48,6 +50,10 @@ public class OpenTelemetryIT extends WildFlyCloudTestCase {
      */
     @Test
     public void smokeTest() throws Exception {
+        Map<String, String> logs = getHelper().getAllPodLogs();
+
+        logs.forEach((p,l) -> System.err.println("\n\n\n\n***** " + p + "\n" + l + "\n*****\n\n\n"));
+
         getHelper().doWithWebPortForward("", url ->
                 RestAssured.given()
                         .get(url)
@@ -66,6 +72,7 @@ public class OpenTelemetryIT extends WildFlyCloudTestCase {
         int count = 0;
         while (count < 10) {
             String podLogs = getHelper().getPodLog(podName);
+            System.out.println(podLogs);
             found = podLogs.contains(OpenTelemetryEndpoint.TEST_SPAN) &&
                     podLogs.contains(OpenTelemetryEndpoint.TEST_EVENT);
 
