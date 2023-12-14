@@ -54,6 +54,7 @@
             <id>images</id>
             <modules>
                 <module>cloud-server</module>
+                <module>microprofile-reactive-messaging-amqp</module>
                 <module>microprofile-reactive-messaging-kafka</module>
                 <module>datasources/postgresql</module>
                 <module>elytron-oidc-client</module>
