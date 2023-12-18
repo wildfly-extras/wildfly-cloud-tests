@@ -36,7 +36,7 @@
         <version.jakarta.ee>10.0.0</version.jakarta.ee>
         <version.io.rest-assured.rest-assured>5.3.2</version.io.rest-assured.rest-assured>
         <version.com.squareup.okhttp3.okhttp>4.11.0</version.com.squareup.okhttp3.okhttp>
-        <version.com.squareup.okio.okio-jvm>3.5.0</version.com.squareup.okio.okio-jvm>
+        <version.com.squareup.okio.okio-jvm>3.7.0</version.com.squareup.okio.okio-jvm>
         <version.org.jetbrains.kotlin>1.9.21</version.org.jetbrains.kotlin>
         <version.org.jsoup.jsoup>1.16.2</version.org.jsoup.jsoup>
     </properties>
