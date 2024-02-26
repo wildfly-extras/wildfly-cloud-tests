@@ -56,7 +56,7 @@ public class OpenTelemetryIT extends WildFlyCloudTestCase {
                         .statusCode(200));
 
         final String podName = getHelper().getK8sClient().pods()
-                .withLabel("app.kubernetes.io/name", "opentelemetrycollector")
+                .withLabel("app.kubernetes.io/name", "otelcol")
                 .list()
                 .getItems()
                 .get(0)

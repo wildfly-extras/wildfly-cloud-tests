@@ -45,7 +45,7 @@
                     <packaging-scripts>
                         <packaging-script>
                             <commands>
-                                <command>/subsystem=opentelemetry:write-attribute(name=endpoint,value="http://opentelemetrycollector:4317")</command>
+                                <command>/subsystem=opentelemetry:write-attribute(name=endpoint,value="http://otelcol:4317")</command>
                                 <command>/subsystem=opentelemetry:write-attribute(name=exporter-type,value=otlp)</command>
                                 <command>/subsystem=opentelemetry:write-attribute(name=batch-delay,value=1)</command>
                                 <command>/subsystem=opentelemetry:write-attribute(name=max-queue-size,value=1)</command>
