@@ -34,6 +34,19 @@
     <properties>
         <!-- Here to avoid provisioning server and building images for this parent module -->
         <wildfly.cloud.test.skip.image>true</wildfly.cloud.test.skip.image>
+        <!-- WildFly defaults that can be overridden in profiles -->
+        <server.maven.plugin.groupId>org.wildfly.plugins</server.maven.plugin.groupId>
+        <server.maven.plugin.artifactId>wildfly-maven-plugin</server.maven.plugin.artifactId>
+        <server.maven.plugin.version>${version.org.wildfly.plugins.wildfly-maven-plugin}</server.maven.plugin.version>
+        <server.feature.pack.gav>org.wildfly:wildfly-galleon-pack:${version.wildfly}</server.feature.pack.gav>
+        <cloud.feature.pack.gav>org.wildfly.cloud:wildfly-cloud-galleon-pack:${version.wildfly.cloud.galleon.pack}</cloud.feature.pack.gav>
+        <cloud.feature.pack.default.config.layer>cloud-server</cloud.feature.pack.default.config.layer>
+        <database.feature.pack.gav>org.wildfly:wildfly-datasources-galleon-pack:${version.wildfly.datasources.galleon.pack}</database.feature.pack.gav>
+        <!-- Channel manifest Coordinates -->
+        <channel.manifest.groupid>org.wildfly.channels</channel.manifest.groupid>
+        <channel.manifest.artifactid>wildfly</channel.manifest.artifactid>
+        <channel.manifest.version>${version.wildfly}</channel.manifest.version>
+
     </properties>
 
     <profiles>
@@ -76,17 +89,27 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.wildfly.plugins</groupId>
-                        <artifactId>wildfly-maven-plugin</artifactId>
+                        <groupId>${server.maven.plugin.groupId}</groupId>
+                        <artifactId>${server.maven.plugin.artifactId}</artifactId>
+                        <version>${server.maven.plugin.version}</version>
                         <configuration>
                             <!-- some tests check for the provisioned galleon layers -->
                             <record-provisioning-state>true</record-provisioning-state>
+                            <channels>
+                                <channel>
+                                    <manifest>
+                                        <groupId>${channel.manifest.groupid}</groupId>
+                                        <artifactId>${channel.manifest.artifactid}</artifactId>
+                                        <version>${channel.manifest.version}</version>
+                                    </manifest>
+                                </channel>
+                            </channels>
                             <feature-packs>
                                 <feature-pack>
-                                    <location>org.wildfly:wildfly-galleon-pack:${version.wildfly}</location>
+                                    <location>${server.feature.pack.gav}</location>
                                 </feature-pack>
                                 <feature-pack>
-                                    <location>org.wildfly.cloud:wildfly-cloud-galleon-pack:${version.wildfly.cloud.galleon.pack}</location>
+                                    <location>${cloud.feature.pack.gav}</location>
                                 </feature-pack>
                             </feature-packs>
                             <!-- layers are set by child modules, which also need to set <skip>false</skip> -->
@@ -158,6 +181,38 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>eap</id>
+            <properties>
+                <!-- Image to use -->
+                <image.name.wildfly.runtime>registry.redhat.io/jboss-eap-8/eap8-openjdk17-runtime-openshift-rhel8:latest</image.name.wildfly.runtime>
+                <!-- Plugin coordinates -->
+                <server.maven.plugin.groupId>org.jboss.eap.plugins</server.maven.plugin.groupId>
+                <server.maven.plugin.artifactId>eap-maven-plugin</server.maven.plugin.artifactId>
+                <server.maven.plugin.version>${version.org.jboss.eap.plugins.eap-maven-plugin}</server.maven.plugin.version>
+                <!-- Other -->
+                <database.feature.pack.gav>org.jboss.eap:eap-datasources-galleon-pack:8.0.0.Final-redhat-00014</database.feature.pack.gav>
+                <!-- EAP Base properties -->
+                <server.feature.pack.gav>org.jboss.eap:wildfly-ee-galleon-pack:8.0.0.GA-redhat-00011</server.feature.pack.gav>
+                <cloud.feature.pack.gav>org.jboss.eap.cloud:eap-cloud-galleon-pack:1.0.0.Final-redhat-00008</cloud.feature.pack.gav>
+                <!-- Channel manifest Coordinates -->
+                <channel.manifest.groupid>org.jboss.eap.channels</channel.manifest.groupid>
+                <channel.manifest.artifactid>eap-8.0</channel.manifest.artifactid>
+                <channel.manifest.version>1.2.1.GA-redhat-00003</channel.manifest.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>xp</id>
+            <properties>
+                <!-- EAP Base properties -->
+                <server.feature.pack.gav>org.jboss.eap.xp:wildfly-galleon-pack:5.0.0.GA-redhat-00005</server.feature.pack.gav>
+                <cloud.feature.pack.gav>org.jboss.eap.xp.cloud:eap-xp-cloud-galleon-pack:1.0.0.Final-redhat-00006</cloud.feature.pack.gav>
+                <!-- Channel manifest Coordinates -->
+                <channel.manifest.groupid>org.jboss.eap.channels</channel.manifest.groupid>
+                <channel.manifest.artifactid>eap-xp-5.0</channel.manifest.artifactid>
+                <channel.manifest.version>1.0.0.GA-redhat-00006</channel.manifest.version>
+            </properties>
         </profile>
     </profiles>
 

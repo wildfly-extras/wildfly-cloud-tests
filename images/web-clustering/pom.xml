@@ -34,11 +34,12 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-maven-plugin</artifactId>
+                <groupId>${server.maven.plugin.groupId}</groupId>
+                <artifactId>${server.maven.plugin.artifactId}</artifactId>
+                <version>${server.maven.plugin.version}</version>
                 <configuration>
                     <layers>
-                        <layer>cloud-server</layer>
+                        <layer>${cloud.feature.pack.default.config.layer}</layer>
                         <layer>web-clustering</layer>
                     </layers>
                 </configuration>
