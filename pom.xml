@@ -44,7 +44,7 @@
         <!-- Plugin versions -->
         <version.io.fabric8.docker-maven-plugin>0.43.4</version.io.fabric8.docker-maven-plugin>
         <version.org.apache.maven.plugins.maven-failsafe-plugin>3.2.5</version.org.apache.maven.plugins.maven-failsafe-plugin>
-        <version.org.wildfly.plugins.wildfly-maven-plugin>5.0.0.Beta3</version.org.wildfly.plugins.wildfly-maven-plugin>
+        <version.org.wildfly.plugins.wildfly-maven-plugin>5.0.0.Beta4</version.org.wildfly.plugins.wildfly-maven-plugin>
 
         <!-- Kubernetes registry parameters -->
         <wildfly.cloud.test.docker.host>localhost</wildfly.cloud.test.docker.host>
