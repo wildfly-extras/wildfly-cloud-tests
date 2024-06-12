@@ -228,6 +228,7 @@
     </build>
 
     <modules>
+        <!--
         <module>framework</module>
         <module>core</module>
         <module>clustering</module>
@@ -235,6 +236,7 @@
         <module>elytron-oidc-client</module>
         <module>manual</module>
         <module>microprofile</module>
+        -->
         <module>observability</module>
     </modules>
 
