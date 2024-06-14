@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: opentelemetrycollector
+  name: otelcol
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: opentelemetrycollector
+      app.kubernetes.io/name: otelcol
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: opentelemetrycollector
+        app.kubernetes.io/name: otelcol
     spec:
       containers:
         - name: otelcol
