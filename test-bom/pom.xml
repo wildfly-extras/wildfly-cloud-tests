@@ -95,6 +95,12 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>image-microprofile-reactive-messaging-amqp</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>image-microprofile-reactive-messaging-kafka</artifactId>
                 <version>${project.version}</version>
                 <type>pom</type>

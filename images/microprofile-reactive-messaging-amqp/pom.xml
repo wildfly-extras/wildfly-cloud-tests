@@ -25,16 +25,25 @@
 
     <parent>
         <groupId>org.wildfly.cloud-tests</groupId>
-        <artifactId>wildfly-cloud-tests-microprofile</artifactId>
+        <artifactId>wildfly-cloud-test-images</artifactId>
         <version>1.0.0.Alpha3-SNAPSHOT</version>
     </parent>
-    <artifactId>wildfly-cloud-tests-microprofile-reactive-messaging</artifactId>
+    <artifactId>image-microprofile-reactive-messaging-amqp</artifactId>
     <packaging>pom</packaging>
 
-    <modules>
-        <module>amqp</module>
-        <module>strimzi</module>
-    </modules>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <configuration>
+                    <layers>
+                        <layer>cloud-server</layer>
+                        <layer>microprofile-reactive-messaging-amqp</layer>
+                    </layers>
+                </configuration>
+            </plugin>
 
-
+        </plugins>
+    </build>
 </project>
