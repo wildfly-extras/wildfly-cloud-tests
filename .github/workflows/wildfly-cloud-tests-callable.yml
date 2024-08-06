@@ -30,7 +30,8 @@ env:
 
 jobs:
   run-tests:
-    runs-on: ubuntu-latest
+    # Temporary downgrade from 'ubuntu-latest'
+    runs-on: ubuntu:24.03
     outputs:
       status: ${{ steps.output-status.outputs.status }}
 
