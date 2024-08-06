@@ -136,6 +136,8 @@ jobs:
           TMP="$(mvn -B help:evaluate -Dexpression=project.version -pl . | grep -v '^\[')"
           echo "version: ${TMP}"
           echo "VERSION_WILDFLY=${TMP}" >> $GITHUB_ENV
+          cd ..
+          rm -rfv wildfly
         working-directory: wildfly
 
 #      - name: Start minikube
