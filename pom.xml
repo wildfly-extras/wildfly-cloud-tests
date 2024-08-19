@@ -43,7 +43,7 @@
 
         <!-- Plugin versions -->
         <version.io.fabric8.docker-maven-plugin>0.45.0</version.io.fabric8.docker-maven-plugin>
-        <version.org.apache.maven.plugins.maven-failsafe-plugin>3.3.1</version.org.apache.maven.plugins.maven-failsafe-plugin>
+        <version.org.apache.maven.plugins.maven-failsafe-plugin>3.4.0</version.org.apache.maven.plugins.maven-failsafe-plugin>
         <version.org.wildfly.plugins.wildfly-maven-plugin>5.0.0.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
 
         <!-- Kubernetes registry parameters -->
