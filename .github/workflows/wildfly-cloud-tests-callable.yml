@@ -158,9 +158,9 @@ jobs:
         with:
           driver: docker
           container runtime: containerd
-          minikube version: 'v1.26.1'
+          minikube version: 'v1.33.0'
           # Downgrade K8s since 1.25 has some problems with https
-          kubernetes version: 'v1.24.3'
+          kubernetes version: 'v1.30.0'
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: "--memory='4gb' --cpus='2'"
 
