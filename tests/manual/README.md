@@ -1,4 +1,7 @@
 # 'Manual' tests
+
+**!!! We currently don't have any manual tests !!! So this is a placeholder if we need them again**
+
 Each test has a profile to trigger it. There may be more that needs doing for each test,
 so check the README for each test to see what is needed.
 
@@ -9,9 +12,6 @@ file to run the test.
 
 | Test                                  | Profile           | Env vars                           |
 |---------------------------------------|-------------------|------------------------------------|
-| [rhosak](rhosak/README.md)            | -Pmanual-rhosak   | KAFKA_HOST                         |
-|                                       |                   | RHOAS_CLIENT_ID                    |                         
-|                                       |                   | RHOAS_CLIENT_SECRET                |
 
 <!-- 
     TODO add your manual tests to the above table and make sure to:
