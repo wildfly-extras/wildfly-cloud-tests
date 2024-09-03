@@ -33,15 +33,8 @@
 
     <profiles>
         <profile>
-            <id>manual-rhosak</id>
-            <modules>
-                <module>rhosak</module>
-            </modules>
-        </profile>
-        <profile>
             <id>manual-all</id>
             <modules>
-                <module>rhosak</module>
             </modules>
         </profile>
     </profiles>

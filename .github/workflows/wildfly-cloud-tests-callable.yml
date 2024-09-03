@@ -81,15 +81,6 @@ jobs:
       # maven options etc.
       - name: Check which manual jobs to run and set env vars
         run: |
-          # RHOSAK_PARAMETERS
-          if [ -v KAFKA_HOST ]; then
-            if [ -v RHOAS_CLIENT_ID ]; then
-              if [ -v RHOAS_CLIENT_SECRET ]; then
-                TMP="-Pmanual-rhosak -pl tests/manual/rhosak -Dwildfly.cloud.test.manual.rhoas.kafka.host=$KAFKA_HOST -Dwildfly.cloud.test.manual.rhoas.client.id=$RHOAS_CLIENT_ID -Dwildfly.cloud.test.manual.rhoas.client.secret=$RHOAS_CLIENT_SECRET"
-                echo "RHOSAK_PARAMETERS=${TMP}" >> $GITHUB_ENV
-              fi
-            fi
-          fi
       
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -221,12 +212,6 @@ jobs:
           echo "Runtime image: ${RUNTIME_IMAGE_OVERRIDE}"
           mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${OPENSHIFT_MAVEN_PARAMETERS}
         working-directory: cloud-tests
-
-      - name: Run RHOSAK Tests
-        if: ${{env.RHOSAK_PARAMETERS}}
-        working-directory: cloud-tests
-        run: |
-          mvn -B install -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RHOSAK_PARAMETERS} ${OPENSHIFT_MAVEN_PARAMETERS}
 
       - name: Update permissions for Cache post job
         # Needed because the OpenShift installation adds some files which are not readable/writable
