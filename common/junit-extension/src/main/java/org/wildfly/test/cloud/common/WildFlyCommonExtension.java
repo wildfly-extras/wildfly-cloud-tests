@@ -74,6 +74,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -122,17 +123,23 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
 
 
     public void beforeAll(WildFlyIntegrationTestConfig config, ExtensionContext context) throws Exception {
-        WildFlyTestContext testContext = initTestContext(context, config);
-        if (config != null) {
-            setNamespace(context, config, testContext);
+        try {
+            WildFlyTestContext testContext = initTestContext(context, config);
+            if (config != null) {
+                setNamespace(context, config, testContext);
 
-            ExtraTestSetup extraTestSetup = config.getExtraTestSetup();
-            config.addAdditionalKubernetesResources(extraTestSetup.beforeAll(context));
+                ExtraTestSetup extraTestSetup = config.getExtraTestSetup();
+                config.addAdditionalKubernetesResources(extraTestSetup.beforeAll(context));
 
-            deployKubernetesResources(context, config, testContext);
+                deployKubernetesResources(context, config, testContext);
+            }
+
+            backupAndReplacePlaceholdersInKubernetesYaml(context, config);
+        } catch (Exception e) {
+            throw e;
+        } catch (Error error) {
+            throw error;
         }
-
-        backupAndReplacePlaceholdersInKubernetesYaml(context, config);
     }
 
     public void afterAll(WildFlyIntegrationTestConfig config, ExtensionContext context) {
@@ -514,6 +521,7 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
             return;
         }
 
+        AtomicBoolean timedOut = new AtomicBoolean(false);
         List<KubernetesResource> kubernetesResources = config.getKubernetesResources();
         for (int i = kubernetesResources.size() - 1 ; i >= 0 ; i--) {
             KubernetesResource kubernetesResource = kubernetesResources.get(i);
@@ -529,8 +537,34 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
             List<HasMetadata> list = resourceList.getItems();
             Collections.reverse(list);
             list.stream().forEach(r -> {
+                KubernetesClient client = getKubernetesClient(context);
                 System.out.println("Deleting: " + r.getKind() + " name:" + r.getMetadata().getName() + ". Deleted:"
-                        + getKubernetesClient(context).resource(r).cascading(true).delete());
+                        + client.resource(r).cascading(true).delete());
+
+                if (!timedOut.get()) {
+                    // Best effort to wait to for each resource to get deleted. This is especially important when
+                    // trying to delete a namespace, which might hang in the Terminating stage until all resources are
+                    // gone (which may be infinite). This causes issues when rerunning tests.
+                    // But if one times out, I don't think there is much point in waiting ages for all the other resources to go.
+                    // If we had no timeouts until now, wait up to 2 minutes for the resource to be gone.
+                    // This is more an issue when developing locally where we need to rerun while developing than on CI.
+                    long end = System.currentTimeMillis() + 2 * 60 * 1000;
+                    boolean wasDeleted = false;
+                    while (System.currentTimeMillis() < end) {
+                        if (client.resource(r).get() == null) {
+                            wasDeleted = true;
+                            break;
+                        }
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            break;
+                        }
+                    }
+                    if (!wasDeleted) {
+                        timedOut.set(true);
+                    }
+                }
             });
         }
 
