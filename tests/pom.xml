@@ -45,8 +45,6 @@
         <dekorate.push>true</dekorate.push>
         <!-- Individual tests will need to set this property -->
         <wildfly.cloud.test.base.image.name></wildfly.cloud.test.base.image.name>
-        <!-- The path to get back to this directory from sub-modules-->
-        <wildfly.cloud.test.k8sregistry.path.to.root.dir>.</wildfly.cloud.test.k8sregistry.path.to.root.dir>
         <!-- Only used for OpenShift, and users need to specify this on the command line -->
         <dekorate.docker.group></dekorate.docker.group>
     </properties>
@@ -277,7 +275,7 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    <executable>${wildfly.cloud.test.k8sregistry.path.to.root.dir}/.github/scripts/start-registry.sh</executable>
+                                    <executable>./.github/scripts/start-registry.sh</executable>
                                     <arguments>
                                         <argument>${project.basedir}</argument>
                                     </arguments>
@@ -290,7 +288,7 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    <executable>${wildfly.cloud.test.k8sregistry.path.to.root.dir}/.github/scripts/stop-registry.sh</executable>
+                                    <executable>./.github/scripts/stop-registry.sh</executable>
                                     <arguments>
                                         <argument>${project.basedir}</argument>
                                         <arguments>${dekorate.docker.registry}/${user.name}/${project.artifactId}:${project.version}</arguments>

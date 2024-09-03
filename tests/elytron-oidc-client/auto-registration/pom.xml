@@ -33,7 +33,6 @@
 
     <properties>
         <wildfly.cloud.test.base.image.name>wildfly-cloud-test-image/image-cloud-server-with-elytron-oidc-client:latest</wildfly.cloud.test.base.image.name>
-        <wildfly.cloud.test.k8sregistry.path.to.root.dir>../../../</wildfly.cloud.test.k8sregistry.path.to.root.dir>
     </properties>
 
     <dependencies>

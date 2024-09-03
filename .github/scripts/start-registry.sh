@@ -67,10 +67,10 @@ fi
 # Assume Linux
 ps aux | grep kubectl | grep port-forward | awk '{print "kill -9 " $2}' | sh
 
-# See if it needs a bit of time for the forward to work
+# Just in case it needs a bit of time for the registry to be enabled
 sleep 5
 kubectl port-forward --namespace kube-system service/registry 5000:80 > /dev/null 2>&1 &
-# See if it needs a bit of time for the forward to work
+# Just in case it needs a bit of time for the forward to work
 sleep 5
 
 set +x
