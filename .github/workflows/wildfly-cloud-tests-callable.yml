@@ -131,17 +131,6 @@ jobs:
           rm -rfv wildfly
         working-directory: wildfly
 
-#      - name: Start minikube
-#        id: minikube
-#        if: inputs.type == 'Kubernetes'
-#        with:
-#          driver: docker
-#          container-runtime: containerd
-#          cpus: 2
-#          memory: 4000m
-#          cni: bridge
-#        uses: medyagh/setup-minikube@master
-
       - name: Setup Minikube
         id: minikube
         if: inputs.type == 'Kubernetes'
@@ -149,17 +138,21 @@ jobs:
         with:
           driver: docker
           container runtime: containerd
+          # Fixed Minikube/kubernetes versions
           minikube version: 'v1.33.0'
-          # Downgrade K8s since 1.25 has some problems with https
           kubernetes version: 'v1.30.0'
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: "--memory='4gb' --cpus='2'"
 
-      - name: Enable minikube registry
-        if: inputs.type == 'Kubernetes'
+#      - name: Enable minikube registry
+#        if: inputs.type == 'Kubernetes'
+#        run: |
+#          minikube addons enable registry
+#          kubectl port-forward --namespace kube-system service/registry 5000:80 &
+
+      - name: Kubernetes profiles
         run: |
-          minikube addons enable registry
-          kubectl port-forward --namespace kube-system service/registry 5000:80 &
+          echo "TEST_MAVEN_PARAMETERS=-Pkubernetes-tests,kubernetes-ci" >> $GITHUB_ENV
 
       - name: Setup OpenShift
         if: inputs.type == 'Openshift'
@@ -191,7 +184,7 @@ jobs:
 
           # Set extra Maven parameters for OpenShift
           TMP=" -Popenshift-tests -Ddekorate.docker.registry=$OPENSHIFT_IMAGE_REGISTRY -Ddekorate.docker.group=$OPENSHIFT_NS"
-          echo "OPENSHIFT_MAVEN_PARAMETERS=${TMP}" >> $GITHUB_ENV
+          echo "TEST_MAVEN_PARAMETERS=${TMP}" >> $GITHUB_ENV
 
       # Sometimes the login to the registry fails with a connection refused
       # See if a retry helps
@@ -210,7 +203,7 @@ jobs:
         # ${RUNTIME_IMAGE_OVERRIDE} elsewhere.
         run: |
           echo "Runtime image: ${RUNTIME_IMAGE_OVERRIDE}"
-          mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${OPENSHIFT_MAVEN_PARAMETERS}
+          mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${TEST_MAVEN_PARAMETERS}
         working-directory: cloud-tests
 
       - name: Update permissions for Cache post job
