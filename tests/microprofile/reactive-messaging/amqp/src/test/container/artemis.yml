@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: artemis
+      labels:
+        app: artemis
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: artemis
+      template:
+        metadata:
+          labels:
+            app: artemis
+        spec:
+          containers:
+            - name: artemis
+              image: quay.io/artemiscloud/activemq-artemis-broker-kubernetes:1.0.23
+              env:
+                - name: AMQ_USER
+                  value: artemis
+                - name: AMQ_PASSWORD
+                  value: artemis
+                - name: AMQ_DATA_DIR
+                  value: /home/jboss/data
+#                - name: AMQ_EXTRA_ARGS
+#                  value: "--http-host 0.0.0.0 "
+                - name: SCRIPT_DEBUG
+                  value: "true"
+              ports:
+                - containerPort: 5672
+                - containerPort: 8161
+                - containerPort: 61613
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: artemis
+    spec:
+      selector:
+        app: artemis
+      ports:
+        - protocol: TCP
+          port: 5672
+          targetPort: 5672
+          name: amqp
+        - protocol: TCP
+          port: 8161
+          targetPort: 8161
+          name: http
+        - protocol: TCP
+          port: 61616
+          targetPort: 61613
+          name: all
