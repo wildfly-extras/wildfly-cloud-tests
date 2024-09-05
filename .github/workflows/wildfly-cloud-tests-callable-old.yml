@@ -46,7 +46,7 @@ jobs:
           echo "*****"
           echo "${{ toJSON(github.event.client_payload.triggerRepo) }}"
           echo "*****"
-          echo "${{ toJSON(github.event.client_payload.githubSha) }}"
+          echo "${{ toJSON(github.event.client_payload.ref) }}"
 
       - name: Determine type
         run: |
@@ -99,7 +99,7 @@ jobs:
           path: wildfly
           fetch-depth: 1
           repository: ${{github.event.client_payload.triggerRepo}}
-          ref: ${{github.event.client_payload.githubSha}}
+          ref: ${{github.event.client_payload.ref}}
 
       - name: Checkout WildFly Cloud Tests
         uses: actions/checkout@v4
