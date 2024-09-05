@@ -32,7 +32,7 @@ public class WildFlyOpenshiftExtension extends OpenshiftExtension {
     private final WildFlyCommonExtension delegate = WildFlyCommonExtension.createForOpenshift();
 
     public WildFlyOpenshiftIntegrationTestConfig getIntegrationTestConfig(ExtensionContext context) {
-        ExtensionContext.Store store = context.getStore(WILDFLY_STORE);
+        ExtensionContext.Store store = context.getRoot().getStore(WILDFLY_STORE);
         WildFlyOpenshiftIntegrationTestConfig cfg =
                 store.get(TEST_CONFIG, WildFlyOpenshiftIntegrationTestConfig.class);
         if (cfg != null) {
@@ -50,6 +50,14 @@ public class WildFlyOpenshiftExtension extends OpenshiftExtension {
     }
 
     @Override
+    public void testFailed(ExtensionContext context, Throwable throwable) {
+        // There are some problems in this since the context store is closed.
+        // Disable for now since we output our own diagnostics anyway
+        //super.testFailed(context, throwable);
+        delegate.testFailed(context, throwable);
+    }
+
+    @Override
     public void beforeAll(ExtensionContext context) throws Exception {
         delegate.beforeAll(getIntegrationTestConfig(context), context);
         super.beforeAll(context);
@@ -57,7 +65,7 @@ public class WildFlyOpenshiftExtension extends OpenshiftExtension {
 
     @Override
     public void afterAll(ExtensionContext context) {
-        delegate.dumpPodInformation(context);
+        delegate.afterAllDumpDiagnostics(context);
         super.afterAll(context);
         delegate.afterAll(getIntegrationTestConfig(context), context);
     }

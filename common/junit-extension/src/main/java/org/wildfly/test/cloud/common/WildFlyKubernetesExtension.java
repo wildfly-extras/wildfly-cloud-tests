@@ -34,7 +34,7 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
 
     @Override
     public WildFlyKubernetesIntegrationTestConfig getKubernetesIntegrationTestConfig(ExtensionContext context) {
-        ExtensionContext.Store store = context.getStore(WILDFLY_STORE);
+        ExtensionContext.Store store = context.getRoot().getStore(WILDFLY_STORE);
         WildFlyKubernetesIntegrationTestConfig cfg =
                 store.get(TEST_CONFIG, WildFlyKubernetesIntegrationTestConfig.class);
         if (cfg != null) {
@@ -51,6 +51,14 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
     }
 
     @Override
+    public void testFailed(ExtensionContext context, Throwable throwable) {
+        // There are some problems in this since the context store is closed.
+        // Disable for now since we output our own diagnostics anyway
+        //super.testFailed(context, throwable);
+        delegate.testFailed(context, throwable);
+    }
+
+    @Override
     public void beforeAll(ExtensionContext context) throws Exception {
         delegate.beforeAll(getKubernetesIntegrationTestConfig(context), context);
         super.beforeAll(context);
@@ -58,7 +66,7 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
 
     @Override
     public void afterAll(ExtensionContext context) {
-        delegate.dumpPodInformation(context);
+        delegate.afterAllDumpDiagnostics(context);
         super.afterAll(context);
         delegate.afterAll(getKubernetesIntegrationTestConfig(context), context);
     }
