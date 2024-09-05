@@ -162,10 +162,15 @@ You may want to see the logs of the pods involved in the test. If you specify
 * `-Dwildfly.test.print.logs` - the logs of all pods for all tests will be printed to the console 
 * `-Dwildfly.test.print.logs=MyTest1,MyTest2` - the logs for all pods for the two specified test classes will be printed to the console. The simple name of the class is used. Logs for pods for other test classes will not be printed to the console.
 
+
 Similarly, you can obtain the standalone.xnl from the main WildFly pod:
 * `-Dwildfly.test.print.server-config` - outputs the standalone.xml for all tests
 * `-Dwildfly.test.print.server-config=MyTest1,MyTest2` - outputs the standalone.xml for the listed tests. 
 * The simple name of the class is used. Logs for pods for other test classes will not be printed to the console.
+
+Note that if a failure happens in a test, we will always attempt to display the logs and the server configuration.  
+
+
 
 ## Adding tests
 
