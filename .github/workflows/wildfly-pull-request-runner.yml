@@ -8,6 +8,12 @@ on:
   repository_dispatch:
     types: [trigger-cloud-tests-pr]
 
+concurrency:
+
+  group: '${{ github.workflow }} @ ${{ github.event.client_payload.triggerRepo }}#${{ github.event.client_payload.pr }}'
+  cancel-in-progress: true
+
+
 jobs:
   report-in-progress:
     permissions:
