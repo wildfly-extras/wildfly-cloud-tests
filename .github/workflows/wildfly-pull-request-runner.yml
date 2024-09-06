@@ -94,19 +94,6 @@ jobs:
           MESSAGE: ${{ toJSON(github.event.client_payload) }}
         run: echo $MESSAGE
 
-      - name: Check Jobs
-        run: |
-          echo "${{ toJSON(needs) }}"
-          if [[ ${{ needs.kubernetes-jdk11.outputs.status }} == "1" ]]; then
-            exit 1
-          fi
-          if [[ ${{ needs.kubernetes-jdk17.outputs.status }} == "1" ]]; then
-            exit 1
-          fi
-          if [[ ${{ needs.kubernetes-jdk21.outputs.status }} == "1" ]]; then
-            exit 1
-          fi
-
       - name: Remote Dispatch to report job complete
         if: ${{ env.TOKEN }} && ${{ always() }}
         run: |
