@@ -111,20 +111,16 @@ jobs:
         if: ${{ env.TOKEN }} && ${{ always() }}
         run: |
            STATUS=${{ job.status }}
-           if [ "${STATUS}" == "cancelled" ]; then
-              STATUS="failure"
-              TEXT="The job was cancelled"
-            elif [ "${STATUS}" == "success" ]; then
+            if [ "${STATUS}" == "success" ]; then
               TEXT="The job passed!"
-            elif [ "${STATUS}" == "failure" ]; then
-              TEXT="The job failed"
             else
-              STATUS = "failure"
-              TEXT="The job was not successful"
+              # The statuses API doesn't have a 'cancelled' status, just error, failure, pending and success
+              # So treat everything that is not a success as a failure
+              STATUS="failure"
+              TEXT="The job failed, or was cancelled"
             fi  
           
             echo $GITHUB_REPOSITORY
-            echo "FILENAME=$FILENAME" >> $GITHUB_ENV
             
             
             RUN_URL="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

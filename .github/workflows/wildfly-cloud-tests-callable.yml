@@ -213,22 +213,17 @@ jobs:
 
       ##################################################  
       # Following steps are to report back to the pull request runner remote_dispatch job
-      - name: Report failure
-        if: ${{ failure() }}
-        run: |
-          echo "It failed"
-          STATUS="failed"
-          echo "STATUS=1" >> $GITHUB_ENV
-
-      - name: Report success
-        if: ${{ success() }}
-        run: |
-          echo "It passed"
-          STATUS="passed"
-          echo "STATUS=0" >> $GITHUB_ENV
-
       - id: output-status
         if: ${{ always() }}
         run: |
-          echo "Setting 'status' output to ${STATUS}"
-          echo "status=${STATUS}" >> $GITHUB_OUTPUT
+          STATUS=${{ job.status }}
+          if [ "${STATUS}" == "success" ]; then
+            echo "Status is: success (0)"
+            MY_STATUS=0
+          else
+            echo "Status is: ${STATUS} - treating as failure (1)"
+            MY_STATUS=1
+          fi  
+
+          echo "Setting 'status' output to ${MY_STATUS}"
+          echo "status=${MY_STATUS}" >> $GITHUB_OUTPUT
