@@ -33,7 +33,7 @@
 
     <properties>
         <!-- Dependency versions -->
-        <version.io.decorate.dekorate>4.0.3</version.io.decorate.dekorate>
+        <version.io.decorate.dekorate>4.1.0</version.io.decorate.dekorate>
         <version.io.fabric8.kubernetes-client>6.13.3</version.io.fabric8.kubernetes-client>
         <version.org.jboss.jboss-dmr>1.7.0.Final</version.org.jboss.jboss-dmr>
         <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
