@@ -152,6 +152,8 @@ jobs:
 
       - name: Kubernetes profiles
         run: |
+          # The kubernetes-ci profile cleans the kubernetes registry between tests.
+          # When specifying another profile, we need to explicitly enable the kubernetes-tests profile
           echo "TEST_MAVEN_PARAMETERS=-Pkubernetes-tests,kubernetes-ci" >> $GITHUB_ENV
 
       - name: Setup OpenShift
@@ -203,7 +205,10 @@ jobs:
         # ${RUNTIME_IMAGE_OVERRIDE} elsewhere.
         run: |
           echo "Runtime image: ${RUNTIME_IMAGE_OVERRIDE}"
-          mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${TEST_MAVEN_PARAMETERS} -Dmaven.test.redirectTestOutputToFile=false
+          # No longer build the base images at the start. Instead build them on demand for each test via the 
+          # docker-cleanup profile, which also deletes them once the test is complete
+          # mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${TEST_MAVEN_PARAMETERS} -Dmaven.test.redirectTestOutputToFile=false
+          mvn -B install -Pdocker-cleanup -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${TEST_MAVEN_PARAMETERS} -Dmaven.test.redirectTestOutputToFile=false
         working-directory: cloud-tests
 
       - name: Update permissions for Cache post job

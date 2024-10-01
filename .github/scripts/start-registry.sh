@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # JBoss, Home of Professional Open Source.
 # Copyright 2024 Red Hat, Inc., and individual contributors
@@ -16,11 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #h
-
-
-if [ "${1}" = "" ]; then
-  echo "Not configured for this folder"
-fi
 
 if [ ! -d "${1}/src/test/java" ]; then
   # There are no tests so there is no point in starting and stopping the registry
