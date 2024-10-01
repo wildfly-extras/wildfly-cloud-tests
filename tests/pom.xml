@@ -62,13 +62,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- Images -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>image-cloud-server</artifactId>
-            <scope>provided</scope>
-            <type>pom</type>
-        </dependency>
         <!-- Other dependencies -->
         <dependency>
             <groupId>${project.groupId}</groupId>
