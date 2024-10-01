@@ -37,12 +37,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>image-cloud-server-with-web-clustering</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>jakarta.inject</groupId>
             <artifactId>jakarta.inject-api</artifactId>
             <scope>provided</scope>

@@ -62,13 +62,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- Images -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>image-cloud-server</artifactId>
-            <scope>provided</scope>
-            <type>pom</type>
-        </dependency>
         <!-- Other dependencies -->
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -268,6 +261,12 @@
             </build>
         </profile>
         <profile>
+            <!--
+                Profile to reduce disk space when running on CI with a local minikube instance. Thus, this is only
+                relevant for the tests which have the KUBERNETES tag.
+                It disables and enables the Kubernetes registry between each test. This essentially
+                cleans out all the images stored in the Kubernetes registry, resulting in space savings.
+            -->
             <id>kubernetes-ci</id>
             <build>
                 <plugins>
@@ -299,6 +298,52 @@
                                     <arguments>
                                         <argument>${project.basedir}</argument>
                                         <arguments>${dekorate.docker.registry}/${user.name}/${project.artifactId}:${project.version}</arguments>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!--
+                Profile to reduce disk space when running on CI whether against OpenShift or Kubernetes.
+                It deletes the test image and the base image after each test.
+                Before each test, it determines the base image required by the test, and builds that.
+                Then the test itself builds the test image (base image + test deployment) as usual.
+            -->
+            <id>docker-cleanup</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>docker-build-image</id>
+                                <phase>test-compile</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>./.github/scripts/build-docker-image.sh</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}</argument>
+                                        <argument>${wildfly.cloud.test.base.image.name}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>minikube-addons-disable-registry</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>./.github/scripts/clean-docker.sh</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>

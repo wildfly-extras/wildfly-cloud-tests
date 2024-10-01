@@ -17,37 +17,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 if [ ! -d "${1}/src/test/java" ]; then
   # There are no tests so there is no point in starting and stopping the registry
   echo "Skipping, no tests"
   exit 0
 fi
 
-echo "Deleting image from docker: $2"
-docker image rm "${2}"
+# Dump all images so we have more information
+# echo "All images"
+# docker image ls
 
-curr_dir=$(pwd)
-cd "${1}/src/test/java"
-git grep KUBERNETES
-found_kubernetes=$?
-if [ $found_kubernetes -ne 0 ]; then
-  echo "Skipping, no Kubernetes tests"
-  cd "${curr_dir}"
-  exit 0
-fi
-cd "${curr_dir}"
+echo "Deleting test image $(docker image ls | grep localhost:5000 | awk '{print $1":"$2}')"
+docker image ls | grep localhost:5000 | awk '{print "docker image rm "$1":"$2}' | sh
 
-echo "Disabling the minikube registry"
-minikube addons disable registry
+echo "Deleting base image  $(docker image ls | grep "wildfly-cloud-test-image"  | awk '{print $1":"$2}')...."
+docker image ls | grep "wildfly-cloud-test-image"  | awk '{print "docker image rm "$1":"$2}' | sh
 
-echo "Stopping the port-forward"
-if echo "$OSTYPE" | grep -q  "^darwin"; then
-  # Mainly here so I can debug on my Mac. The main use for this is CI on Linux
-  echo "Mac detected, stopping 'portfwd' container"
-  docker stop --name portfwd
-  exit 0
-fi
+docker system prune -f
 
-# Assume Linux
-ps aux | grep kubectl | grep port-forward | awk '{print "kill -9 " $2}' | sh
 
