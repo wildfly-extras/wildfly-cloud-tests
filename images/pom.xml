@@ -95,15 +95,6 @@
                         <configuration>
                             <!-- some tests check for the provisioned galleon layers -->
                             <record-provisioning-state>true</record-provisioning-state>
-                            <channels>
-                                <channel>
-                                    <manifest>
-                                        <groupId>${channel.manifest.groupid}</groupId>
-                                        <artifactId>${channel.manifest.artifactid}</artifactId>
-                                        <version>${channel.manifest.version}</version>
-                                    </manifest>
-                                </channel>
-                            </channels>
                             <feature-packs>
                                 <feature-pack>
                                     <location>${server.feature.pack.gav}</location>
@@ -201,6 +192,26 @@
                 <channel.manifest.artifactid>eap-8.0</channel.manifest.artifactid>
                 <channel.manifest.version>1.2.1.GA-redhat-00003</channel.manifest.version>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>${server.maven.plugin.groupId}</groupId>
+                        <artifactId>${server.maven.plugin.artifactId}</artifactId>
+                        <version>${server.maven.plugin.version}</version>
+                        <configuration>
+                            <channels>
+                                <channel>
+                                    <manifest>
+                                        <groupId>${channel.manifest.groupid}</groupId>
+                                        <artifactId>${channel.manifest.artifactid}</artifactId>
+                                        <version>${channel.manifest.version}</version>
+                                    </manifest>
+                                </channel>
+                            </channels>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>xp</id>
