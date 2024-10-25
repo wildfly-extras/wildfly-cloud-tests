@@ -24,12 +24,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  kubernetes-jdk11:
-    if: ${{!github.event.inputs.runtimeImage}}
-    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
-    with:
-      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk11
-      type: Kubernetes
+#  kubernetes-jdk11:
+#    if: ${{!github.event.inputs.runtimeImage}}
+#    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
+#    with:
+#      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk11
+#      type: Kubernetes
 #  openshift-jdk11:
 #    if: ${{!github.event.inputs.runtimeImage}}
 #    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
