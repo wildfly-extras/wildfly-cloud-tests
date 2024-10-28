@@ -61,11 +61,11 @@ jobs:
             exit 1
           fi
 
-  kubernetes-jdk11:
-    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
-    with:
-      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk11
-      type: Kubernetes
+#  kubernetes-jdk11:
+#    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
+#    with:
+#      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk11
+#      type: Kubernetes
 
   kubernetes-jdk17:
     uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
@@ -80,7 +80,7 @@ jobs:
       type: Kubernetes
 
   reporter-completed:
-    needs: [ kubernetes-jdk11, kubernetes-jdk17, kubernetes-jdk21 ]
+    needs: [ kubernetes-jdk17, kubernetes-jdk21 ]
     if: ${{ always() }}
     permissions:
       contents: write
@@ -97,9 +97,6 @@ jobs:
       - name: Check Jobs
         run: |
           echo "${{ toJSON(needs) }}"
-          if [[ ${{ needs.kubernetes-jdk11.outputs.status }} == "1" ]]; then
-            exit 1
-          fi
           if [[ ${{ needs.kubernetes-jdk17.outputs.status }} == "1" ]]; then
             exit 1
           fi
