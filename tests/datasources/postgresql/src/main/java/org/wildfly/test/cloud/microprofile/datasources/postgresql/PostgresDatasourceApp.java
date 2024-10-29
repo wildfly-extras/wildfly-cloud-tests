@@ -19,37 +19,9 @@
 
 package org.wildfly.test.cloud.microprofile.datasources.postgresql;
 
-import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
-
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
 
-import io.dekorate.kubernetes.annotation.Env;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-import io.dekorate.option.annotation.GeneratorOptions;
-
-/**
- * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
- */
-@KubernetesApplication(
-        envVars = {
-                // Env vars for the datasource provisioned by the image
-                @Env(name = "POSTGRESQL_DATABASE", value= "postgresdb"),
-                @Env(name = "POSTGRESQL_USER", value = "postgresadmin"),
-                @Env(name = "POSTGRESQL_PASSWORD", value = "admin12"),
-                @Env(name = "POSTGRESQL_HOST", value = "postgres-service"),
-                @Env(name = "POSTGRESQL_PORT", value = "5432"),
-                // Env vars for the launch scripts to create a datasource
-                // gives JNDI name java:jboss/datasources/test_postgresql
-                @Env(name = "DB_SERVICE_PREFIX_MAPPING", value = "test-postgresql=LAUNCH"),
-                @Env(name = "LAUNCH_DATABASE", value= "postgresdb"),
-                @Env(name = "LAUNCH_USERNAME", value = "postgresadmin"),
-                @Env(name = "LAUNCH_PASSWORD", value = "admin12"),
-                @Env(name = "TEST_POSTGRESQL_SERVICE_HOST", value = "postgres-service"),
-                @Env(name = "TEST_POSTGRESQL_SERVICE_PORT", value = "5432")
-        },
-        imagePullPolicy = Always)
 @ApplicationPath("")
-@GeneratorOptions(inputPath = "kubernetes")
 public class PostgresDatasourceApp extends Application {
 }

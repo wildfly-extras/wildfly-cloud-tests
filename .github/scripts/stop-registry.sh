@@ -23,12 +23,21 @@ if [ ! -d "${1}/src/test/java" ]; then
   exit 0
 fi
 
-echo "Deleting test image from docker: $2"
-docker image rm "${2}" 2>/dev/null || true
+if command -v docker &>/dev/null; then
+  CONTAINER_CMD=docker
+elif command -v podman &>/dev/null; then
+  CONTAINER_CMD=podman
+else
+  echo "ERROR: neither docker nor podman found" >&2
+  exit 1
+fi
+
+echo "Deleting test image: $2"
+${CONTAINER_CMD} image rm "${2}" 2>/dev/null || true
 
 curr_dir=$(pwd)
 cd "${1}/src/test/java"
-git grep KUBERNETES
+git grep -i KUBERNETES
 found_kubernetes=$?
 if [ $found_kubernetes -ne 0 ]; then
   echo "Skipping, no Kubernetes tests"

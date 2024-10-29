@@ -18,21 +18,9 @@
  */
 package org.wildfly.test.cloud.env.vars.override;
 
-import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
-
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
 
-import io.dekorate.kubernetes.annotation.Env;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-
-@KubernetesApplication(
-        envVars = {
-                @Env(name = "WILDFLY_OVERRIDING_ENV_VARS", value = "1"),
-                @Env(name = "SUBSYSTEM_LOGGING_ROOT_LOGGER_ROOT__LEVEL", value = "DEBUG"),
-                @Env(name = "TEST_EXPRESSION_FROM_PROPERTY", value = "testing123")
-        },
-        imagePullPolicy = Always)
 @ApplicationPath("")
 public class EnvVarsOverrideApp extends Application {
 

@@ -19,22 +19,9 @@
 
 package org.wildfly.test.cloud.microprofile.reactive.messaging.amqp;
 
-import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
-
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
 
-import io.dekorate.kubernetes.annotation.Env;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-
-/**
- * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
- */
-@KubernetesApplication(
-        envVars = {
-                @Env(name = "AMQP_HOST", value= "artemis")
-        },
-        imagePullPolicy = Always)
 @ApplicationPath("")
 public class ReactiveMessagingWithAmqpApp extends Application {
 }

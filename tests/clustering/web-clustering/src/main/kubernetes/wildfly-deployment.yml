@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-clustering
+  labels:
+    app.kubernetes.io/name: web-clustering
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: web-clustering
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: web-clustering
+    spec:
+      containers:
+        - name: web-clustering
+          image: localhost:5000/wildfly-cloud-tests-web-clustering:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: admin
+              containerPort: 9990
+          env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JGROUPS_PING_PROTOCOL
+              value: "dns.DNS_PING"
+            - name: OPENSHIFT_DNS_PING_SERVICE_PORT
+              value: "8888"
+            - name: OPENSHIFT_DNS_PING_SERVICE_NAME
+              value: "web-clustering-ping"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-clustering
+  labels:
+    app.kubernetes.io/name: web-clustering
+spec:
+  selector:
+    app.kubernetes.io/name: web-clustering
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: admin
+      port: 9990
+      targetPort: 9990

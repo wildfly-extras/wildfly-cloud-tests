@@ -24,16 +24,21 @@ if [ ! -d "${1}/src/test/java" ]; then
   exit 0
 fi
 
-# Dump all images so we have more information
-# echo "All images"
-# docker image ls
+if command -v docker &>/dev/null; then
+  CONTAINER_CMD=docker
+elif command -v podman &>/dev/null; then
+  CONTAINER_CMD=podman
+else
+  echo "ERROR: neither docker nor podman found" >&2
+  exit 1
+fi
 
-echo "Deleting test image $(docker image ls | grep localhost:5000 | awk '{print $1":"$2}')"
-docker image ls | grep localhost:5000 | awk '{print "docker image rm "$1":"$2}' | sh
+echo "Deleting test image $(${CONTAINER_CMD} image ls | grep localhost:5000 | awk '{print $1":"$2}')"
+${CONTAINER_CMD} image ls | grep localhost:5000 | awk "{print \"${CONTAINER_CMD} image rm \"\$1\":\"\$2}" | sh
 
-echo "Deleting base image  $(docker image ls | grep "wildfly-cloud-test-image"  | awk '{print $1":"$2}')...."
-docker image ls | grep "wildfly-cloud-test-image"  | awk '{print "docker image rm "$1":"$2}' | sh
+echo "Deleting base image  $(${CONTAINER_CMD} image ls | grep "wildfly-cloud-test-image"  | awk '{print $1":"$2}')...."
+${CONTAINER_CMD} image ls | grep "wildfly-cloud-test-image"  | awk "{print \"${CONTAINER_CMD} image rm \"\$1\":\"\$2}" | sh
 
-docker system prune -f
+${CONTAINER_CMD} system prune -f
 
 

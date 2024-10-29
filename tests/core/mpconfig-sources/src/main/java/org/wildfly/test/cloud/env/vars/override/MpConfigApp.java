@@ -18,30 +18,10 @@
  */
 package org.wildfly.test.cloud.env.vars.override;
 
-import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
-
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
 
-import io.dekorate.kubernetes.annotation.ConfigMapVolume;
-import io.dekorate.kubernetes.annotation.Env;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-import io.dekorate.kubernetes.annotation.Mount;
-import io.dekorate.kubernetes.annotation.SecretVolume;
-import io.dekorate.option.annotation.GeneratorOptions;
-
-@KubernetesApplication(
-        envVars = {
-                @Env(name = "CONFIG_ENV_VAR", value = "From env var")
-        },
-        configMapVolumes = {@ConfigMapVolume(configMapName = "my-config-map", volumeName = "my-config-map", defaultMode = 0666)},
-        secretVolumes = {@SecretVolume(secretName = "my-secret", volumeName = "my-secret", defaultMode = 0666)},
-        mounts = {
-                @Mount(name = "my-config-map", path = "/etc/config/my-config-map"),
-                @Mount(name = "my-secret", path = "/etc/config/my-secret")},
-        imagePullPolicy = Always)
 @ApplicationPath("")
-@GeneratorOptions(inputPath = "kubernetes")
 public class MpConfigApp extends Application {
 
 }

@@ -19,41 +19,20 @@
 
 package org.wildfly.test.cloud.microprofile.reactive.messaging.strimzi;
 
-import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.ws.rs.core.MediaType;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.wildfly.test.cloud.common.KubernetesResource;
-import org.wildfly.test.cloud.common.Resource;
-import org.wildfly.test.cloud.common.ResourceType;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
-/**
- * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
- */
-@Tag(KUBERNETES)
-@WildFlyKubernetesIntegrationTest(
-        namespace = "kafka",
-        kubernetesResources = {
-                @KubernetesResource(definitionLocation = "https://strimzi.io/install/latest?namespace=kafka"),
-                @KubernetesResource(definitionLocation = "src/test/container/strimzi-node-pool.yml"),
-                @KubernetesResource(
-                        definitionLocation = "src/test/container/strimzi-cluster.yml",
-                        additionalResourcesCreated = {
-                                @Resource(type = ResourceType.DEPLOYMENT, name = "my-cluster-entity-operator")
-                        }),
-                @KubernetesResource(definitionLocation = "src/test/container/strimzi-topic.yml")
-        })
+@WildFlyKubernetesIntegrationTest
 public class ReactiveMessagingWithStrimziIT  extends WildFlyCloudTestCase {
 
     @Test
@@ -62,8 +41,6 @@ public class ReactiveMessagingWithStrimziIT  extends WildFlyCloudTestCase {
 
         List<String> list = getReceived();
         if (list.size() == 0) {
-            // Occasionally we might start sending messages before the subscriber is connected property
-            // (the connection happens async as part of the application start) so retry until we get this first message
             Thread.sleep(1000);
             long end = System.currentTimeMillis() + 20000;
             while (true) {
