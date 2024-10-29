@@ -8,451 +8,350 @@ Cloud test suite for WildFly
 
 #### Prerequisites for Kubernetes
 
-* Install `docker` or `podman` and `kubectl`.
-* If you are using `podman` you first need to configure it :
-  ````shell
-  systemctl --user enable --now podman.socket
-  ````
-  and check the status
-  ````shell
-  systemctl status --user podman.socket
-  ````
-  This should return the socket path that you need to specify for minikube to start: something like `/run/user/${GUID}/podman/podman.sock`.
-  You need to set the environement variable `DOCKER_HOST` to the proper URL (don't forget une *unix://* prefix). 
-  ````shell
-  export DOCKER_HOST=unix:///run/user/1000/podman/podman.sock
-  ````
-  Also until at least until Minikube v1.26, podman is ran using sudo (cf. [Minikube podman page](https://minikube.sigs.k8s.io/docs/drivers/podman/)).
+You need a local Kubernetes cluster (minikube) with a local Docker registry at `localhost:5000`. CI uses Docker; instructions for Podman are also provided below.
 
-  Thus you need to add your current user to the **/etc/sudoers** file by appending the following line to it: `${usernamme} ALL=(ALL) NOPASSWD: /usr/bin/podman`.
-* Install and start `minikube`, making sure it has enough memory
-  ````shell
-  minikube start --memory='4gb'
-  ````
-  If you are using `podman` you should specify the driver like this
-  ````shell
-  minikube start --memory='4gb' --driver=podman
-  ````
-* Install [Minikube registry](https://minikube.sigs.k8s.io/docs/handbook/registry/)
-  ````shell
-  minikube addons enable registry
-  ````
-* In order to push to the minikube registry and expose it on localhost:5000:
-  # On Mac:
-  ````shell
-  docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"
-  ````
-  On Linux:
-  ````shell
-  kubectl port-forward --namespace kube-system service/registry 5000:80 &
+##### Using Docker (matches CI)
 
-  ````
-  On Windows:
-  ````shell
-  kubectl port-forward --namespace kube-system service/registry 5000:80
-  docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:host.docker.internal:5000"
-  ````
+1. Install [Docker](https://docs.docker.com/get-docker/), [`kubectl`](https://kubernetes.io/docs/tasks/tools/), and [`minikube`](https://minikube.sigs.k8s.io/docs/start/).
 
-**NOTE:** If you are using Podman instead of Docker, you need to create a symlink from `docker` to your installed version of `podman`.
-This is because the underlying [dekorate](http://dekorate.io/) library is not aware of `podman`, and looks for an executable called `docker`.
+2. Start minikube:
+   ```shell
+   minikube start --driver=docker --container-runtime=containerd --memory='4gb' --cpus='2'
+   ```
 
+3. Start a local Docker registry:
+   ```shell
+   docker run -d -p 5000:5000 --restart=always --name local-registry \
+     -e REGISTRY_STORAGE_DELETE_ENABLED=true \
+     registry:2
+   ```
 
+4. Connect the registry to minikube's network so pods can pull images:
+   ```shell
+   MINIKUBE_NETWORK=$(docker inspect minikube --format='{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}')
+   docker network connect "$MINIKUBE_NETWORK" local-registry
+   ```
 
-  On linux you might need to add this registry as an insecure one by editing the file **/etc/containers/registries.conf** and adding the following lines:
-  ````
-  [[registry]]
-  location="localhost:5000"
-  insecure=true
-  ````
-On Mac, you may need to do the same, but this file is not on the file system of the Podman machine. See the Podman 
-[Registries documentation](https://podman-desktop.io/docs/containers/registries#setting-up-a-registry-with-an-insecure-certificate)
-for more details. But essentially you:
-* ssh into the podman machine with `podman machine ssh --username root <optional VM name>`. 
-    * Note that GPU enabled Podman machines set up with LibKrunb don't seem to be accessible this way at the moment
-* then modify the above file as shown
-* restart the podman VM
+5. Configure containerd inside minikube to resolve `localhost:5000` via the registry container's IP. Without this, pods that reference `localhost:5000/...` images would look on the node's own loopback and fail with `ImagePullBackOff`:
+   ```shell
+   REGISTRY_IP=$(docker inspect local-registry \
+     --format="{{.NetworkSettings.Networks.${MINIKUBE_NETWORK}.IPAddress}}")
+   minikube ssh "sudo mkdir -p /etc/containerd/certs.d/localhost:5000"
+   minikube ssh "printf '[host.\"http://${REGISTRY_IP}:5000\"]\n  capabilities = [\"pull\", \"resolve\"]\n' \
+     | sudo tee /etc/containerd/certs.d/localhost:5000/hosts.toml"
+   minikube ssh "sudo systemctl restart containerd"
+   ```
+   Wait a few seconds for containerd to restart before running tests.
 
-  
-##### Fedora 37+ Set Up
+6. Verify the setup:
+   ```shell
+   # Registry is accessible from the host
+   curl -s http://localhost:5000/v2/_catalog
+   # Registry is accessible from inside minikube
+   minikube ssh "curl -f http://${REGISTRY_IP}:5000/v2/"
+   ```
 
-The following steps should get you up and running on Fedora:
-* Install podman
-```shell
-dnf install podman podman-docker
-```
-* Edit the `/etc/containers/registries.conf` and add the following:
-```
-[[registry]]
-location="localhost:5000"
-insecure=true
-```
+##### Using Podman
 
-* Start minikube
-```shell
-minikube start --container-runtime=containerd
-```
+These instructions use a standalone registry container, the same approach as the Docker instructions above. The minikube registry addon does not work reliably with Podman on macOS/Windows because `--network=host` maps to the Podman VM's network rather than the host machine's.
 
-* Enable addons in minikube
-```shell
-minikube addons enable registry
-```
+1. **Platform-specific prerequisites:**
 
-* Expose port 5000 for the tests
-```shell
-kubectl port-forward --namespace kube-system service/registry 5000:80
-```
+   **macOS/Windows only:** You need a running Podman machine with at least 8 GB of memory and 4 CPUs (minikube, the registry, and test workloads all share these resources). If you don't have one yet:
+   ```shell
+   podman machine init --memory 8192 --cpus 4
+   podman machine start
+   ```
 
-* Run the tests
-```shell
-mvn clean verify
-```
+   Next, configure `localhost:5000` as an insecure (HTTP) registry inside the Podman machine. This must be done **before** starting minikube. Check whether the configuration already exists:
+   ```shell
+   podman machine ssh --username root cat /etc/containers/registries.conf
+   ```
+   If the output does not contain an entry for `localhost:5000`, add one:
+   ```shell
+   podman machine ssh --username root tee -a /etc/containers/registries.conf <<'EOF'
+
+   [[registry]]
+   location="localhost:5000"
+   insecure=true
+   EOF
+   ```
+   Verify it was written:
+   ```shell
+   podman machine ssh --username root cat /etc/containers/registries.conf
+   ```
+   Then restart the Podman machine so the configuration takes effect:
+   ```shell
+   podman machine stop && podman machine start
+   ```
+
+   > **Note:** On macOS, AirPlay Receiver sometimes binds to port 5000. If you get connection errors later, disable it in **System Settings > General > AirDrop & Handoff > AirPlay Receiver**.
+
+   **Linux only:** Enable the podman socket and set `DOCKER_HOST` so minikube can find it:
+   ```shell
+   systemctl --user enable --now podman.socket
+   export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
+   ```
+   You may also need to register `localhost:5000` as an insecure registry. Add the following to `/etc/containers/registries.conf` (recent Podman versions allow localhost by default, but some distributions require this):
+   ```toml
+   [[registry]]
+   location="localhost:5000"
+   insecure=true
+   ```
+
+2. Start minikube with the podman driver:
+   ```shell
+   minikube start --driver=podman --container-runtime=containerd --memory='4gb' --cpus='2'
+   ```
+
+3. Start a local registry:
+   ```shell
+   podman run -d -p 5000:5000 --rm --name local-registry \
+     -e REGISTRY_STORAGE_DELETE_ENABLED=true \
+     registry:2
+   ```
+
+4. Connect the registry to minikube's network so pods can pull images:
+   ```shell
+   MINIKUBE_NETWORK=$(podman inspect minikube --format='{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}')
+   podman network connect "$MINIKUBE_NETWORK" local-registry
+   ```
+
+5. Configure containerd inside minikube to resolve `localhost:5000` via the registry container's IP. Without this, pods that reference `localhost:5000/...` images would look on the node's own loopback and fail with `ImagePullBackOff`:
+   ```shell
+   REGISTRY_IP=$(podman inspect local-registry \
+     --format="{{.NetworkSettings.Networks.${MINIKUBE_NETWORK}.IPAddress}}")
+   minikube ssh "sudo mkdir -p /etc/containerd/certs.d/localhost:5000"
+   minikube ssh "printf '[host.\"http://${REGISTRY_IP}:5000\"]\n  capabilities = [\"pull\", \"resolve\"]\n' \
+     | sudo tee /etc/containerd/certs.d/localhost:5000/hosts.toml"
+   minikube ssh "sudo systemctl restart containerd"
+   ```
+   Wait a few seconds for containerd to restart before running tests.
+
+6. Verify the setup:
+   ```shell
+   # Registry is accessible from the host
+   curl -s http://localhost:5000/v2/_catalog
+   # Registry is accessible from inside minikube
+   minikube ssh "curl -f http://${REGISTRY_IP}:5000/v2/"
+   ```
+
+The WildFly Maven Plugin uses `podman` by default for building container images, so no `-Dwildfly.image.container-runtime` override is needed when running the tests with Podman.
+
+> **Known limitation:** The OIDC (elytron-oidc-client) test uses NodePort services to handle the browser-like login flow between WildFly and Keycloak. On macOS with Podman, the minikube node IP (`minikube ip`) is inside the Podman VM and not routable from the host, so the test will fail with a connection timeout. This test passes on CI (Docker on Linux) where the minikube IP is directly reachable.
 
 ### Run the tests
 
-The `kubernetes-tests` profile is active by default, and runs the tests tagged with `@Tag(WildFlyTags.KUBERNETES)`. These tests target Kubernetes, running on Minikube as outlined above.
+The `kubernetes-tests` profile is active by default, and runs the tests tagged with `@Tag(WildflyTags.KUBERNETES)`. These tests target Kubernetes, running on Minikube as outlined above.
 
 #### Kubernetes tests
-````shell
-mvn -Pimages clean install
-````
-By default, the tests assume that you are connecting to a registry on `localhost:5000`,
-which we set up earlier. If you wish to override the registry, you can use the 
-following system properties:
-* `wildfly.cloud.test.docker.host` - to override the host
-* `wildfly.cloud.test.docker.port` - to override the port 
-* `dekorate.docker.registry` - to override the whole `<host>:<port>` in one go. 
+```shell
+mvn clean verify -Pkubernetes-tests
+```
 
-`-Pimages` causes the images defined in the `/images` sub-directories to be built. 
-To save time, when developing locally, once you have built your images, 
-omit `-Pimages`. 
+By default, the WildFly Maven Plugin uses `podman` to build container images. To use `docker` instead:
+```shell
+mvn clean verify -Pkubernetes-tests -Dwildfly.image.container-runtime=docker
+```
 
-See the [Adding images](#adding-images) section for more details about the creation of 
-the images.
+#### CI mode
+On CI, set `CLOUD_TESTS_CI=1` to enable registry cleanup between tests (reduces disk usage):
+```shell
+CLOUD_TESTS_CI=1 mvn clean verify -Pkubernetes-tests -Dwildfly.image.container-runtime=docker
+```
 
 ### Obtaining pod logs and standalone.xml contents
-You may want to see the logs of the pods involved in the test. If you specify
-* `-Dwildfly.test.print.logs` - the logs of all pods for all tests will be printed to the console 
-* `-Dwildfly.test.print.logs=MyTest1,MyTest2` - the logs for all pods for the two specified test classes will be printed to the console. The simple name of the class is used. Logs for pods for other test classes will not be printed to the console.
+If a test fails, pod logs and server configuration are automatically dumped to the console.
 
 
-Similarly, you can obtain the standalone.xnl from the main WildFly pod:
-* `-Dwildfly.test.print.server-config` - outputs the standalone.xml for all tests
-* `-Dwildfly.test.print.server-config=MyTest1,MyTest2` - outputs the standalone.xml for the listed tests. 
-* The simple name of the class is used. Logs for pods for other test classes will not be printed to the console.
+## Architecture
 
-Note that if a failure happens in a test, we will always attempt to display the logs and the server configuration.  
+Each test module is self-contained:
+1. **Application code** in `src/main/java` — a plain WAR application (JAX-RS, Servlet, etc.)
+2. **Deployment YAML** in `src/main/kubernetes/wildfly-deployment.yml` — static Kubernetes Deployment + Service
+3. **WildFly Maven Plugin** in the module's `pom.xml` — provisions the server and builds a container image via `wildfly:image`
+4. **CLI scripts** (optional) in `src/main/cli-script/init.cli` — JBoss CLI commands run during server provisioning
+5. **Test code** in `src/test/java` — a JUnit 5 integration test using `@WildFlyKubernetesIntegrationTest`
+6. **Test overrides** (optional) in `src/test/resources/overrides/` — override script and prerequisite Kubernetes YAMLs
 
+The test lifecycle is:
+- `mvn package` builds the WAR, provisions a WildFly server with the configured Galleon layers, and builds a container image
+- The JUnit 5 extension (`WildFlyKubernetesExtension`) calls `.github/scripts/setup-test.sh` in `@BeforeAll`, which tags/pushes the image to the local registry and applies the deployment YAML
+- Tests run against the deployed application using port-forwarding
+- The extension calls `.github/scripts/teardown-test.sh` in `@AfterAll` to clean up
 
 
 ## Adding tests
 
 ### Adding Kubernetes tests
-To add a test, at present, you need to create a new Maven module under `tests`. 
-Note that we use a few levels of folders to group tests according to area of 
-functionality.
+To add a test, create a new Maven module under `tests/`. We use a few levels of folders to group tests by area of functionality.
 
-We use the [Failsafe plugin](https://maven.apache.org/surefire/maven-failsafe-plugin/) 
-to run these tests. Thus:
+We use the [Failsafe plugin](https://maven.apache.org/surefire/maven-failsafe-plugin/) to run these tests:
+* `src/main/java` and `src/main/webapp` contain the application being tested
+* `src/test/java` contains the test, which works as a client test
 
-* the `src/main/java`, `src/main/resources` and `src/main/webapp` folders will contain the application being tested.
-* the `src/test/java` folder contains the test, which works as a client test (similar to `@RunAsClient` in Arquillian).
+#### 1. Create the application class
 
-Note that we use the [dekorate.io](https://dekorate.io) framework with some extensions
-for the tests. This means using `@KubernetesApplication` to define the application. 
-dekorate.io's annotation processor will create the relevant YAML files to deploy the 
-application to Kubernetes. To see the final result that will be deployed to Kubernetes, 
-it is saved in `target/classes/META-INF/dekorate/kubernetes.yml`
+A plain JAX-RS or Servlet application — no special annotations needed beyond the standard ones:
 
-A minimum `@KubernetesApplication` is:
 ```java
-@KubernetesApplication(imagePullPolicy = Always)
-```
-
-Out of the box the application processor of the WildFly Cloud Tests framework adds the typical WildFly ports `8080` and 
-`9990`. So, the above trimmed down example results in an **effective configuration** of
-```java
-@KubernetesApplication(
-        ports = {
-                @Port(name = "web", containerPort = 8080),
-                @Port(name = "admin", containerPort = 9990)
-        },
-        imagePullPolicy = Always)
-```
-Of course more ports and environment variables can be added as needed, but it is not necssary 
-to add the above ones.
-
-The `@KubernetesApplication` annotation is used as input for the generated kubernetes.yml.
-
-On the test side, we use dekorate.io's Junit 5 test based framework to run the 
-tests. To enable this, add the `@WildFlyKubernetesIntegrationTest` annotation 
-to your test class. This contains the same values as dekorate.io's
-[`@KubernetesIntegrationTest`](https://github.com/dekorateio/dekorate/blob/2.9.0/testing/kubernetes-junit/src/main/java/io/dekorate/testing/annotation/KubernetesIntegrationTest.java)
-as well as some more fields for additional control. These include:
-* `namespace` - the namespace to install the application into, if the default namespace is not desired. This applies to both the namespace used for the application, as well as any additional resources needed. Additional resources are covered later in this document.
-* `kubernetesResources` - locations of other Kubernetes resources. See this [section](#adding-additional-complex-kubernetes-resources) for more details.
-
-The framework will generate a Dockerfile from the provided information at `target/docker/Dockerfile`.
-You must select the name of the image to use (see [Adding Images](#adding-images)) and set it in a property
-called `wildfly.cloud.test.base.image.name` in the pom for the Maven module containing your test. 
-
-The `@Tag(KUBERNETES)` is needed on the test class, to make sure it runs when running the `kubernetes-tests` profile.
-
-
-Note that at the moment,
-due to https://github.com/dekorateio/dekorate/issues/1000, you need to add a Dockerfile to the root
-of the Maven module containing the test. This can be empty.
-
-dekorate.io allows you to inject 
-[`KubernetesClient`](https://github.com/fabric8io/kubernetes-client/blob/master/kubernetes-client-api/src/main/java/io/fabric8/kubernetes/client/KubernetesClient.java),
-[`KubernetesList`](https://github.com/fabric8io/kubernetes-client/blob/master/kubernetes-model-generator/kubernetes-model-core/src/main/java/io/fabric8/kubernetes/api/model/KubernetesList.java) (for Kubernetes resources) 
-and [`Pod`](https://github.com/fabric8io/kubernetes-client/blob/master/kubernetes-model-generator/kubernetes-model-core/src/generated/java/io/fabric8/kubernetes/api/model/Pod.java)
-instances into your test. 
-
-Additionally, the WildFly Cloud Tests framework, allows you to inject an instance
-of [`TestHelper`](common/src/main/java/org/wildfly/test/cloud/common/TestHelper.java) 
-initialised for the test being run. This contains methods to run actions such as REST
-calls using port forwarding to the relevant pods. It also contains methods to invoke CLI
-commands (via bash) in the pod, as well as read the contents of files, and execute Bash commands.
-
-The [`WildFlyCloudTestCase`](common/src/main/java/org/wildfly/test/cloud/common/WildFlyCloudTestCase.java)
-base class is set up to have the `TestHelper` injected, and also waits for the server to properly
-start.
-
-## Further customisation of test images
-The above works well for simple tests. However, we might need to add config maps, secrets, 
-other pods running a database, operators and so on. Also, we might need to run a CLI script 
-when preparing the runtime server before we start it.
-
-### Adding a CLI script on startup
-Some tests need to adjust the server configuration. To do this add a CLI script at 
-`src/main/cli-script/init.cli` and it will be included in the created Docker image and run
-when launching the server.
-
-### Adding additional 'simple' Kubernetes resources
-What we have seen so far creates an image for the application. If we want to add more resources,
-we need to specify those ourselves. If these are simple resources which are installed right
-away, we can leverage dekorate's built in mechanism.
-
-We do this in two steps:
-* First we create a `src/main/resources/kubernetes/kubernetes.yml` file containing the Kubernetes resources we want to add. Some examples will follow.
-* Next we need to point dekorate to the `kubernetes.yml` by specifying `@GeneratorOptions(inputPath = "kubernetes")` on the application class. The `kubernetes` in this case refers to the folder under the `src/resources` directory.
-
-If you do these steps, the contents of the `src/main/resources/kubernetes/kubernetes.yml` will 
-be merged with what is output from the dekorate annotations on your test application. To see 
-the final result that will be deployed to Kubernetes, it is saved in 
-`target/classes/META-INF/dekorate/kubernetes.yml` as mentioned previously.
-
-The following examples show the contents of `src/main/resources/kubernetes/kubernetes.yml` 
-to add commonly needed resources. 
-
-Note that if you have more than one resource, you need to wrap them in a Kubernetes list. There 
-is a bug in the dekorate parser which prevents us from using the `---` separator which is often
-used to define several resources in the yaml file without wrapping in a list.
-
-An example of a Kubernetes list to specify multiple resources:
-```yaml
-apiVersion: v1
-kind: List
-items:
-  # First resource
-  - apiVersion: v1
-    kind: ...
-    ...
-  # Second resource
-  - apiVersion: v1
-    kind: ...
-    ...
-```
-### Adding additional 'complex' Kubernetes resources
-We sometimes need to install operators, or other complicated yaml to provide functionality 
-needed by our tests.  Due to the need to wrap these resources in a Kubernetes List, reworking 
-these, often third-party, yaml files is not really practical. When using these 'complex'
-resources, the WildFly Cloud Test framework deals with deploying them, so there is no need
-to wrap the resources in a Kubernetes list.
-
-In other cases, we need to make sure that these other resources are up and running before we 
-deploy our application.
-
-An example of defining additional 'complex' resources for your test follows:
-````java
-
-@WildFlyKubernetesIntegrationTest(
-  kubernetesResources = {
-    @KubernetesResource(definitionLocation = "https://example.com/an-operator.yaml"),
-    @KubernetesResource(
-      definitionLocation = "src/test/container/my-resources.yml",
-      additionalResourcesCreated = {
-        @Resource(
-          type = ResourceType.DEPLOYMENT, 
-          name = "installed-behind-the-scenes")
-      }
-   )
-})
-public class MyTestIT {
-    //...
-}
-````
-The above installs two resources. The location can either be a URL or a file relative to the root 
-of the maven module containing the test.
-
-When deploying each yaml file, it waits for all pods and deployments contained in the file to be 
-brought up before deploying the next. The test application is deployed once all the additional
-resources have been deployed and are ready.
-
-The `@KubernetesResource.additionalResourcesCreated` attribute used in the second entry 
-covers a corner case where the yaml file doesn't explicitly list everything that provides the
-full functionality of what is being installed. In this case, the resources contained in the 
-yaml install a deployment called `installed-behind-the-scenes` which we need to wait for before
-this set of resources can be considered ready for use.
-
-#### Adding config maps
-The contents of the config map are specified in `src/main/resources/kubernetes/kubernetes.yml`.  `@GeneratorOptions(inputPath = "kubernetes")` specifies the directory under `src/main/resources/`. The file **must** be called `kubernetes.yml`.
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: my-config-map
-data:
-  ordinal: 500
-  config.map.property: "From config map"
-```
-To mount the config map as a directory, you need the following additions to the 
-`@KubernetesApplication` annotation on your application class:
-```java
-@KubernetesApplication(
-        ...
-        configMapVolumes = {@ConfigMapVolume(configMapName = "my-config-map", volumeName = "my-config-map", defaultMode = 0666)},
-        mounts = {@Mount(name = "my-config-map", path = "/etc/config/my-config-map")})
-@GeneratorOptions(inputPath = "kubernetes")        
-```
-This sets up a config map volume, and mounts it under `/etc/config/my-config-map`. If you don't 
-want to do this you can e.g. bind the config map entries to environment variables. See the 
-dekorate documentation for more details.
-
-#### Adding secrets
-The contents of the secret are specified in `src/main/resources/kubernetes/kubernetes.yml`.  `@GeneratorOptions(inputPath = "kubernetes")` specifies the directory under `src/main/resources/`. The file **must** be called `kubernetes.yml`.
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: my-secret
-type: Opaque
-data:
-  secret.property: RnJvbSBzZWNyZXQ=
-```
-The value of `secret.property` is specified by base64 encoding it:
-```shell
-$echo -n 'From secret' | base64
-RnJvbSBzZWNyZXQ=
-```
-To mount the secret as a directory, you need the following additions to the 
-`@KubernetesApplication` annotation on your application class:
-```java
-@KubernetesApplication(
-        ...
-        secretVolumes = {@SecretVolume(secretName = "my-secret", volumeName = "my-secret", defaultMode = 0666)},
-        mounts = {@Mount(name = "my-secret", path = "/etc/config/my-secret")})
-@GeneratorOptions(inputPath = "kubernetes")        
-```
-This sets up a secret volume, and mounts it under `/etc/config/my-secret`. If you don't want 
-to do this you can e.g. bind the secret entries to environment variables. See the dekorate 
-documentation for more details.
-
-### Config Placeholder Replacement
-In some cases we don't have the full set of information needed at compile time. We can deal with this with 
-placeholders and using an implementation of [`ConfigPlaceholderReplacer`](common/src/main/java/org/wildfly/test/cloud/common/ConfigPlaceholderReplacer.java) to deal with the replacement.
-
-Example use:
-```java
-// Add an env var with a placeholder
-@KubernetesApplication(
-        envVars = {
-                @Env(name = "POD_URL", value = "$URL$")
-        },
-        imagePullPolicy = Always)
 @ApplicationPath("")
-public class EnvVarsOverrideApp extends Application {
+public class MyApp extends Application {
 }
-
-
-// Add a config placeholder replacement in the test
-@WildFlyKubernetesIntegrationTest(
-    placeholderReplacements = {
-        @ConfigPlaceholderReplacement(
-            placeholder = "$URL$", 
-            replacer = SimpleReplacer.class)})
-public class MyTestCaseIT extends WildFlyCloudTestCase {
-    ...
 ```
-The `placeholderReplacements` will inspect every line of both the generated `target/classes/META-INF/dekorate/kubernetes.yml` as well as any resources specified via 
-`@WildFlyKubernetesIntegrationTest.kubernetesResources` and call an instance of `SimpleReplacer` when
-performing the replacement.
 
-An example implementation of a replacer:
+#### 2. Create the deployment YAML
+
+Create `src/main/kubernetes/wildfly-deployment.yml` with a Deployment and Service. The key requirements:
+- The `app.kubernetes.io/name` label must match the `<name>` in the WildFly Maven Plugin config
+- The image must be `localhost:5000/<artifactId>:latest` (the WildFly Maven Plugin names images after the Maven artifactId)
+- Include ports `8080` (http) and `9990` (admin)
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-test
+  labels:
+    app.kubernetes.io/name: my-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: my-test
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: my-test
+    spec:
+      containers:
+        - name: my-test
+          image: localhost:5000/wildfly-cloud-tests-my-test:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: admin
+              containerPort: 9990
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-test
+spec:
+  selector:
+    app.kubernetes.io/name: my-test
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: admin
+      port: 9990
+      targetPort: 9990
+```
+
+#### 3. Configure the WildFly Maven Plugin
+
+Add to the module's `pom.xml`:
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.wildfly.plugins</groupId>
+            <artifactId>wildfly-maven-plugin</artifactId>
+            <configuration>
+                <name>ROOT.war</name>
+                <container-runtime>${wildfly.image.container-runtime}</container-runtime>
+                <feature-packs>
+                    <feature-pack>
+                        <location>${server.feature.pack.gav}</location>
+                    </feature-pack>
+                    <feature-pack>
+                        <location>${cloud.feature.pack.gav}</location>
+                    </feature-pack>
+                </feature-packs>
+                <layers>
+                    <layer>${cloud.feature.pack.default.config.layer}</layer>
+                    <!-- Add additional layers as needed -->
+                </layers>
+                <galleon-options>
+                    <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
+                </galleon-options>
+            </configuration>
+            <executions>
+                <execution>
+                    <id>provision-server</id>
+                    <phase>package</phase>
+                    <goals><goal>package</goal></goals>
+                </execution>
+                <execution>
+                    <id>build-image</id>
+                    <phase>package</phase>
+                    <goals><goal>image</goal></goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+The `<name>` must match the application name used in the deployment YAML and labels.
+
+#### 4. Write the test class
+
 ```java
-import io.dekorate.testing.WithKubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.wildfly.test.cloud.common.ConfigPlaceholderReplacer;
+@WildFlyKubernetesIntegrationTest
+public class MyTestIT extends WildFlyCloudTestCase {
 
-public class SimpleReplacer implements ConfigPlaceholderReplacer, WithKubernetesClient {
-    @Override
-    public String replace(ExtensionContext context, String placeholder, String line) {
-        if (line.contains("$URL$")) {
-            KubernetesClient client = getKubernetesClient(context);
-            String url = client.getMasterUrl().toExternalForm();
-            line = line.replace("$URL$", url);
-        }
-        return line;
+    @Test
+    public void smokeTest() throws Exception {
+        getHelper().doWithWebPortForward("", url -> {
+            Response r = RestAssured.get(url);
+            assertEquals(200, r.getStatusCode());
+            return null;
+        });
     }
 }
 ```
-In this case it will replace the `$URL$` placeholder we used for the value of the `POD_URL` environment variable with a value determined by the Kubernetes client. The `WithKubernetesClient.getKubernetesClient()` method gets the client for us in this case.
+
+The `@WildFlyKubernetesIntegrationTest` annotation includes `@Tag("Kubernetes")`, so no separate `@Tag` is needed.
+
+`WildFlyCloudTestCase` provides `getHelper()` which returns a `TestHelper` with methods for:
+- `doWithWebPortForward(path, action)` — port-forward to the pod and execute an action
+- `executeCLICommands(commands...)` — run JBoss CLI commands in the pod
+- `readFile(path)` — read a file from the pod
+- `runCommand(command, expectOutput)` — run a bash command in the pod
+- `kubectl()` — access the `KubectlHelper` for direct kubectl operations
+
+### Adding prerequisites (databases, operators, etc.)
+
+If your test needs additional Kubernetes resources (databases, message brokers, operators), create an override script at `<module-path>/src/test/resources/overrides/overridable-functions.sh`. Place any prerequisite YAML files alongside the override script in the same `overrides/` directory.
+
+The available functions to override are defined in `.github/scripts/overridable-functions.sh`:
+
+- `applicationName(modulePath)` — the application name (default: last directory component)
+- `namespace(appName)` — the namespace to deploy into (default: current context namespace)
+- `installPrerequisites(appName)` — install additional resources before the app
+- `cleanPrerequisites(appName)` — clean up additional resources after the test
+- `getDeploymentYaml()` — path to the deployment YAML (default: `src/main/kubernetes/wildfly-deployment.yml`)
+- `waitForReadiness(appName)` — wait for the deployment to be ready
+- `preprocessYaml()` — filter to transform the deployment YAML (e.g., placeholder substitution)
+- `containerCommand()` — the container runtime command (default: auto-detect docker/podman)
+
+Example override for a test that needs a PostgreSQL database:
+```bash
+function installPrerequisites() {
+  local app="${1}"
+  kubectl apply -f src/test/resources/overrides/kubernetes.yml
+  kubectl wait --for=condition=Available deployment/postgres --timeout=120s
+}
+
+function cleanPrerequisites() {
+  local app="${1}"
+  kubectl delete -f src/test/resources/overrides/kubernetes.yml --ignore-not-found=true
+}
+```
 
 ### 'Manual' tests
-The tests in the `tests/manual` folder will not run automatically, as they need external 
-systems to be set up before running. Still, they are good to verify our images work before 
-doing releases of them.
-
-See the README for each test for how to run them. Of course if you add such a test, add a README!
-Link all tests to the [tests/manual/README.md](tests/manual/README.md) file, along with the profile
-required to run it. [tests/manual/README.md](tests/manual/README.md) contains some further
-instructions about how to run these tests on CI.
-
-Ideally, each 'manual' test will be runnable on CI. Add instruhctions for setting up secrets and
-whatever else is needed to a 'CI Setup' section in the test README, and modify the 
-[.github/workflows/wildfly-cloud-tests-callable.yml](.github/workflows/wildfly-cloud-tests-callable.yml) workflow
-file to include the test.
-
-## Adding images
-If you need a server with different layers from the already existing ones, you need to add a 
-new Maven module under the `images/` directory. Simply choose the layers you wish to provision 
-your server with in the `wildfly-maven-plugin` plugin section in the module `pom.xml`, and 
-the [images parent pom](images/pom.xml) will take care of the rest. See any of the existing 
-poms under `images/` for a fuller example.
-
-The name of the image becomes `wildfly-cloud-test-image/<artifact-id>:latest` 
-where `<artifact-id>` is the Maven artifactId of the pom creating the image. The image simply 
-contains an empty server, with no deployments. The tests create images containing the 
-deployments being tested from this image.
-
-Once you have added a new image, add it to:
-* The `dependencyManagement` section of the root pom
-* The `dependencies` section of [`tests/pom.xml`](tests/pom.xml)
-
-The above ensures that the image will be built before running the tests.
-
-The current philosophy is to have images providing a minimal amount of layers needed for the 
-tests. In other words, we will probably/generally not want to provision the full WildFly server.
-
-By default the created images are based on `quay.io/wildfly/wildfly-runtime:latest`.
-If you wish to use another image (e.g. to prevalidate a staged runtime image) you can do that by passing in
-the `image.name.wildfly.runtime` system property.
-
-## Testing new runtime images
-To test a new runtime image (for example one that is staged before a release), simply pass in the
-name of the image in the `image.name.wildfly.runtime` system property.
-
-Also, the GitHub Actions CI job allows you to pass this in as a parameter when manually triggering
-the workflow. You will likely need to run such custom jobs in your own fork of the repository
-since only admins can trigger workflows.
+The tests in the `tests/manual` folder will not run automatically, as they need external
+systems to be set up before running. See the README for each test for how to run them.

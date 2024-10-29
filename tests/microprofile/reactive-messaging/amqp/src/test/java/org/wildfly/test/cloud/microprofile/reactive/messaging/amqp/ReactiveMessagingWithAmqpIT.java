@@ -19,32 +19,20 @@
 
 package org.wildfly.test.cloud.microprofile.reactive.messaging.amqp;
 
-import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.ws.rs.core.MediaType;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.wildfly.test.cloud.common.KubernetesResource;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
-/**
- * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
- */
-@Tag(KUBERNETES)
-@WildFlyKubernetesIntegrationTest(
-        kubernetesResources = {
-                @KubernetesResource(definitionLocation = "src/test/container/artemis.yml")
-        }
-)
+@WildFlyKubernetesIntegrationTest
 public class ReactiveMessagingWithAmqpIT extends WildFlyCloudTestCase {
 
     @Test
@@ -53,8 +41,6 @@ public class ReactiveMessagingWithAmqpIT extends WildFlyCloudTestCase {
 
         List<String> list = getReceived();
         if (list.size() == 0) {
-            // Occasionally we might start sending messages before the subscriber is connected property
-            // (the connection happens async as part of the application start) so retry until we get this first message
             Thread.sleep(1000);
             long end = System.currentTimeMillis() + 20000;
             while (true) {

@@ -19,28 +19,15 @@
 
 package org.wildfly.test.cloud.common;
 
-import io.dekorate.testing.annotation.Inject;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+public abstract class WildFlyCloudTestCase {
 
-/**
- * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
- */
-public class WildFlyCloudTestCase {
-    @Inject
     private TestHelper helper;
 
-    @BeforeEach
-    public void waitForWildFlyReadiness() {
-         helper.waitUntilWildFlyIsReady(30000);
+    void setHelper(TestHelper helper) {
+        this.helper = helper;
     }
 
-    public TestHelper getHelper() {
+    protected TestHelper getHelper() {
         return helper;
-    }
-
-    @AfterEach
-    public void dumpLogs() {
-
     }
 }

@@ -185,25 +185,16 @@ jobs:
           curl -s http://localhost:5000/v2/_catalog
           echo ""
 
-      - name: Kubernetes profiles
-        run: |
-          # The kubernetes-ci profile cleans the kubernetes registry between tests.
-          # When specifying another profile, we need to explicitly enable the kubernetes-tests profile
-          echo "TEST_MAVEN_PARAMETERS=-Pkubernetes-tests,kubernetes-ci" >> $GITHUB_ENV
-
       - name: Run Cloud Tests
-        # This builds the provisioned images and runs the main (i.e. non-manual) tests
-        # Since the manual tests reuse these images, we don't need to use
-        # ${RUNTIME_IMAGE_OVERRIDE} elsewhere.
+        env:
+          CLOUD_TESTS_CI: 1
         run: |
           echo "Runtime image: ${RUNTIME_IMAGE_OVERRIDE}"
-          # No longer build the base images at the start. Instead build them on demand for each test via the
-          # docker-cleanup profile, which also deletes them once the test is complete
-          # mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${TEST_MAVEN_PARAMETERS} -Dmaven.test.redirectTestOutputToFile=false
-          mvn -B install -Pdocker-cleanup -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${TEST_MAVEN_PARAMETERS} -Dmaven.test.redirectTestOutputToFile=false
+          mvn -B verify -Pkubernetes-tests -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} -Dwildfly.image.container-runtime=docker -Dmaven.test.redirectTestOutputToFile=false
         working-directory: cloud-tests
 
       - name: Update permissions for Cache post job
+        if: always()
         run: sudo bash -c 'sudo chmod -R 777 .'
 
       ##################################################

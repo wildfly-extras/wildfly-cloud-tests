@@ -1,0 +1,2 @@
+/subsystem=micrometer:write-attribute(name=endpoint, value=http://opentelemetrycollector:4318/v1/metrics)
+/subsystem=micrometer:write-attribute(name=step,value=1)

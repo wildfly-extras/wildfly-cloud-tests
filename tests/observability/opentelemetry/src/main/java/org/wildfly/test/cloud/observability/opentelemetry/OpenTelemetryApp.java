@@ -18,14 +18,9 @@
  */
 package org.wildfly.test.cloud.observability.opentelemetry;
 
-import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
-
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
 
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-
-@KubernetesApplication(imagePullPolicy = Always)
 @ApplicationPath("")
 public class OpenTelemetryApp extends Application {
 }

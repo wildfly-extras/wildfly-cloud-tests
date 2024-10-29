@@ -31,16 +31,6 @@
     <artifactId>wildfly-cloud-tests</artifactId>
     <packaging>pom</packaging>
 
-    <properties>
-        <!--
-            Set some properties here to not have to specify those on the command line when we want to write tests.
-
-        -->
-        <dekorate.push>true</dekorate.push>
-        <!-- Individual tests will need to set this property -->
-        <wildfly.cloud.test.base.image.name></wildfly.cloud.test.base.image.name>
-    </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -54,41 +44,20 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- Other dependencies -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>annotation-processor</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>junit-extension</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okio</groupId>
-            <artifactId>okio-jvm</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.dekorate</groupId>
-            <artifactId>kubernetes-annotations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.dekorate</groupId>
-            <artifactId>kubernetes-junit</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.logging</groupId>
@@ -99,26 +68,6 @@
         <dependency>
             <groupId>org.jboss</groupId>
             <artifactId>jboss-dmr</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-common</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk7</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -136,34 +85,6 @@
     <build>
         <finalName>ROOT</finalName>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <!--
-                    If you need to debug the annotation processor, use the following configuration, and pass in
-                        -Ddekorate.docker.registry=localhost:5000
-                        -Ddekorate.push=true
-                        -Dwildfly.cloud.test.base.image.name=<base image name>
-                    manually when running mvnDebug clean install.
-                -->
-                <!--
-                <configuration>
-                </configuration>
-                -->
-                <configuration>
-                    <fork>true</fork>
-                    <compilerArgs>
-                        <arg>-J-Dwildfly.cloud.test.base.image.name=${wildfly.cloud.test.base.image.name}</arg>
-                        <!--
-                            Dekorate allows specifying these with -D on the command-line.
-                            in order to not HAVE to do that, we pass them in explicitly here.
-                        -->
-                        <arg>-J-Ddekorate.docker.registry=${dekorate.docker.registry}</arg>
-                        <arg>-J-Ddekorate.push=${dekorate.push}</arg>
-
-                    </compilerArgs>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -200,7 +121,6 @@
     </build>
 
     <modules>
-        <module>framework</module>
         <module>core</module>
         <module>clustering</module>
         <module>datasources</module>
@@ -230,102 +150,10 @@
                                 <phase>integration-test</phase>
                                 <configuration>
                                     <groups>Kubernetes</groups>
+                                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
                                     <includes>
                                         <include>**/*IT.class</include>
                                     </includes>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <!--
-                Profile to reduce disk space when running on CI with a local Docker registry. Thus, this is only
-                relevant for the tests which have the KUBERNETES tag.
-                It restarts the Docker registry container between each test, which wipes all stored images
-                and results in significant memory/disk space savings.
-            -->
-            <id>kubernetes-ci</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>clean-docker-registry</id>
-                                <phase>test-compile</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>./.github/scripts/start-registry.sh</executable>
-                                    <arguments>
-                                        <argument>${project.basedir}</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>cleanup-test-images</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>./.github/scripts/stop-registry.sh</executable>
-                                    <arguments>
-                                        <argument>${project.basedir}</argument>
-                                        <arguments>${dekorate.docker.registry}/${user.name}/${project.artifactId}:${project.version}</arguments>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <!--
-                Profile to reduce disk space when running on CI.
-                It deletes the test image and the base image after each test.
-                Before each test, it determines the base image required by the test, and builds that.
-                Then the test itself builds the test image (base image + test deployment) as usual.
-            -->
-            <id>docker-cleanup</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>docker-build-image</id>
-                                <phase>test-compile</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>./.github/scripts/build-docker-image.sh</executable>
-                                    <arguments>
-                                        <argument>${project.basedir}</argument>
-                                        <argument>${wildfly.cloud.test.base.image.name}</argument>
-                                        <argument>${version.wildfly}</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>minikube-addons-disable-registry</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>./.github/scripts/clean-docker.sh</executable>
-                                    <arguments>
-                                        <argument>${project.basedir}</argument>
-                                    </arguments>
                                 </configuration>
                             </execution>
                         </executions>

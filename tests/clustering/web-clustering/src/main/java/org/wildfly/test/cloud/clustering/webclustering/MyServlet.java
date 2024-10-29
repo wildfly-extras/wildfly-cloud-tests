@@ -17,8 +17,6 @@
  */
 package org.wildfly.test.cloud.clustering.webclustering;
 
-import static io.dekorate.kubernetes.annotation.ImagePullPolicy.Always;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -27,20 +25,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import io.dekorate.kubernetes.annotation.Env;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
-
-/**
- *
- * @author jdenise
- */
-@KubernetesApplication(
-        envVars = {
-            @Env(name = "JGROUPS_PING_PROTOCOL", value = "dns.DNS_PING"),
-            @Env(name = "OPENSHIFT_DNS_PING_SERVICE_PORT", value = "8888"),
-            @Env(name = "OPENSHIFT_DNS_PING_SERVICE_NAME", value = "wildfly-cloud-tests-web-clustering-ping")},
-        imagePullPolicy = Always,
-        replicas = 1)
 @WebServlet(urlPatterns = {"/"})
 public class MyServlet extends HttpServlet {
 
@@ -62,43 +46,21 @@ public class MyServlet extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }
