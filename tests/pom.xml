@@ -331,6 +331,7 @@
                                     <arguments>
                                         <argument>${project.basedir}</argument>
                                         <argument>${wildfly.cloud.test.base.image.name}</argument>
+                                        <argument>${version.wildfly}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
