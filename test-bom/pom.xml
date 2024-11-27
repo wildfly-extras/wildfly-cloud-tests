@@ -38,7 +38,7 @@
         <version.com.squareup.okhttp3.okhttp>4.11.0</version.com.squareup.okhttp3.okhttp>
         <version.com.squareup.okio.okio-jvm>3.9.1</version.com.squareup.okio.okio-jvm>
         <version.org.jetbrains.kotlin>2.0.21</version.org.jetbrains.kotlin>
-        <version.org.jsoup.jsoup>1.18.1</version.org.jsoup.jsoup>
+        <version.org.jsoup.jsoup>1.18.2</version.org.jsoup.jsoup>
     </properties>
 
     <dependencyManagement>
