@@ -20,6 +20,7 @@
 echo ">>>> Start of build-docker-image.sh script <<<<"
 echo "Directory: ${1}"
 echo "Base image: ${2}"
+echo "WildFly version: ${3}"
 
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 BASE_DIR="${SCRIPT_DIR}/../.."
@@ -51,7 +52,7 @@ fi
 echo "Found <artifactId>${IMAGE_BASE_NAME}</artifactId> in ${FOUND_POM}!"
 
 echo "Building ${FOUND_POM} to create the ${2} image..."
-mvn install -B -Pimages -pl "${FOUND_POM}"
+mvn install -B -Pimages -pl "${FOUND_POM}" -Dversion.wildfly="${3}"
 
 echo "${2} image has been built!"
 echo ""
