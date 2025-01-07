@@ -134,7 +134,10 @@
                                     <skip>${wildfly.cloud.test.skip.image}</skip>
                                     <images>
                                         <image>
-                                            <name>wildfly-cloud-test-image/${project.name}:latest</name>
+                                            <!-- While we don't upload these images to any remote repository, using quay.io as
+                                                 the host makes it not use the docker.io host in your local repository.
+                                             -->
+                                            <name>quay.io/wildfly-cloud-test-image/${project.name}:latest</name>
                                             <alias>server</alias>
                                             <build>
                                                 <from>${image.name.wildfly.runtime}</from>

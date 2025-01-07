@@ -32,7 +32,10 @@
     <packaging>jar</packaging>
 
     <properties>
-        <wildfly.cloud.test.base.image.name>wildfly-cloud-test-image/image-cloud-server:latest</wildfly.cloud.test.base.image.name>
+        <!-- While we don't upload these images to any remote repository, using quay.io as the host makes it not use
+             the docker.io host in your local repository.
+         -->
+        <wildfly.cloud.test.base.image.name>quay.io/wildfly-cloud-test-image/image-cloud-server:latest</wildfly.cloud.test.base.image.name>
     </properties>
 
     <dependencies>
