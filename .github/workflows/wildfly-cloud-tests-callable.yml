@@ -134,7 +134,7 @@ jobs:
       - name: Setup Minikube
         id: minikube
         if: inputs.type == 'Kubernetes'
-        uses: manusa/actions-setup-minikube@v2.13.1
+        uses: manusa/actions-setup-minikube@v2.14.0
         with:
           driver: docker
           container runtime: containerd
