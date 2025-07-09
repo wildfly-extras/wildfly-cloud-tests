@@ -111,7 +111,8 @@
         <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>commons-logging-jboss-logging</artifactId>
-            <scope>provided</scope>
+            <version>1.0.0.Final</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss</groupId>
