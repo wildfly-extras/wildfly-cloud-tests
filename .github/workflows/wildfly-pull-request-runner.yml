@@ -131,11 +131,16 @@ jobs:
             
             echo "CLIENT_PAYLOAD: $CLIENT_PAYLOAD"
   
+            set -x
+  
             resp=$(curl -X POST -s "https://api.github.com/repos/${TRIGGER_REPOSITORY}/dispatches" \
                 -H "Accept: application/vnd.github.v3+json" \
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer ${TOKEN}" \
                 -d "{\"event_type\": \"${REPORTER_EVENT_TYPE}\", \"client_payload\": ${CLIENT_PAYLOAD} }")
+          
+            set +x
+          
             if [ -z "$resp" ]
             then
               sleep 2
