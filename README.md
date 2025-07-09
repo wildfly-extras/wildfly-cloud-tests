@@ -39,17 +39,25 @@ As mentioned in the [run the tests](#run-the-tests) section, we have two sets of
   minikube addons enable registry
   ````
 * In order to push to the minikube registry and expose it on localhost:5000:
-  ````shell
   # On Mac:
+  ````shell
   docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"
-
-  # On Linux:
+  ````
+  On Linux:
+  ````shell
   kubectl port-forward --namespace kube-system service/registry 5000:80 &
 
-  # On Windows:
+  ````
+  On Windows:
+  ````shell
   kubectl port-forward --namespace kube-system service/registry 5000:80
   docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:host.docker.internal:5000"
   ````
+
+**NOTE:** If you are using Podman instead of Docker, you need to create a symlink from `docker` to your installed version of `podman`.
+This is because the underlying [dekorate](http://dekorate.io/) library is not aware of `podman`, and looks for an executable called `docker`.
+
+
 
   On linux you might need to add this registry as an insecure one by editing the file **/etc/containers/registries.conf** and adding the following lines:
   ````
@@ -57,6 +65,14 @@ As mentioned in the [run the tests](#run-the-tests) section, we have two sets of
   location="localhost:5000"
   insecure=true
   ````
+On Mac, you may need to do the same, but this file is not on the file system of the Podman machine. See the Podman 
+[Registries documentation](https://podman-desktop.io/docs/containers/registries#setting-up-a-registry-with-an-insecure-certificate)
+for more details. But essentially you:
+* ssh into the podman machine with `podman machine ssh --username root <optional VM name>`. 
+    * Note that GPU enabled Podman machines set up with LibKrunb don't seem to be accessible this way at the moment
+* then modify the above file as shown
+* restart the podman VM
+
   
 ##### Fedora 37+ Set Up
 
