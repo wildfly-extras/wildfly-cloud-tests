@@ -19,10 +19,11 @@
 
 package org.wildfly.test.cloud.common;
 
-import io.dekorate.testing.kubernetes.KubernetesExtension;
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import static org.wildfly.test.cloud.common.WildFlyCommonExtension.WILDFLY_STORE;
+
+import io.dekorate.testing.kubernetes.KubernetesExtension;
+import org.junit.jupiter.api.extension.ConditionEvaluationResult;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
@@ -31,6 +32,17 @@ public class WildFlyKubernetesExtension extends KubernetesExtension {
     private static final String TEST_CONFIG = "integration-test-config";
 
     private final WildFlyCommonExtension delegate = WildFlyCommonExtension.createForKubernetes();
+
+    @Override
+    public ConditionEvaluationResult evaluateExecutionCondition(final ExtensionContext context) {
+        final var result = super.evaluateExecutionCondition(context);
+        if (result.isDisabled()) {
+            // We don't want to disable a test if there is a client error. Instead, we'll allow this to continue so we
+            // can see the error in a better context.
+            return ConditionEvaluationResult.enabled("Re-enabling this run. The previous error was: " + result.getReason().orElse(null));
+        }
+        return result;
+    }
 
     @Override
     public WildFlyKubernetesIntegrationTestConfig getKubernetesIntegrationTestConfig(ExtensionContext context) {

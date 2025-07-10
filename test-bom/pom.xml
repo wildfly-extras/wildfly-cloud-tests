@@ -58,8 +58,8 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>org.wildfly</groupId>
-                <artifactId>wildfly-feature-pack-parent</artifactId>
+                <groupId>org.wildfly.bom</groupId>
+                <artifactId>wildfly-expansion-with-tools</artifactId>
                 <version>${version.wildfly}</version>
                 <type>pom</type>
                 <scope>import</scope>
