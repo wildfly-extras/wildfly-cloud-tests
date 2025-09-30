@@ -34,7 +34,7 @@
     <properties>
         <!-- Dependency versions -->
         <version.io.decorate.dekorate>4.1.5</version.io.decorate.dekorate>
-        <version.io.fabric8.kubernetes-client>7.3.1</version.io.fabric8.kubernetes-client>
+        <version.io.fabric8.kubernetes-client>7.4.0</version.io.fabric8.kubernetes-client>
         <version.org.jboss.jboss-dmr>1.7.0.Final</version.org.jboss.jboss-dmr>
         <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
         <version.org.jsoup.jsoup>1.16.1</version.org.jsoup.jsoup>
