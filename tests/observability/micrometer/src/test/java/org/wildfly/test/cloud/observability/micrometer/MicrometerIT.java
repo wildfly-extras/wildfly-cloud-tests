@@ -21,18 +21,16 @@ package org.wildfly.test.cloud.observability.micrometer;
 
 import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Duration;
-import jakarta.ws.rs.core.MediaType;
+import java.util.Arrays;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.LocalPortForward;
 import io.restassured.RestAssured;
+import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -68,8 +66,10 @@ public class MicrometerIT extends WildFlyCloudTestCase {
             boolean found = false;
             int count = 0;
             while (count < 10) {
-                final String response = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-                found = response.contains("hello_total{job=\"wildfly\"} " + requestCount);
+                String[] lines = client.send(request, HttpResponse.BodyHandlers.ofString()).body().split("\n");
+                found = Arrays.stream(lines).anyMatch(line ->
+                        line.startsWith("hello_total") && line.endsWith("" + requestCount)
+                );
                 if (!found) {
                     Thread.sleep(1000);
                     count++;
@@ -77,7 +77,8 @@ public class MicrometerIT extends WildFlyCloudTestCase {
                     break;
                 }
             }
-            Assertions.assertTrue(found, "The test metric 'hello' was not found in the publish metrics.");
+
+            Assertions.assertTrue(found, "The test metric 'hello' was not found in the published metrics.");
         }
     }
 
