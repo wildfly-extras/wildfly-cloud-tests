@@ -131,6 +131,16 @@ jobs:
           rm -rfv wildfly
         working-directory: wildfly
 
+      - name: Free up disk space
+        if: inputs.type == 'Kubernetes'
+        # Current SHA of main branch (and 1.3.1 tag) of https://github.com/jlumbroso/free-disk-space
+        uses: jlumbroso/free-disk-space@45c205b781c1e37e569708310a10ebcc893976ee
+        with:
+          # Retain tools that might be needed for builds
+          tool-cache: false
+          #  Removing this caused an error
+          large-packages: false
+
       - name: Setup Minikube
         id: minikube
         if: inputs.type == 'Kubernetes'
