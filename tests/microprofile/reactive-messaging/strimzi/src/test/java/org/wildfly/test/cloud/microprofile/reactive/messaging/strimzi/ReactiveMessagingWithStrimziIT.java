@@ -27,7 +27,6 @@ import java.util.List;
 import jakarta.ws.rs.core.MediaType;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.wildfly.test.cloud.common.KubernetesResource;
@@ -47,6 +46,7 @@ import io.restassured.response.Response;
         namespace = "kafka",
         kubernetesResources = {
                 @KubernetesResource(definitionLocation = "https://strimzi.io/install/latest?namespace=kafka"),
+                @KubernetesResource(definitionLocation = "src/test/container/strimzi-node-pool.yml"),
                 @KubernetesResource(
                         definitionLocation = "src/test/container/strimzi-cluster.yml",
                         additionalResourcesCreated = {
@@ -54,7 +54,6 @@ import io.restassured.response.Response;
                         }),
                 @KubernetesResource(definitionLocation = "src/test/container/strimzi-topic.yml")
         })
-@Disabled("See https://github.com/wildfly-extras/wildfly-cloud-tests/issues/294")
 public class ReactiveMessagingWithStrimziIT  extends WildFlyCloudTestCase {
 
     @Test
