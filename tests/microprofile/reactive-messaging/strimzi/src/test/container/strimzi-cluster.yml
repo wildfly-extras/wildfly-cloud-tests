@@ -2,9 +2,12 @@ apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
   name: my-cluster
+  annotations:
+    strimzi.io/node-pools: enabled
+    strimzi.io/kraft: enabled
 spec:
   kafka:
-    replicas: 1
+    version: 4.0.0
     listeners:
       - name: plain
         port: 9092
@@ -20,12 +23,6 @@ spec:
       transaction.state.log.min.isr: 1
       default.replication.factor: 1
       min.insync.replicas: 1
-    storage:
-      type: ephemeral
-  zookeeper:
-    replicas: 3
-    storage:
-      type: ephemeral
   entityOperator:
     topicOperator: {}
     userOperator: {}
