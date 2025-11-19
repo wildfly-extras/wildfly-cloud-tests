@@ -134,7 +134,7 @@ jobs:
       - name: Free up disk space
         if: inputs.type == 'Kubernetes'
         # Current SHA of main branch (and 1.3.1 tag) of https://github.com/jlumbroso/free-disk-space
-        uses: jlumbroso/free-disk-space@45c205b781c1e37e569708310a10ebcc893976ee
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
         with:
           # Retain tools that might be needed for builds
           tool-cache: false
