@@ -105,7 +105,7 @@ jobs:
           fi
 
       - name: Remote Dispatch to report job complete
-        if: ${{ env.TOKEN }} && ${{ always() }}
+        if: ${{ ${{ env.TOKEN }} && ${{ always() }} }}
         run: |
            STATUS=${{ job.status }}
             if [ "${STATUS}" == "success" ]; then
