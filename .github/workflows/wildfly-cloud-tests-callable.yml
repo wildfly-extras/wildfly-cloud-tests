@@ -86,7 +86,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout WildFly main branch
         if: ${{!github.event.client_payload}}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: wildfly
           fetch-depth: 1
@@ -94,7 +94,7 @@ jobs:
 
       - name: Checkout WildFly PR branch
         if: ${{github.event.client_payload}}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: wildfly
           fetch-depth: 1
@@ -102,7 +102,7 @@ jobs:
           ref: ${{github.event.client_payload.githubSha}}
 
       - name: Checkout WildFly Cloud Tests
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: cloud-tests
           fetch-depth: 1
