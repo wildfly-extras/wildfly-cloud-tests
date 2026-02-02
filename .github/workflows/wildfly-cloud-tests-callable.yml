@@ -152,13 +152,58 @@ jobs:
           minikube version: 'v1.33.0'
           kubernetes version: 'v1.30.0'
           github token: ${{ secrets.GITHUB_TOKEN }}
-          start args: "--memory='4gb' --cpus='2'"
+          start args: "--memory='4gb' --cpus='2' --insecure-registry=10.0.0.0/8"
 
-#      - name: Enable minikube registry
-#        if: inputs.type == 'Kubernetes'
-#        run: |
-#          minikube addons enable registry
-#          kubectl port-forward --namespace kube-system service/registry 5000:80 &
+      - name: Setup Local Docker Registry
+        if: inputs.type == 'Kubernetes'
+        run: |
+          echo "Starting local Docker registry container..."
+          # Start registry on default bridge network with port binding
+          docker run -d -p 5000:5000 --restart=always --name local-registry \
+            -e REGISTRY_STORAGE_DELETE_ENABLED=true \
+            registry:2
+
+          # Wait for registry to be ready
+          echo "Waiting for registry to be ready..."
+          timeout 30 bash -c 'until curl -f http://localhost:5000/v2/ >/dev/null 2>&1; do sleep 1; done'
+          echo "✓ Registry is ready at localhost:5000"
+
+          # Find minikube's docker network
+          MINIKUBE_NETWORK=$(docker inspect minikube --format='{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}')
+          echo "Minikube is on network: $MINIKUBE_NETWORK"
+
+          # Connect registry to the same network as minikube
+          echo "Connecting registry to minikube network..."
+          docker network connect "$MINIKUBE_NETWORK" local-registry
+
+          # Get registry's IP on minikube's network
+          REGISTRY_IP=$(docker inspect local-registry --format="{{.NetworkSettings.Networks.${MINIKUBE_NETWORK}.IPAddress}}")
+          echo "Registry IP on minikube network: $REGISTRY_IP"
+
+          # Configure containerd inside minikube to use registry IP for localhost:5000
+          echo "Configuring minikube containerd to use registry at $REGISTRY_IP:5000..."
+          minikube ssh "sudo mkdir -p /etc/containerd/certs.d/localhost:5000"
+          minikube ssh "printf '[host.\"http://${REGISTRY_IP}:5000\"]\n  capabilities = [\"pull\", \"resolve\"]\n' | sudo tee /etc/containerd/certs.d/localhost:5000/hosts.toml"
+          minikube ssh "cat /etc/containerd/certs.d/localhost:5000/hosts.toml"
+
+          echo "Restarting containerd..."
+          minikube ssh "sudo systemctl restart containerd"
+
+          echo "Waiting for containerd to be ready..."
+          sleep 10
+          minikube ssh "sudo crictl info | grep -i runtime || echo 'containerd running'"
+
+          # Verify registry is accessible from minikube
+          echo "Testing registry access from minikube..."
+          minikube ssh "curl -f http://${REGISTRY_IP}:5000/v2/ && echo '✓ Minikube can reach registry at ${REGISTRY_IP}:5000'" || {
+            echo "ERROR: Minikube cannot reach registry at $REGISTRY_IP:5000"
+            exit 1
+          }
+
+          # Verify registry catalog
+          echo "Registry catalog:"
+          curl -s http://localhost:5000/v2/_catalog
+          echo ""
 
       - name: Kubernetes profiles
         run: |

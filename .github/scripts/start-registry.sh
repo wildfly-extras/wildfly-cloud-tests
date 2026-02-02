@@ -15,7 +15,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#h
+#
 
 if [ ! -d "${1}/src/test/java" ]; then
   # There are no tests so there is no point in starting and stopping the registry
@@ -34,38 +34,72 @@ if [ $found_kubernetes -ne 0 ]; then
 fi
 cd "${curr_dir}"
 
+echo "Cleaning local Docker registry by recreating container..."
 
-echo "Disabling the minikube registry"
-minikube addons disable registry
+# Get the minikube network before removing the container
+MINIKUBE_NETWORK=$(docker inspect minikube --format='{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}' 2>/dev/null || echo "")
 
-echo "Enabling the minikube registry..."
+# Remove and recreate the registry container to completely wipe all stored images
+# This provides the same memory/disk savings as disabling/enabling the minikube addon
+docker rm -f local-registry
 
-# Enable the registry
-minikube addons enable registry
+# Recreate registry container
+docker run -d -p 5000:5000 --restart=always --name local-registry \
+  -e REGISTRY_STORAGE_DELETE_ENABLED=true \
+  registry:2
 
-set -x
-# Next we need to set up the 5000 port to go to the registry
-echo "Setting up the minikube registry port forward..."
+# Wait for registry to be ready
+echo "Waiting for registry to be ready..."
+timeout 30 bash -c 'until curl -f http://localhost:5000/v2/ >/dev/null 2>&1; do sleep 1; done' || {
+  echo "ERROR: Registry failed to become ready after recreation"
+  exit 1
+}
 
-if echo "$OSTYPE" | grep -q  "^darwin"; then
-  # Mainly here so I can debug on my Mac. The main use for this is CI on Linux
-  docker stop portfwd
-  echo "Mac detected, setting up port forward to 5000"
-  docker pull alpine
-  docker run --name portfwd --rm --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000" &
-  exit 0
+# Reconnect to minikube network if it was connected before
+if [ -n "$MINIKUBE_NETWORK" ]; then
+  echo "Reconnecting registry to minikube network..."
+  docker network connect "$MINIKUBE_NETWORK" local-registry
 fi
 
+# After restart, registry may have a new IP - reconfigure containerd
+MINIKUBE_NETWORK=$(docker inspect minikube --format='{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}' 2>/dev/null || echo "")
+if [ -n "$MINIKUBE_NETWORK" ]; then
+  REGISTRY_IP=$(docker inspect local-registry --format="{{.NetworkSettings.Networks.${MINIKUBE_NETWORK}.IPAddress}}" 2>/dev/null || echo "")
+  if [ -n "$REGISTRY_IP" ]; then
+    echo "Registry IP on minikube network: $REGISTRY_IP"
+    echo "Reconfiguring minikube containerd to use registry at $REGISTRY_IP:5000..."
+    minikube ssh "sudo mkdir -p /etc/containerd/certs.d/localhost:5000"
+    minikube ssh "printf '[host.\"http://${REGISTRY_IP}:5000\"]\n  capabilities = [\"pull\", \"resolve\"]\n' | sudo tee /etc/containerd/certs.d/localhost:5000/hosts.toml"
+    minikube ssh "sudo systemctl restart containerd"
+    sleep 5
 
+    # Verify minikube can reach the registry - fail if not, as tests will timeout
+    echo "Verifying minikube can reach registry..."
+    if minikube ssh "curl -f -s http://${REGISTRY_IP}:5000/v2/" >/dev/null 2>&1; then
+      echo "✓ Containerd reconfigured and registry is reachable"
+    else
+      echo "ERROR: Minikube cannot reach registry at ${REGISTRY_IP}:5000"
+      echo "Tests will fail with ImagePullBackOff. Check network configuration."
+      exit 1
+    fi
+  fi
+fi
 
+echo "✓ Registry is clean and ready"
 
-# Assume Linux
-ps aux | grep kubectl | grep port-forward | awk '{print "kill -9 " $2}' | sh
+# Verify it's empty - fail if it's not, as this means restart didn't wipe storage
+echo "Verifying registry is empty..."
+CATALOG=$(curl -s http://localhost:5000/v2/_catalog)
+echo "Registry catalog: $CATALOG"
 
-# Just in case it needs a bit of time for the registry to be enabled
-sleep 5
-kubectl port-forward --namespace kube-system service/registry 5000:80 > /dev/null 2>&1 &
-# Just in case it needs a bit of time for the forward to work
-sleep 5
-
-set +x
+if echo "$CATALOG" | grep -q '"repositories":\[\]'; then
+  echo "✓ Registry is empty as expected"
+elif echo "$CATALOG" | grep -q '"repositories":\['; then
+  echo "ERROR: Registry is not empty after restart! Storage was not wiped."
+  echo "This defeats the purpose of cleaning between tests."
+  exit 1
+else
+  echo "WARNING: Could not verify registry catalog (unexpected response format)"
+  echo "Response: $CATALOG"
+fi
+echo ""
