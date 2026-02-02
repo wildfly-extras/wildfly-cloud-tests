@@ -58,13 +58,34 @@ if [ -n "$MINIKUBE_NETWORK" ]; then
     minikube ssh "printf '[host.\"http://${REGISTRY_IP}:5000\"]\n  capabilities = [\"pull\", \"resolve\"]\n' | sudo tee /etc/containerd/certs.d/localhost:5000/hosts.toml"
     minikube ssh "sudo systemctl restart containerd"
     sleep 5
-    echo "✓ Containerd reconfigured"
+
+    # Verify minikube can reach the registry - fail if not, as tests will timeout
+    echo "Verifying minikube can reach registry..."
+    if minikube ssh "curl -f -s http://${REGISTRY_IP}:5000/v2/" >/dev/null 2>&1; then
+      echo "✓ Containerd reconfigured and registry is reachable"
+    else
+      echo "ERROR: Minikube cannot reach registry at ${REGISTRY_IP}:5000"
+      echo "Tests will fail with ImagePullBackOff. Check network configuration."
+      exit 1
+    fi
   fi
 fi
 
 echo "✓ Registry is clean and ready"
 
-# Verify it's empty
-echo "Registry catalog (should be empty):"
-curl -s http://localhost:5000/v2/_catalog
+# Verify it's empty - fail if it's not, as this means restart didn't wipe storage
+echo "Verifying registry is empty..."
+CATALOG=$(curl -s http://localhost:5000/v2/_catalog)
+echo "Registry catalog: $CATALOG"
+
+if echo "$CATALOG" | grep -q '"repositories":\[\]'; then
+  echo "✓ Registry is empty as expected"
+elif echo "$CATALOG" | grep -q '"repositories":\['; then
+  echo "ERROR: Registry is not empty after restart! Storage was not wiped."
+  echo "This defeats the purpose of cleaning between tests."
+  exit 1
+else
+  echo "WARNING: Could not verify registry catalog (unexpected response format)"
+  echo "Response: $CATALOG"
+fi
 echo ""
