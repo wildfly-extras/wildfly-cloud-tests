@@ -263,10 +263,10 @@
         </profile>
         <profile>
             <!--
-                Profile to reduce disk space when running on CI with a local minikube instance. Thus, this is only
+                Profile to reduce disk space when running on CI with a local Docker registry. Thus, this is only
                 relevant for the tests which have the KUBERNETES tag.
-                It disables and enables the Kubernetes registry between each test. This essentially
-                cleans out all the images stored in the Kubernetes registry, resulting in space savings.
+                It restarts the Docker registry container between each test, which wipes all stored images
+                and results in significant memory/disk space savings.
             -->
             <id>kubernetes-ci</id>
             <build>
@@ -276,7 +276,7 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>minikube-addons-enable-registry</id>
+                                <id>clean-docker-registry</id>
                                 <phase>test-compile</phase>
                                 <goals>
                                     <goal>exec</goal>
@@ -289,7 +289,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>minikube-addons-disable-registry</id>
+                                <id>cleanup-test-images</id>
                                 <phase>verify</phase>
                                 <goals>
                                     <goal>exec</goal>

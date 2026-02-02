@@ -23,8 +23,8 @@ if [ ! -d "${1}/src/test/java" ]; then
   exit 0
 fi
 
-echo "Deleting image from docker: $2"
-docker image rm "${2}"
+echo "Deleting test image from docker: $2"
+docker image rm "${2}" 2>/dev/null || true
 
 curr_dir=$(pwd)
 cd "${1}/src/test/java"
@@ -37,17 +37,6 @@ if [ $found_kubernetes -ne 0 ]; then
 fi
 cd "${curr_dir}"
 
-echo "Disabling the minikube registry"
-minikube addons disable registry
-
-echo "Stopping the port-forward"
-if echo "$OSTYPE" | grep -q  "^darwin"; then
-  # Mainly here so I can debug on my Mac. The main use for this is CI on Linux
-  echo "Mac detected, stopping 'portfwd' container"
-  docker stop --name portfwd
-  exit 0
-fi
-
-# Assume Linux
-ps aux | grep kubectl | grep port-forward | awk '{print "kill -9 " $2}' | sh
-
+# Registry cleanup (restart to wipe storage) is now handled by start-registry.sh
+# before the next test starts. This ensures the registry is ready when needed.
+echo "Test cleanup complete (registry will be cleaned before next test)"
