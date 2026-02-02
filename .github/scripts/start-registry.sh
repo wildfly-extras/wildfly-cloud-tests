@@ -34,18 +34,32 @@ if [ $found_kubernetes -ne 0 ]; then
 fi
 cd "${curr_dir}"
 
-echo "Cleaning local Docker registry by restarting container..."
+echo "Cleaning local Docker registry by recreating container..."
 
-# Restart the registry container to completely wipe all stored images
+# Get the minikube network before removing the container
+MINIKUBE_NETWORK=$(docker inspect minikube --format='{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}' 2>/dev/null || echo "")
+
+# Remove and recreate the registry container to completely wipe all stored images
 # This provides the same memory/disk savings as disabling/enabling the minikube addon
-docker restart local-registry
+docker rm -f local-registry
+
+# Recreate registry container
+docker run -d -p 5000:5000 --restart=always --name local-registry \
+  -e REGISTRY_STORAGE_DELETE_ENABLED=true \
+  registry:2
 
 # Wait for registry to be ready
 echo "Waiting for registry to be ready..."
 timeout 30 bash -c 'until curl -f http://localhost:5000/v2/ >/dev/null 2>&1; do sleep 1; done' || {
-  echo "ERROR: Registry failed to become ready after restart"
+  echo "ERROR: Registry failed to become ready after recreation"
   exit 1
 }
+
+# Reconnect to minikube network if it was connected before
+if [ -n "$MINIKUBE_NETWORK" ]; then
+  echo "Reconnecting registry to minikube network..."
+  docker network connect "$MINIKUBE_NETWORK" local-registry
+fi
 
 # After restart, registry may have a new IP - reconfigure containerd
 MINIKUBE_NETWORK=$(docker inspect minikube --format='{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}' 2>/dev/null || echo "")
