@@ -20,10 +20,8 @@
 package org.wildfly.test.cloud.common;
 
 import io.dekorate.testing.annotation.Inject;
-import io.dekorate.testing.kubernetes.KubernetesExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>

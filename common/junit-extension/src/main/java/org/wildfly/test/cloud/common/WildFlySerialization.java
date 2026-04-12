@@ -20,12 +20,10 @@
 package org.wildfly.test.cloud.common;
 
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dekorate.utils.Serialization;
 import io.dekorate.utils.Strings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
