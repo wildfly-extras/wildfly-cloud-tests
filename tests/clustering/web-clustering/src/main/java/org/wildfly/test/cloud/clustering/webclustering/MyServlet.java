@@ -29,9 +29,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import io.dekorate.kubernetes.annotation.Env;
 import io.dekorate.kubernetes.annotation.KubernetesApplication;
-import io.dekorate.kubernetes.annotation.Port;
-import io.dekorate.kubernetes.annotation.ServiceType;
-import io.dekorate.openshift.annotation.OpenshiftApplication;
+
 /**
  *
  * @author jdenise
