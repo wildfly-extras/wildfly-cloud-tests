@@ -4,7 +4,6 @@ metadata:
   name: web-clustering-ping
   annotations:
     description: The JGroups ping port for clustering.
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: 'true'
 spec:
   clusterIP: None
   publishNotReadyAddresses: true
