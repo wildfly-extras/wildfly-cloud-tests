@@ -21,5 +21,4 @@ package org.wildfly.test.cloud.common;
 
 public class WildflyTags {
     public static final String KUBERNETES = "Kubernetes";
-    public static final String OPENSHIFT = "OpenShift";
 }

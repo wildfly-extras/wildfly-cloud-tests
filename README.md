@@ -5,7 +5,6 @@ Cloud test suite for WildFly
 ## Usage
 
 ### Prerequisites
-As mentioned in the [run the tests](#run-the-tests) section, we have two sets of tests. One targeting Kubernetes, and the other targeting OpenShift.
 
 #### Prerequisites for Kubernetes
 
@@ -108,42 +107,9 @@ kubectl port-forward --namespace kube-system service/registry 5000:80
 mvn clean verify
 ```
 
-#### Prerequisites for Openshift
-* Install `oc`
-* Set up an OpenShift instance (Note: This is currently only tested on the sandbox on https://developers.redhat.com)
-* Log in to the OpenShift instance via `oc login` and create/select the project you want to use.
-* Run the following steps. We will need the `OPENSHIFT_IMAGE_REGISTRY` and `OPENSHIFT_NS` environment variables later.
-```shell
-# Get the project
-export OPENSHIFT_NS=$(oc project -q)
-
-# Log in to the registry
-oc registry login
-
-# Grab the route to the registry
-OPENSHIFT_IMAGE_REGISTRY=$(oc registry info)
-
-# Log in to the docker registry (brownie points to whoever can explain why the above 'oc registry login' won't suffice)
-docker login -u openshift -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
-```
-
 ### Run the tests
 
-There are two maven profiles, which are run independently:
-* `kubernetes-tests` - This is active by default, and runs the tests tagged with `@Tag(WildFlyTags.KUBERNETES)`. These tests target Kubernetes, running on Minikube as outlined above.
-* `openshift-tests` - Runs the tests tagged with `@Tag(WildFlyTags.OPENSHIFT)`. These tests target OpenShift.
-
-> **NOTE!** Since logging in to OpenShift via `oc` overwrites the `kubectl` login configuration, it is impossible to run both
-of these profiles at the same time. You will get errors! 
-
-To log out of OpenShift and back in to Kubernetes, 
-execute the following steps:
-* `oc logout`
-* If minikube is running, execute `minikube stop`
-* Then start minikube. If you have set up minikube before, this is simply `minikube start`. Otherwise, you need to   
-follow the steps from above. 
-
-How to run the Openshift tests, builds on how to run the Kubernetes tests.
+The `kubernetes-tests` profile is active by default, and runs the tests tagged with `@Tag(WildFlyTags.KUBERNETES)`. These tests target Kubernetes, running on Minikube as outlined above.
 
 #### Kubernetes tests
 ````shell
@@ -163,16 +129,6 @@ omit `-Pimages`.
 See the [Adding images](#adding-images) section for more details about the creation of 
 the images.
 
-#### Openshift tests
-This is much the same as running the Kubernetes tests, but now we need to specify the `openshift-tests`
-profile and use the `dekorate.docker.registry` system property to point to the OpenShift registry
-(I am unaware of any sensible defaults) we determined earlier. Also, we need to use `dekorate.docker.group`
-to specify the project we are logged into:
-
-```
-mvn clean install -Popenshift-tests -Ddekorate.docker.registry=$OPENSHIFT_IMAGE_REGISTRY -Ddekorate.docker.group=$OPENSHIFT_NS
-```
-
 ### Obtaining pod logs and standalone.xml contents
 You may want to see the logs of the pods involved in the test. If you specify
 * `-Dwildfly.test.print.logs` - the logs of all pods for all tests will be printed to the console 
@@ -189,15 +145,6 @@ Note that if a failure happens in a test, we will always attempt to display the 
 
 
 ## Adding tests
-
-Adding tests for [OpenShift](#adding-openshift-tests) is more or less identical to adding tests for 
-[Kubernetes](#adding-kubernetes-tests). The only difference is the names of the annotations used.
-We will go more into depth for how to add Kubernetes tests, and then cover how the OpenShift tests
-differ.
-
-> **NOTE!**
-If possible to test on Kubernetes, that option should be used. We presently only want to test on
-OpenShift if the test/application needs functionality that is not available on Kubernetes. 
 
 ### Adding Kubernetes tests
 To add a test, at present, you need to create a new Maven module under `tests`. 
@@ -289,7 +236,6 @@ away, we can leverage dekorate's built in mechanism.
 We do this in two steps:
 * First we create a `src/main/resources/kubernetes/kubernetes.yml` file containing the Kubernetes resources we want to add. Some examples will follow.
 * Next we need to point dekorate to the `kubernetes.yml` by specifying `@GeneratorOptions(inputPath = "kubernetes")` on the application class. The `kubernetes` in this case refers to the folder under the `src/resources` directory.
-** As mentioned previously, for OpenShift tests you need to name this file `openshift.yml` instead of `kubernetes.yml`.
 
 If you do these steps, the contents of the `src/main/resources/kubernetes/kubernetes.yml` will 
 be merged with what is output from the dekorate annotations on your test application. To see 
@@ -360,7 +306,7 @@ yaml install a deployment called `installed-behind-the-scenes` which we need to 
 this set of resources can be considered ready for use.
 
 #### Adding config maps
-The contents of the config map are specified in `src/main/resources/kubernetes/kubernetes.yml`.  `@GeneratorOptions(inputPath = "kubernetes")` specifies the directory under `src/main/resources/`. For Kubernetes the file **must** be called `kubernetes.yml` and for OpenShift the file **must** be called `openshift.yml`.
+The contents of the config map are specified in `src/main/resources/kubernetes/kubernetes.yml`.  `@GeneratorOptions(inputPath = "kubernetes")` specifies the directory under `src/main/resources/`. The file **must** be called `kubernetes.yml`.
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -384,7 +330,7 @@ want to do this you can e.g. bind the config map entries to environment variable
 dekorate documentation for more details.
 
 #### Adding secrets
-The contents of the secret are specified in `src/main/resources/kubernetes/kubernetes.yml`.  `@GeneratorOptions(inputPath = "kubernetes")` specifies the directory under `src/main/resources/`. For Kubernetes the file **must** be called `kubernetes.yml` and for OpenShift the file **must** be called `openshift.yml`.
+The contents of the secret are specified in `src/main/resources/kubernetes/kubernetes.yml`.  `@GeneratorOptions(inputPath = "kubernetes")` specifies the directory under `src/main/resources/`. The file **must** be called `kubernetes.yml`.
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -477,15 +423,6 @@ Ideally, each 'manual' test will be runnable on CI. Add instruhctions for settin
 whatever else is needed to a 'CI Setup' section in the test README, and modify the 
 [.github/workflows/wildfly-cloud-tests-callable.yml](.github/workflows/wildfly-cloud-tests-callable.yml) workflow
 file to include the test.
-
-## Adding OpenShift Tests
-Adding OpenShift tests is the same as adding Kubernetes tests. The only difference is the annotations used. The below table shows the mappings between the two.
-
-| Kubernetes                          | OpenShift                           | Description |
-|-------------------------------------|-------------------------------------|------------|
-| `@KubernetesApplication` | `@OpenshiftApplication`      | Add to the 'application' class in src/main/java        |
-| `@WildFlyKubernetesIntegrationTest` | `@WildFlyOpenshiftIntegrationTest`  | Add to the test class in src/test/java       |
-| `@Tag(WildFlyTags.KUBERNETES`       | `@Tag(WildFlyTags.OPENSHIDT`        | Add to the test class in src/test/java. This is used to pick it out for the `kubernetes-tests` or `openshift-tests` profile respectively      |
 
 ## Adding images
 If you need a server with different layers from the already existing ones, you need to add a 

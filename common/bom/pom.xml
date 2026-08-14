@@ -84,16 +84,6 @@
                 <artifactId>kubernetes-junit</artifactId>
                 <version>${version.io.decorate.dekorate}</version>
             </dependency>
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>openshift-annotations</artifactId>
-                <version>${version.io.decorate.dekorate}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>openshift-junit</artifactId>
-                <version>${version.io.decorate.dekorate}</version>
-            </dependency>
 
             <!-- Project dependencies first -->
             <dependency>
@@ -141,11 +131,6 @@
             <dependency>
                 <groupId>io.fabric8</groupId>
                 <artifactId>kubernetes-client</artifactId>
-                <version>${version.io.fabric8.kubernetes-client}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.fabric8</groupId>
-                <artifactId>openshift-client</artifactId>
                 <version>${version.io.fabric8.kubernetes-client}</version>
             </dependency>
 

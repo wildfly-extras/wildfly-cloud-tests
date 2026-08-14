@@ -108,10 +108,6 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
         return new WildFlyCommonExtension.Kubernetes();
     }
 
-    static WildFlyCommonExtension createForOpenshift() {
-        return new WildFlyCommonExtension.Openshift();
-    }
-
     public WildFlyIntegrationTestConfig getIntegrationTestConfig(ExtensionContext context) {
         // Override the super class method so we can use our own configuration
         return context.getElement()
@@ -388,10 +384,8 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
         return store.get(KUBERNETES_CONFIG_DATA, WildFlyTestContext.class);
     }
 
-    // Different for Kubernetes and OpenShift
     protected abstract void setNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) throws Exception;
 
-    // Different for Kubernetes and OpenShift
     protected abstract void deleteNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext);
 
     private void deployKubernetesResources(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) {
@@ -841,41 +835,8 @@ abstract class WildFlyCommonExtension implements WithDiagnostics, WithKubernetes
         }
     }
 
-    private static class Openshift extends WildFlyCommonExtension {
-        public Openshift() {
-            super(ExtensionType.OPENSHIFT);
-        }
-
-        @Override
-        protected void setNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) throws Exception {
-            // The namespace should be  set already when running the tests.
-            // See if we can do without this since the
-            //      oc config set-context --current --namespace=...
-            // used by the KubernetesNamespaceSwitcher.switchNamespace(context)
-            // isn't available on the old version of OpenShift installed by
-            // the GitHub Action
-            /*
-            String openshiftProject = System.getProperty("dekorate.docker.group");
-            if (openshiftProject == null) {
-                throw new IllegalStateException("To run the Openshift tests, you need to specify the Openshift project via the dekorate.docker.group system property!");
-            }
-            try {
-                new KubernetesNamespaceSwitcher(openshiftProject).switchNamespace(context);
-            } catch (Exception e) {
-                throw toRuntimeException(e);
-            }
-            */
-        }
-
-        @Override
-        protected void deleteNamespace(ExtensionContext context, WildFlyIntegrationTestConfig config, WildFlyTestContext testContext) {
-            // We probably don't need to switch back to the default here
-        }
-    }
-
     enum ExtensionType {
-        KUBERNETES("kubernetes", "kubectl"),
-        OPENSHIFT("openshift", "oc");
+        KUBERNETES("kubernetes", "kubectl");
 
         private final Path yaml;
         private final Path backup;

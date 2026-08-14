@@ -61,12 +61,6 @@ class WildFlyIntegrationTestConfigDelegate {
                 annotation.valueInjectors());
     }
 
-    static WildFlyIntegrationTestConfigDelegate create(WildFlyOpenshiftIntegrationTest annotation) {
-        return new WildFlyIntegrationTestConfigDelegate(
-                "", annotation.kubernetesResources(), annotation.placeholderReplacements(), annotation.extraTestSetup(),
-                annotation.valueInjectors());
-    }
-
     public String getNamespace() {
         return namespace;
     }

@@ -24,44 +24,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-#  kubernetes-jdk11:
-#    if: ${{!github.event.inputs.runtimeImage}}
-#    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
-#    with:
-#      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk11
-#      type: Kubernetes
-#  openshift-jdk11:
-#    if: ${{!github.event.inputs.runtimeImage}}
-#    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
-#    with:
-#      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk11
-#      type: Openshift
-
   kubernetes-jdk17:
     if: ${{!github.event.inputs.runtimeImage}}
     uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
     with:
       runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk17
-      type: Kubernetes
-#  openshift-jdk17:
-#    if: ${{!github.event.inputs.runtimeImage}}
-#    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
-#    with:
-#      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk17
-#      type: Openshift
 
   kubernetes-jdk21:
     if: ${{!github.event.inputs.runtimeImage}}
     uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
     with:
       runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk21
-      type: Kubernetes
-#  openshift-jdk21:
-#    if: ${{!github.event.inputs.runtimeImage}}
-#    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
-#    with:
-#      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk21
-#      type: Openshift
 
   # Custom image jobs
   kubernetes-custom-image:
@@ -69,12 +42,4 @@ jobs:
     uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
     with:
       runtimeImage: ${{github.event.inputs.runtimeImage}}
-      type: Kubernetes
       base64EncodedEnvVars: ${{github.event.inputs.base64EncodedEnvVars}}
-#  openshift-custom-image:
-#    if: ${{github.event.inputs.runtimeImage}}
-#    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
-#    with:
-#      runtimeImage: ${{github.event.inputs.runtimeImage}}
-#      type: Openshift
-#      base64EncodedEnvVars: ${{github.event.inputs.base64EncodedEnvVars}}
