@@ -7,10 +7,6 @@ on:
         description: 'Name/tag of the base runtime image'
         type: string
         required: true
-      type:
-        description: "Openshift or Kubernetes"
-        type: string
-        required: true
       base64EncodedEnvVars:
         # We are doing this because there is a max of 10 inputs on GH Actions
         description: 'Env vars (one per line) encoded with base64'
@@ -22,10 +18,6 @@ on:
         value: ${{ jobs.run-tests.outputs.status }}
 
 env:
-  # Env vars for authentication for the tests using OpenShift
-  OPENSHIFT_USER: admin
-  OPENSHIFT_PWD: admin
-  OPENSHIFT_NS: testing
   STATUS_BRANCH: run-status
 
 jobs:
@@ -47,15 +39,6 @@ jobs:
           echo "${{ toJSON(github.event.client_payload.triggerRepo) }}"
           echo "*****"
           echo "${{ toJSON(github.event.client_payload.githubSha) }}"
-
-      - name: Determine type
-        run: |
-          TMP=${{inputs.type}}
-          if [ $TMP != "Openshift" ] && [ $TMP != "Kubernetes" ]; then
-            echo "inputs.type must be either 'Kubernetes' or 'Openshift'"
-            exit 1
-          fi
-          echo "TYPE=${TMP}" >> $GITHUB_ENV
 
       - name: Set runtime image override variable
         if: ${{inputs.runtimeImage}}
@@ -81,7 +64,7 @@ jobs:
       # maven options etc.
       - name: Check which manual jobs to run and set env vars
         run: |
-      
+
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout WildFly main branch
@@ -132,7 +115,6 @@ jobs:
         working-directory: wildfly
 
       - name: Free up disk space
-        if: inputs.type == 'Kubernetes'
         # Current SHA of main branch (and 1.3.1 tag) of https://github.com/jlumbroso/free-disk-space
         uses: jlumbroso/free-disk-space@45c205b781c1e37e569708310a10ebcc893976ee
         with:
@@ -143,7 +125,6 @@ jobs:
 
       - name: Setup Minikube
         id: minikube
-        if: inputs.type == 'Kubernetes'
         uses: manusa/actions-setup-minikube@v2.14.0
         with:
           driver: docker
@@ -155,7 +136,6 @@ jobs:
           start args: "--memory='4gb' --cpus='2' --insecure-registry=10.0.0.0/8"
 
       - name: Setup Local Docker Registry
-        if: inputs.type == 'Kubernetes'
         run: |
           echo "Starting local Docker registry container..."
           # Start registry on default bridge network with port binding
@@ -211,67 +191,22 @@ jobs:
           # When specifying another profile, we need to explicitly enable the kubernetes-tests profile
           echo "TEST_MAVEN_PARAMETERS=-Pkubernetes-tests,kubernetes-ci" >> $GITHUB_ENV
 
-      - name: Setup OpenShift
-        if: inputs.type == 'Openshift'
-        uses: manusa/actions-setup-openshift@v1.1.5
-        with:
-          oc version: v3.11.0
-          github token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Openshift usage
-        if: inputs.type == 'Openshift'
-        run: |
-
-          # Not sure if this is the right fix but there are a few instances where the connection
-          # to the registry is refused.
-
-          echo "Logging in..."
-          oc login -u $OPENSHIFT_USER -p $OPENSHIFT_PWD
-          echo "New project: $OPENSHIFT_NS"
-          oc new-project $OPENSHIFT_NS
-          echo "Registry login"
-          oc registry login --skip-check
-          echo "Registry info"
-          OPENSHIFT_IMAGE_REGISTRY=$(oc registry info)
-          echo "OPENSHIFT_IMAGE_REGISTRY=${OPENSHIFT_IMAGE_REGISTRY}" >> $GITHUB_ENV
-          echo "Registry url: $OPENSHIFT_IMAGE_REGISTRY"
-
-          # echo "login to docker registry"
-          # docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
-
-          # Set extra Maven parameters for OpenShift
-          TMP=" -Popenshift-tests -Ddekorate.docker.registry=$OPENSHIFT_IMAGE_REGISTRY -Ddekorate.docker.group=$OPENSHIFT_NS"
-          echo "TEST_MAVEN_PARAMETERS=${TMP}" >> $GITHUB_ENV
-
-      # Sometimes the login to the registry fails with a connection refused
-      # See if a retry helps
-      - name: Login to OpenShift Image Registry
-        if: inputs.type == 'Openshift'
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 2
-          retry_wait_seconds: 10
-          max_attempts: 3
-          command: docker login -u $(oc whoami) -p $(oc whoami -t)  $OPENSHIFT_IMAGE_REGISTRY
-
       - name: Run Cloud Tests
         # This builds the provisioned images and runs the main (i.e. non-manual) tests
         # Since the manual tests reuse these images, we don't need to use
         # ${RUNTIME_IMAGE_OVERRIDE} elsewhere.
         run: |
           echo "Runtime image: ${RUNTIME_IMAGE_OVERRIDE}"
-          # No longer build the base images at the start. Instead build them on demand for each test via the 
+          # No longer build the base images at the start. Instead build them on demand for each test via the
           # docker-cleanup profile, which also deletes them once the test is complete
           # mvn -B install -Pimages -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${TEST_MAVEN_PARAMETERS} -Dmaven.test.redirectTestOutputToFile=false
           mvn -B install -Pdocker-cleanup -fae -Dversion.wildfly=${VERSION_WILDFLY} ${RUNTIME_IMAGE_OVERRIDE} ${TEST_MAVEN_PARAMETERS} -Dmaven.test.redirectTestOutputToFile=false
         working-directory: cloud-tests
 
       - name: Update permissions for Cache post job
-        # Needed because the OpenShift installation adds some files which are not readable/writable
-        # resulting in the Cache post job failing when trying to calculate the hashes
         run: sudo bash -c 'sudo chmod -R 777 .'
 
-      ##################################################  
+      ##################################################
       # Following steps are to report back to the pull request runner remote_dispatch job
       - id: output-status
         if: ${{ always() }}
@@ -283,7 +218,7 @@ jobs:
           else
             echo "Status is: ${STATUS} - treating as failure (1)"
             MY_STATUS=1
-          fi  
+          fi
 
           echo "Setting 'status' output to ${MY_STATUS}"
           echo "status=${MY_STATUS}" >> $GITHUB_OUTPUT

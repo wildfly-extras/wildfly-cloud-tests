@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.processing.Messager;
@@ -45,7 +44,6 @@ import javax.tools.StandardLocation;
 import io.dekorate.kubernetes.annotation.Port;
 import io.dekorate.processor.AbstractAnnotationProcessor;
 import io.dekorate.project.AptProjectFactory;
-import io.dekorate.s2i.annotation.S2iBuild;
 import io.dekorate.utils.Maps;
 
 /**
@@ -66,7 +64,6 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
     private static final String CLI_LAUNCH_SCRIPT_VAR = "CLI_LAUNCH_SCRIPT";
 
     private final AtomicReference<ProcessingEnvironment> processingEnvRef = new AtomicReference<>();
-    private final AtomicBoolean s2iWarningLogged = new AtomicBoolean();
 
     WildFlyDefaultsAbstractAnnotationProcessor() {
 
@@ -90,7 +87,7 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
 
     abstract String getPortPrefix();
 
-    void addAddtionalProperties(Map<String, Object> inputProperties, S2iBuild s2iBuild) {
+    void addAddtionalProperties(Map<String, Object> inputProperties) {
     }
 
     @Override
@@ -125,22 +122,19 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
                     cliScript = null;
                 }
 
-                S2iBuild s2iBuild = getS2iBuildAnnotation(roundEnv);
-
                 boolean suppliedDockerFile = isDockerFileSupplied(targetDirectory);
                 if (!suppliedDockerFile) {
                     generateDockerFile(mainClass, targetDirectory, cliScript);
                 }
 
-                addDefaults(mainClass, cliScript != null, ports, !suppliedDockerFile, s2iBuild);
+                addDefaults(mainClass, cliScript != null, ports, !suppliedDockerFile);
             }
         }
 
         return false;
     }
 
-    private void addDefaults(Element mainClass, boolean cliScriptAdded, Port[] ports, boolean useGenerateDockerFile,
-                             S2iBuild s2iBuild) {
+    private void addDefaults(Element mainClass, boolean cliScriptAdded, Port[] ports, boolean useGenerateDockerFile) {
         Map<String, Object> inputProperties = new HashMap<>();
 
         if (cliScriptAdded) {
@@ -175,18 +169,14 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
         }
         */
 
-        if (s2iBuild == null) {
-            // If the annotation is used we let that take precedence
-            // Let dekorate handle this since the test is set up differently from expected
-            setPropertyWithDefault(inputProperties, "dekorate.s2i.enabled", "false");
-        }
+        setPropertyWithDefault(inputProperties, "dekorate.s2i.enabled", "false");
 
         if (useGenerateDockerFile) {
             // We want to generate our DockerFile, so override the location
             inputProperties.put("dekorate.docker.docker-file", GENERATED_DOCKER_FILE_LOCATION);
         }
 
-        addAddtionalProperties(inputProperties, s2iBuild);
+        addAddtionalProperties(inputProperties);
 
         Map<String, Object> properties = Maps.fromProperties(inputProperties);
 
@@ -293,20 +283,4 @@ abstract class WildFlyDefaultsAbstractAnnotationProcessor extends AbstractAnnota
         return false;
     }
 
-    private S2iBuild getS2iBuildAnnotation(RoundEnvironment roundEnv) {
-        TypeElement dockerBuild = processingEnv.getElementUtils().getTypeElement(S2iBuild.class.getName());
-        Set<? extends Element> s2iBuildClasses = roundEnv.getElementsAnnotatedWith(dockerBuild);
-        if (s2iBuildClasses.size() > 1) {
-            if (s2iWarningLogged.compareAndSet(false, true)) {
-                processingEnv.getMessager()
-                        .printMessage(Diagnostic.Kind.ERROR, "Found more than one class annotated with @S2iBuild: ");
-                for (Element e : s2iBuildClasses) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Annotated with @S2iBuild", e);
-                }
-            }
-        } else if (s2iBuildClasses.size() == 1){
-            return s2iBuildClasses.iterator().next().getAnnotation(S2iBuild.class);
-        }
-        return null;
-    }
 }
