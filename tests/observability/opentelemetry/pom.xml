@@ -32,13 +32,6 @@
     <artifactId>wildfly-cloud-tests-observability-opentelemetry</artifactId>
     <packaging>war</packaging>
 
-    <properties>
-        <!-- While we don't upload these images to any remote repository, using quay.io as the host makes it not use
-             the docker.io host in your local repository.
-         -->
-        <wildfly.cloud.test.base.image.name>quay.io/wildfly-cloud-test-image/image-opentelemetry:latest</wildfly.cloud.test.base.image.name>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>jakarta.inject</groupId>
@@ -66,4 +59,56 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <configuration>
+                    <name>ROOT.war</name>
+                    <container-runtime>${wildfly.image.container-runtime}</container-runtime>
+                    <feature-packs>
+                        <feature-pack>
+                            <location>${server.feature.pack.gav}</location>
+                        </feature-pack>
+                        <feature-pack>
+                            <location>${cloud.feature.pack.gav}</location>
+                        </feature-pack>
+                    </feature-packs>
+                    <layers>
+                        <layer>${cloud.feature.pack.default.config.layer}</layer>
+                        <layer>microprofile-telemetry</layer>
+                        <layer>opentelemetry</layer>
+                    </layers>
+                    <packaging-scripts>
+                        <packaging-script>
+                            <scripts>
+                                <script>src/main/cli-script/init.cli</script>
+                            </scripts>
+                        </packaging-script>
+                    </packaging-scripts>
+                    <galleon-options>
+                        <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
+                    </galleon-options>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>provision-server</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>build-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>image</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

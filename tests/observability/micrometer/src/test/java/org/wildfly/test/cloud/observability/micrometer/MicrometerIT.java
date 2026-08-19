@@ -19,8 +19,6 @@
 
 package org.wildfly.test.cloud.observability.micrometer;
 
-import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
-
 import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpClient;
@@ -28,27 +26,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
 
-import io.fabric8.kubernetes.client.LocalPortForward;
 import io.restassured.RestAssured;
 import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.wildfly.test.cloud.common.KubernetesResource;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 
-/**
- * @author <a href="mailto:jasondlee@redhat.com">Jason Lee</a>
- */
-@Tag(KUBERNETES)
-@WildFlyKubernetesIntegrationTest(
-        namespace = "micrometer",
-        kubernetesResources = {
-                @KubernetesResource(definitionLocation = "src/test/container/collector-config.yml"),
-                @KubernetesResource(definitionLocation = "src/test/container/opentelemetry-collector.yml"),
-                @KubernetesResource(definitionLocation = "src/test/container/service.yml")
-        })
+@WildFlyKubernetesIntegrationTest
 public class MicrometerIT extends WildFlyCloudTestCase {
 
     @Test
@@ -56,9 +41,10 @@ public class MicrometerIT extends WildFlyCloudTestCase {
         int requestCount = (int) ((Math.random() * 10) + 10);
         getHelper().doWithWebPortForward("", url -> makeRestRequests(url, requestCount));
 
-
-        try (LocalPortForward p = getHelper().getK8sClient().services().withName("opentelemetrycollector").portForward(1234)) {
-            URI uri = new URI("http://localhost:" + p.getLocalPort() + "/metrics");
+        Process collectorPortForward = getHelper().kubectl().portForward("svc/opentelemetrycollector", 1234, 1234);
+        try {
+            Thread.sleep(1000);
+            URI uri = new URI("http://localhost:1234/metrics");
 
             final HttpClient client = HttpClient.newBuilder().build();
             final HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
@@ -79,6 +65,8 @@ public class MicrometerIT extends WildFlyCloudTestCase {
             }
 
             Assertions.assertTrue(found, "The test metric 'hello' was not found in the published metrics.");
+        } finally {
+            collectorPortForward.destroyForcibly();
         }
     }
 

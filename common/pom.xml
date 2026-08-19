@@ -37,7 +37,6 @@
 
     <modules>
         <module>bom</module>
-        <module>annotation-processor</module>
         <module>junit-extension</module>
     </modules>
 

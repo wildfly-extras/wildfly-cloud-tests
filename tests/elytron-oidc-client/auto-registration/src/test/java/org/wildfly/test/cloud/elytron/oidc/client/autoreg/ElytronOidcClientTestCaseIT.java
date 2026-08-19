@@ -18,8 +18,6 @@
  */
 package org.wildfly.test.cloud.elytron.oidc.client.autoreg;
 
-import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
-
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -63,80 +61,32 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.wildfly.test.cloud.common.ConfigPlaceholderReplacement;
-import org.wildfly.test.cloud.common.ConfigPlaceholderReplacer;
-import org.wildfly.test.cloud.common.KubernetesResource;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 
-import io.dekorate.testing.WithKubernetesClient;
-import io.dekorate.testing.annotation.Inject;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.client.KubernetesClient;
-
-@Tag(KUBERNETES)
-@WildFlyKubernetesIntegrationTest(
-        placeholderReplacements = {
-            @ConfigPlaceholderReplacement(
-                    placeholder = "$CLUSTER_IP$",
-                    replacer = ElytronOidcClientTestCaseIT.ClusterIPReplacer.class)},
-        kubernetesResources = {
-                @KubernetesResource(
-                        definitionLocation = "src/test/container/keycloak.yml"
-                        ),
-        })
+@WildFlyKubernetesIntegrationTest
 public class ElytronOidcClientTestCaseIT extends WildFlyCloudTestCase {
-    public static class ClusterIPReplacer implements ConfigPlaceholderReplacer, WithKubernetesClient {
 
-        @Override
-        public String replace(ExtensionContext context, String placeholder, String line) {
-            if (line.contains("$CLUSTER_IP$")) {
-                KubernetesClient client = getKubernetesClient(context);
-                String host = client.getMasterUrl().getHost();
-                System.out.println("Replacing $CLUSTER_IP$ with Cluster IP address " + host);
-                line = line.replace("$CLUSTER_IP$", host);
-            }
-            return line;
-        }
-    }
-    private static final String KEYCLOAK_USERNAME = "username";
-    private static final String KEYCLOAK_PASSWORD = "password";
+    private static final String KEYCLOAK_LOGIN_USER_FIELD = "username";
+    private static final String KEYCLOAK_LOGIN_PASS_FIELD = "password";
 
     private static final String KEYCLOAK_SERVICE_NAME = "keycloak-server-cloud-test-service";
 
-    @Inject
-    private KubernetesClient client;
-
-    @Inject
-    private KubernetesList list;
-
     @Test
     public void checkKeycloak() throws Exception {
+        String clusterIP = getHelper().kubectl().getClusterIP();
 
-        Integer appPort = null;
-        for (ServicePort sp : client.services().withName(getHelper().getContainerName()).get().getSpec().getPorts()) {
-            if ("http".equals(sp.getName())) {
-                appPort = sp.getNodePort();
-                break;
-            }
-        }
-        Assertions.assertNotNull(appPort, "nodePort of application is not found in service");
-        Integer keycloakPort = null;
-        for (ServicePort sp : client.services().withName(KEYCLOAK_SERVICE_NAME).get().getSpec().getPorts()) {
-            if ("http".equals(sp.getName())) {
-                keycloakPort = sp.getNodePort();
-                break;
-            }
-        }
-        Assertions.assertNotNull(keycloakPort, "nodePort of keycloak server is not found in service");
-        loginToApp("demo", "demo", new URL("http://" + client.getMasterUrl().getHost() + ":" + appPort + "/secured"));
+        int appPort = getHelper().kubectl().getNodePort(getHelper().getContainerName(), "http");
+        int keycloakPort = getHelper().kubectl().getNodePort(KEYCLOAK_SERVICE_NAME, "http");
+
+        Assertions.assertTrue(appPort > 0, "nodePort of application is not found in service");
+        Assertions.assertTrue(keycloakPort > 0, "nodePort of keycloak server is not found in service");
+
+        loginToApp("demo", "demo", new URL("http://" + clusterIP + ":" + appPort + "/secured"));
     }
 
-    public static void loginToApp(String username, String password, URL requestUri) throws Exception {
+    public static void loginToApp(String username, String pwd, URL requestUri) throws Exception {
         CookieStore store = new BasicCookieStore();
         HttpClient httpClient = promiscuousCookieHttpClientBuilder()
                 .setDefaultCookieStore(store)
@@ -147,7 +97,7 @@ public class ElytronOidcClientTestCaseIT extends WildFlyCloudTestCase {
         HttpResponse response = httpClient.execute(getMethod, context);
         try {
             Form keycloakLoginForm = new Form(response);
-            HttpResponse afterLoginClickResponse = simulateClickingOnButton(httpClient, keycloakLoginForm, username, password, "Sign In");
+            HttpResponse afterLoginClickResponse = simulateClickingOnButton(httpClient, keycloakLoginForm, username, pwd, "Sign In");
             afterLoginClickResponse.getEntity().getContent();
             Assertions.assertEquals(200, afterLoginClickResponse.getStatusLine().getStatusCode());
             String responseString = new BasicResponseHandler().handleResponse(afterLoginClickResponse);
@@ -282,7 +232,7 @@ public class ElytronOidcClientTestCaseIT extends WildFlyCloudTestCase {
         }
     }
 
-    private static HttpResponse simulateClickingOnButton(HttpClient client, Form form, String username, String password, String buttonValue) throws IOException {
+    private static HttpResponse simulateClickingOnButton(HttpClient client, Form form, String username, String pwd, String buttonValue) throws IOException {
         final URL url = new URL(form.getAction());
         final HttpPost request = new HttpPost(url.toString());
         final List<NameValuePair> params = new LinkedList<>();
@@ -290,10 +240,10 @@ public class ElytronOidcClientTestCaseIT extends WildFlyCloudTestCase {
             if (input.type == Input.Type.HIDDEN
                     || (input.type == Input.Type.SUBMIT && input.getValue().equals(buttonValue))) {
                 params.add(new BasicNameValuePair(input.getName(), input.getValue()));
-            } else if (input.getName().equals(KEYCLOAK_USERNAME)) {
+            } else if (input.getName().equals(KEYCLOAK_LOGIN_USER_FIELD)) {
                 params.add(new BasicNameValuePair(input.getName(), username));
-            } else if (input.getName().equals(KEYCLOAK_PASSWORD)) {
-                params.add(new BasicNameValuePair(input.getName(), password));
+            } else if (input.getName().equals(KEYCLOAK_LOGIN_PASS_FIELD)) {
+                params.add(new BasicNameValuePair(input.getName(), pwd));
             }
         }
         request.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));

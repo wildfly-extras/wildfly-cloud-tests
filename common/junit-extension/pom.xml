@@ -43,7 +43,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- Other dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -51,22 +50,6 @@
         <dependency>
             <groupId>org.jboss</groupId>
             <artifactId>jboss-dmr</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.dekorate</groupId>
-            <artifactId>dekorate-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.dekorate</groupId>
-            <artifactId>core-junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId> io.dekorate</groupId>
-            <artifactId>kubernetes-junit</artifactId>
         </dependency>
     </dependencies>
 

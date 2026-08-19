@@ -18,34 +18,15 @@
  */
 package org.wildfly.test.cloud.observability.opentelemetry;
 
-import static org.wildfly.test.cloud.common.WildflyTags.KUBERNETES;
-
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.wildfly.test.cloud.common.KubernetesResource;
 import org.wildfly.test.cloud.common.WildFlyCloudTestCase;
 import org.wildfly.test.cloud.common.WildFlyKubernetesIntegrationTest;
 
-@Tag(KUBERNETES)
-@WildFlyKubernetesIntegrationTest(
-        namespace = "opentelemetry",
-        kubernetesResources = {
-                @KubernetesResource(definitionLocation = "src/test/container/collector-config.yml"),
-                @KubernetesResource(definitionLocation = "src/test/container/service.yml"),
-                @KubernetesResource(definitionLocation = "src/test/container/opentelemetry-collector.yml")
-        })
+@WildFlyKubernetesIntegrationTest
 public class OpenTelemetryIT extends WildFlyCloudTestCase {
 
-
-    /**
-     * The goal here is to make a request to the application, which should cause a trace to be generated.
-     * That trace will then be pushed to the collector, which will lof the information to its log. We will then read
-     * the log and verify that the trace was created and exported. There does not appear to be a plaintext trace
-     * exporter (such as metrics' Prometheus format) that we can configure. All the exporters I've seen
-     * (other than logging and file) export to another system in a binary format.
-     */
     @Test
     public void smokeTest() throws Exception {
         getHelper().doWithWebPortForward("", url ->
@@ -55,13 +36,7 @@ public class OpenTelemetryIT extends WildFlyCloudTestCase {
                         .assertThat()
                         .statusCode(200));
 
-        final String podName = getHelper().getK8sClient().pods()
-                .withLabel("app.kubernetes.io/name", "opentelemetrycollector")
-                .list()
-                .getItems()
-                .get(0)
-                .getMetadata()
-                .getName();
+        String podName = getHelper().kubectl().getPodNames("app.kubernetes.io/name=opentelemetrycollector").get(0);
         boolean found = false;
         int count = 0;
         while (count < 10) {
