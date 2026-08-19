@@ -77,8 +77,13 @@ jobs:
     with:
       runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk21
 
+  kubernetes-jdk25:
+    uses: ./.github/workflows/wildfly-cloud-tests-callable.yml
+    with:
+      runtimeImage: quay.io/wildfly/wildfly-runtime:latest-jdk25
+
   reporter-completed:
-    needs: [ kubernetes-jdk17, kubernetes-jdk21 ]
+    needs: [ kubernetes-jdk17, kubernetes-jdk21,  kubernetes-jdk25 ]
     if: ${{ always() }}
     permissions:
       contents: write
