@@ -31,6 +31,10 @@
     <artifactId>wildfly-cloud-tests</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -150,7 +154,7 @@
                                 <phase>integration-test</phase>
                                 <configuration>
                                     <groups>Kubernetes</groups>
-                                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                                    <redirectTestOutputToFile>${maven.test.redirectTestOutputToFile}</redirectTestOutputToFile>
                                     <includes>
                                         <include>**/*IT.class</include>
                                     </includes>
