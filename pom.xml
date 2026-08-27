@@ -47,7 +47,7 @@
         <!-- Plugin versions -->
         <version.org.apache.maven.plugins.maven-failsafe-plugin>3.5.4</version.org.apache.maven.plugins.maven-failsafe-plugin>
         <version.org.codehaus.mojo.exec-maven-plugin>3.6.3</version.org.codehaus.mojo.exec-maven-plugin>
-        <version.org.wildfly.plugins.wildfly-maven-plugin>5.1.3.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
+        <version.org.wildfly.plugins.wildfly-maven-plugin>6.0.1.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
 
         <!-- WildFly feature pack coordinates -->
         <server.feature.pack.gav>org.wildfly:wildfly-galleon-pack:${version.wildfly}</server.feature.pack.gav>
