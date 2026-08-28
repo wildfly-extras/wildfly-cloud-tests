@@ -42,7 +42,7 @@
         <version.wildfly.datasources.galleon.pack>9.1.0.Final</version.wildfly.datasources.galleon.pack>
 
         <!-- Dependency versions -->
-        <version.com.fasterxml.jackson>2.18.4</version.com.fasterxml.jackson>
+        <version.com.fasterxml.jackson>2.22.2</version.com.fasterxml.jackson>
 
         <!-- Plugin versions -->
         <version.org.apache.maven.plugins.maven-failsafe-plugin>3.5.6</version.org.apache.maven.plugins.maven-failsafe-plugin>
