@@ -45,7 +45,7 @@
         <version.com.fasterxml.jackson>2.22.2</version.com.fasterxml.jackson>
 
         <!-- Plugin versions -->
-        <version.org.apache.maven.plugins.maven-failsafe-plugin>3.5.6</version.org.apache.maven.plugins.maven-failsafe-plugin>
+        <version.org.apache.maven.plugins.maven-failsafe-plugin>3.6.0</version.org.apache.maven.plugins.maven-failsafe-plugin>
         <version.org.codehaus.mojo.exec-maven-plugin>3.6.3</version.org.codehaus.mojo.exec-maven-plugin>
         <version.org.wildfly.plugins.wildfly-maven-plugin>6.0.1.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
 
